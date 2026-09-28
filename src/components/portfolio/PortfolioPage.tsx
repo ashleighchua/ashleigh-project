@@ -1,1235 +1,1054 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import hannahHome from "@/assets/hannah-home.png";
-import schoolTripsDashboard from "@/assets/schooltrips-dashboard.png";
-import lunarPlaygroundHome from "@/assets/lunar-playground-home.png";
-import shandongTrip from "@/assets/shandong-trip.jpg";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { ArrowDown, Check, MapPin, Menu, ShieldCheck, Sparkles, Star, X } from "lucide-react";
 import portraitPhoto from "@/assets/portrait.jpg";
+import greatWallGroup from "@/assets/great-wall-group.jpg";
+import greatWallTents from "@/assets/great-wall-tents.jpg";
+import greatWallBridge from "@/assets/great-wall-bridge.jpg";
+import stHome from "@/assets/st-home.jpg";
+import stProblem from "@/assets/st-problem.jpg";
+import hjPublic from "@/assets/hj-public.jpg";
+import hjAdmin from "@/assets/hj-admin.jpg";
+import { SceneArt, StickerFace, TableObject, type Look } from "./art";
+import { CatSvg, type CatRefs } from "./cat";
+import {
+  COL,
+  DSP,
+  HISS,
+  LINKS,
+  MEOWS,
+  MSP,
+  OBJ,
+  PATH,
+  PIPELINE,
+  PLAY,
+  SH,
+  STK,
+  ZONES,
+} from "./data";
 import "./portfolio.css";
 
-/* ═══════════════════════ shared bits ═══════════════════════ */
+/* ── Config (the "props" from the design reference) ── */
+const SHOW_CAT = true;
+type CatMood = "sweet" | "aloof" | "grumpy";
+const CAT_MOOD = "aloof" as CatMood;
+const CAT_SPEED = 45; // px/s
+const DRIFT = 14; // px
+const MOBILE_BP = 760;
+/** [ignore chance, hiss chance] per mood */
+const MOODS: Record<CatMood, [number, number]> = {
+  sweet: [0.15, 0.06],
+  aloof: [0.4, 0.2],
+  grumpy: [0.35, 0.42],
+};
 
-function cl(v: number, a: number, b: number) {
-  return v < a ? a : v > b ? b : v;
-}
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
-}
-function ease(t: number) {
-  return 1 - Math.pow(1 - t, 3);
-}
-function mixColor(a: string, b: string, t: number) {
-  const A = [parseInt(a.slice(1, 3), 16), parseInt(a.slice(3, 5), 16), parseInt(a.slice(5, 7), 16)];
-  const B = [parseInt(b.slice(1, 3), 16), parseInt(b.slice(3, 5), 16), parseInt(b.slice(5, 7), 16)];
-  return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i]!, t))).join(",")})`;
-}
+const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const back = (t: number) => {
+  const c = 1.9;
+  return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2);
+};
+const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
-/**
- * Renders `\n`-delimited lines as a single inline element with real <br/>s.
- * Must stay a single element (not a Fragment of siblings) — the `.sh` shapes
- * are flex containers, so sibling elements would each become their own flex
- * item and lay out side by side instead of stacking as text.
- */
-function Lines({ text }: { text: string }) {
-  const lines = text.split("\n");
-  return (
-    <span>
-      {lines.map((line, i) => (
-        <span key={i}>
-          {line}
-          {i < lines.length - 1 && <br />}
-        </span>
-      ))}
-    </span>
+type Sim = {
+  spot: number;
+  sx: number;
+  sy: number;
+  jx: number;
+  jy: number;
+  rot: number;
+  trot: number;
+  pop: number;
+  ph: number;
+  sp: number;
+  init: boolean;
+};
+type CatState = {
+  x: number;
+  dir: number;
+  mode: "walk" | "sit" | "hiss" | "zoom";
+  until: number;
+  nextSit: number;
+  phase: number;
+  flick: number;
+};
+type Bubble = { text: string; kind: "talk" | "hiss" | "ignore"; right: boolean } | null;
+
+export function PortfolioPage() {
+  const [mobile, setMobile] = useState(false);
+  const [vw, setVw] = useState(1400);
+  const [looks, setLooks] = useState<Look[]>(() => STK.map((p) => ({ c: p.c, s: p.s })));
+  const [bubble, setBubble] = useState<Bubble>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [hjView, setHjView] = useState<"public" | "admin">("public");
+  /** Lunar pipeline teaser: -1 idle, 0..n-1 running step, n done */
+  const [lunar, setLunar] = useState(-1);
+  const lunarTimers = useRef<number[]>([]);
+
+  /* DOM refs written to directly by the rAF loop */
+  const rootRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const subRef = useRef<HTMLParagraphElement>(null);
+  const tlRef = useRef<HTMLElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const tlBarRef = useRef<HTMLDivElement>(null);
+  const postEls = useRef<(HTMLButtonElement | null)[]>([]);
+  const slotEls = useRef<(HTMLDivElement | null)[]>([]);
+  const faceS = useRef<(HTMLDivElement | null)[]>([]);
+  const faceO = useRef<(HTMLDivElement | null)[]>([]);
+  const landed = useRef<boolean[]>([]);
+  const catEl = useRef<HTMLDivElement>(null);
+  const catFlip = useRef<HTMLDivElement>(null);
+  const catParts = useRef<CatRefs>({ legs: [], bodyG: null, tail: null, eyes: null, mouth: null });
+
+  /* Animation state kept out of React */
+  const sim = useRef<Sim[]>(
+    STK.map((_, i) => {
+      const rot = rnd(-14, 14);
+      return {
+        spot: i,
+        sx: 0.5,
+        sy: 0.45,
+        jx: rnd(-0.02, 0.02),
+        jy: rnd(-0.02, 0.02),
+        rot,
+        trot: rot,
+        pop: 0,
+        ph: rnd(0, 6.28),
+        sp: rnd(0.5, 1.1),
+        init: false,
+      };
+    }),
   );
-}
-
-/** A screenshot slot: shows the real image once one is supplied, otherwise a labeled placeholder. Links out to the live site when `href` is set. */
-function Shot({
-  chrome,
-  src,
-  alt,
-  label,
-  dims = "1200 × 800",
-  href,
-}: {
-  chrome: string;
-  src?: string;
-  alt: string;
-  label: string;
-  dims?: string;
-  href?: string;
-}) {
-  const body = (
-    <>
-      <div className="chr">
-        <i /> <i /> <i />
-        <span>{chrome}</span>
-      </div>
-      {src ? (
-        <img className="shot-img" src={src} alt={alt} width={1200} height={800} loading="lazy" />
-      ) : (
-        <div className="ph">
-          <b>Screenshot slot</b>
-          {label} · {dims}
-        </div>
-      )}
-    </>
-  );
-
-  if (href) {
-    return (
-      <a
-        className="shot shot-live"
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`Visit ${chrome} (opens in a new tab)`}
-      >
-        {body}
-      </a>
-    );
-  }
-
-  return <div className="shot">{body}</div>;
-}
-
-/** A drawer that auto-sizes to its (possibly changing) content while open. */
-function Drawer({ open, children }: { open: boolean; children: ReactNode }) {
-  const innerRef = useRef<HTMLDivElement>(null);
-  const [contentHeight, setContentHeight] = useState(0);
+  const cat = useRef<CatState>({
+    x: 40,
+    dir: 1,
+    mode: "walk",
+    until: 0,
+    nextSit: 7,
+    phase: 0,
+    flick: -9,
+  });
+  const t0 = useRef(0);
+  const mobileRef = useRef(false);
+  const reduceRef = useRef(false);
+  const bubbleTimer = useRef<number | undefined>(undefined);
+  const petting = useRef({ clicks: 0, last: -99, meow: -1 });
 
   useEffect(() => {
-    const el = innerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setContentHeight(el.scrollHeight));
-    ro.observe(el);
-    setContentHeight(el.scrollHeight);
-    return () => ro.disconnect();
+    reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const onResize = () => {
+      const m = window.innerWidth < MOBILE_BP;
+      mobileRef.current = m;
+      setMobile(m);
+      setVw(window.innerWidth);
+    };
+    onResize();
+    window.addEventListener("resize", onResize);
+
+    t0.current = performance.now();
+    let last = t0.current;
+    let raf = 0;
+    let tlH = 0;
+
+    const tick = (now: number) => {
+      const t = (now - t0.current) / 1000;
+      const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+      last = now;
+      const reduce = reduceRef.current;
+      const root = rootRef.current;
+      const hero = heroRef.current;
+      const vh = window.innerHeight;
+      const hr = hero?.getBoundingClientRect();
+
+      /* stickers: float in hero → morph into table objects on scroll */
+      if (root && hero && hr && hr.width > 0) {
+        const rr = root.getBoundingClientRect();
+        const hx = hr.left - rr.left;
+        const hy = hr.top - rr.top;
+        const W = hr.width;
+        const H = hr.height;
+        const scroll = -rr.top;
+        const drift = reduce ? 0 : DRIFT;
+        const spots = mobileRef.current ? MSP : DSP;
+
+        let E: { cx: number; cy: number; hw: number; hh: number } | null = null;
+        const tEl = titleRef.current;
+        if (tEl) {
+          const a1 = tEl.getBoundingClientRect();
+          const b1 = subRef.current ? subRef.current.getBoundingClientRect() : a1;
+          const l = Math.min(a1.left, b1.left) - rr.left - 16;
+          const rt = Math.max(a1.right, b1.right) - rr.left + 16;
+          const tp = Math.min(a1.top, b1.top) - rr.top - 16;
+          const bt = Math.max(a1.bottom, b1.bottom) - rr.top + 16;
+          E = { cx: (l + rt) / 2, cy: (tp + bt) / 2, hw: (rt - l) / 2, hh: (bt - tp) / 2 };
+        }
+
+        STK.forEach((_, i) => {
+          const el = postEls.current[i];
+          const slot = slotEls.current[i];
+          const fS = faceS.current[i];
+          const fO = faceO.current[i];
+          const s = sim.current[i]!;
+          if (!el || !slot || !fS || !fO) return;
+          const sp = spots[s.spot]!;
+          const tsx = sp[0] + s.jx;
+          const tsy = sp[1] + s.jy;
+          if (!s.init) {
+            s.sx = tsx;
+            s.sy = tsy;
+            s.init = true;
+          }
+          s.sx += (tsx - s.sx) * 0.06;
+          s.sy += (tsy - s.sy) * 0.06;
+          s.rot += (s.trot - s.rot) * 0.08;
+          s.pop *= 0.9;
+
+          const a = reduce ? 1 : clamp((t - 0.2 - i * 0.09) / 0.75);
+          let fx = hx + s.sx * W + Math.sin(t * s.sp + s.ph) * drift;
+          let fy = hy + s.sy * H + Math.cos(t * s.sp * 0.8 + s.ph) * drift;
+          const kid = fS.firstElementChild as HTMLElement | null;
+          const kr = kid?.getBoundingClientRect();
+          const hw = (kid ? kid.offsetWidth || kr!.width : 0) / 2 + 14;
+          const hh = (kid ? kid.offsetHeight || kr!.height : 0) / 2 + 14;
+          fx = clamp(fx, hx + hw, hx + W - hw);
+          fy = clamp(fy, hy + hh, hy + H - hh);
+          // keep stickers off the headline
+          if (E) {
+            const dx = fx - E.cx;
+            const dy = fy - E.cy;
+            const ox = E.hw + hw - Math.abs(dx);
+            const oy = E.hh + hh - Math.abs(dy);
+            if (ox > 0 && oy > 0) {
+              const nx = fx + (dx < 0 ? -1 : 1) * ox;
+              const xOk = nx >= hx + hw && nx <= hx + W - hw;
+              if (oy < ox || !xOk) fy += (dy < 0 ? -1 : 1) * oy;
+              else fx = nx;
+            }
+            fx = clamp(fx, hx + hw, hx + W - hw);
+            fy = clamp(fy, hy + hh, hy + H - hh);
+          }
+
+          const sr = slot.getBoundingClientRect();
+          const tx = sr.left - rr.left + sr.width / 2;
+          const ty = sr.top - rr.top + sr.height / 2;
+          const end = Math.max(1, sr.top - rr.top - vh * 0.6);
+          const k = (i % 2) * 0.07;
+          const e = reduce ? 1 : easeInOut(clamp((scroll / end - k) / (1 - k)));
+          const arc = Math.sin(e * Math.PI) * (i % 2 ? 80 : -80);
+          const x = fx + (tx - fx) * e + arc;
+          const y = fy + (ty - fy) * e;
+          el.style.transform = `translate3d(${x}px,${y}px,0) rotate(${s.rot * (1 - e)}deg)`;
+          el.style.opacity = String(a);
+          const m2 = clamp((e - 0.7) / 0.3);
+          fS.style.opacity = String(1 - m2);
+          fS.style.pointerEvents = m2 > 0.5 ? "none" : "auto";
+          fS.style.transform = `translate(-50%,-50%) scale(${(1 - 0.35 * m2) * back(a) * (1 + s.pop * 0.2)})`;
+          fO.style.opacity = String(m2);
+          fO.style.pointerEvents = m2 > 0.5 ? "auto" : "none";
+          fO.style.transform = `translate(-50%,-50%) scale(${(0.7 + 0.3 * m2) * (1 + s.pop * 0.18)})`;
+          landed.current[i] = e > 0.85;
+        });
+      }
+
+      /* pinned horizontal timeline */
+      const tl = tlRef.current;
+      const track = trackRef.current;
+      if (tl && track) {
+        const r = tl.getBoundingClientRect();
+        const dist = Math.max(0, track.scrollWidth - window.innerWidth);
+        const want = dist + vh;
+        if (Math.abs(tlH - want) > 1) {
+          tl.style.height = `${want}px`;
+          tlH = want;
+        }
+        const p = clamp(-r.top / Math.max(1, dist));
+        track.style.transform = `translate3d(${-p * dist}px,0,0)`;
+        if (tlBarRef.current) tlBarRef.current.style.width = `${p * 100}%`;
+      }
+
+      tickCat(t, dt);
+    };
+
+    const tickCat = (t: number, dt: number) => {
+      const el = catEl.current;
+      const flip = catFlip.current;
+      if (!el || !flip) return;
+      const c = cat.current;
+      const parts = catParts.current;
+      const W = window.innerWidth;
+      if (c.mode !== "walk" && t > c.until) {
+        c.mode = c.mode === "hiss" ? "zoom" : "walk";
+        if (c.mode === "zoom") {
+          c.until = t + 1.4;
+          c.dir = Math.random() < 0.5 ? -1 : 1;
+        }
+      }
+      if (c.mode === "walk" && t > c.nextSit) {
+        c.mode = "sit";
+        c.until = t + rnd(2.2, 4);
+        c.nextSit = c.until + rnd(6, 12);
+      }
+      const moving = !reduceRef.current && (c.mode === "walk" || c.mode === "zoom");
+      const speed = c.mode === "zoom" ? CAT_SPEED * 5 : CAT_SPEED;
+      if (moving) {
+        c.x += c.dir * speed * dt;
+        c.phase += dt * speed * 0.22;
+        if (c.x < 8) {
+          c.x = 8;
+          c.dir = 1;
+        }
+        if (c.x > W - 92) {
+          c.x = W - 92;
+          c.dir = -1;
+        }
+      }
+      const hiss = c.mode === "hiss";
+      el.style.transform = `translateX(${c.x}px)`;
+      flip.style.transform = `scaleX(${c.dir})`;
+      const a = moving ? Math.sin(c.phase) * (c.mode === "zoom" ? 38 : 26) : 0;
+      parts.legs.forEach((l, i) => {
+        if (l) l.style.transform = `rotate(${i === 0 || i === 3 ? a : -a}deg)`;
+      });
+      if (parts.tail) {
+        const flick = t - c.flick < 0.7;
+        parts.tail.style.transform = `rotate(${hiss ? -30 : flick ? Math.sin(t * 28) * 22 : Math.sin(t * (moving ? 3 : 1.6)) * 14}deg)`;
+        parts.tail.setAttribute("stroke-width", hiss ? "9" : "5");
+      }
+      if (parts.bodyG)
+        parts.bodyG.style.transform = hiss
+          ? "translateY(-6px) scaleY(1.1)"
+          : `translateY(${moving ? Math.abs(Math.sin(c.phase)) * -1.5 : 0}px)`;
+      if (parts.eyes)
+        parts.eyes.style.transform = `scaleY(${hiss ? 0.4 : t % 4.3 < 0.13 ? 0.12 : 1})`;
+      if (parts.mouth) parts.mouth.style.opacity = hiss ? "1" : "0";
+    };
+
+    const loop = (now: number) => {
+      raf = requestAnimationFrame(loop);
+      tick(now);
+    };
+    raf = requestAnimationFrame(loop);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+      window.clearTimeout(bubbleTimer.current);
+      lunarTimers.current.forEach((t) => window.clearTimeout(t));
+    };
   }, []);
 
-  return (
-    <div className="drawer" style={{ maxHeight: open ? contentHeight + 40 : 0 }}>
-      <div className="in" ref={innerRef}>
-        {children}
-      </div>
-    </div>
-  );
-}
+  /* Click a floating sticker: swap spots with another, new tilt, new colour + shape */
+  const poke = useCallback((i: number) => {
+    const s = sim.current[i]!;
+    s.pop = 1;
+    if (landed.current[i]) return;
+    let j = Math.floor(Math.random() * (STK.length - 1));
+    if (j >= i) j++;
+    const o = sim.current[j]!;
+    [s.spot, o.spot] = [o.spot, s.spot];
+    s.jx = rnd(-0.03, 0.03);
+    s.jy = rnd(-0.03, 0.03);
+    s.trot = rnd(-18, 18);
+    o.trot = rnd(-18, 18);
+    o.pop = 0.5;
+    const nS = SH.length;
+    setLooks((prev) => {
+      const next = prev.slice();
+      const L = next[i]!;
+      next[i] = {
+        c: (L.c + 1 + Math.floor(Math.random() * (COL.length - 1))) % COL.length,
+        s: (L.s + 1 + Math.floor(Math.random() * (nS - 1))) % nS,
+      };
+      return next;
+    });
+  }, []);
 
-/* ═══════════════════════ scroll stage: chaos → sorted ═══════════════════════ */
+  const say = (text: string, kind: "talk" | "hiss" | "ignore", ms: number) => {
+    setBubble({ text, kind, right: cat.current.x > window.innerWidth - 260 });
+    window.clearTimeout(bubbleTimer.current);
+    bubbleTimer.current = window.setTimeout(() => setBubble(null), ms);
+  };
 
-type ShapeKind =
-  | "note"
-  | "circ"
-  | "blob"
-  | "pill"
-  | "card"
-  | "tape"
-  | "torn"
-  | "polaroid"
-  | "tab"
-  | "hl"
-  | "star"
-  | "sq";
-type Shape = {
-  k: ShapeKind;
-  t: string;
-  c?: string;
-  ac?: string;
-  x: number;
-  y: number;
-  r: number;
-  cat: 0 | 1 | 2 | 3;
-};
-
-const PALETTE = {
-  peach: "#F2B183",
-  lav: "#C7C1F7",
-  sky: "#9DC9F2",
-  pink: "#F3A8BF",
-  mint: "#A2DCC3",
-  butter: "#F6D274",
-};
-
-const SHAPES: Shape[] = [
-  // 0 — figuring it out
-  { k: "note", t: "Chemical\nengineering", c: PALETTE.sky, x: 14, y: 20, r: -8, cat: 0 },
-  { k: "circ", t: "Cold email\nnumber 37", c: PALETTE.butter, x: 30, y: 74, r: 5, cat: 0 },
-  { k: "hl", t: "no roadmap", ac: PALETTE.butter, x: 76, y: 14, r: 6, cat: 0 },
-  {
-    k: "torn",
-    t: "Learned MCP\nfrom scratch",
-    c: "#fff",
-    ac: PALETTE.sky,
-    x: 88,
-    y: 58,
-    r: -5,
-    cat: 0,
-  },
-  { k: "tape", t: "figure it out", c: PALETTE.peach, x: 8, y: 48, r: -14, cat: 0 },
-
-  // 1 — structuring the mess
-  { k: "card", t: "Big Four\nconsulting", ac: PALETTE.lav, x: 22, y: 40, r: 3, cat: 1 },
-  { k: "tab", t: "regulatory risk", c: PALETTE.lav, x: 64, y: 86, r: 4, cat: 1 },
-  { k: "note", t: "Ask the obvious\nquestion", c: PALETTE.mint, x: 46, y: 16, r: -6, cat: 1 },
-  { k: "blob", t: "voice note\n→ plan", c: PALETTE.pink, x: 84, y: 34, r: 7, cat: 1 },
-  { k: "sq", t: "12 sheets,\n1 system", c: PALETTE.sky, x: 38, y: 92, r: -4, cat: 1 },
-
-  // 2 — building the thing
-  { k: "polaroid", t: "schooltrips", ac: PALETTE.lav, x: 70, y: 48, r: -7, cat: 2 },
-  { k: "note", t: "Ten years,\nstate orchestra", c: PALETTE.pink, x: 54, y: 62, r: 8, cat: 2 },
-  { k: "circ", t: "shipped it", c: PALETTE.mint, x: 94, y: 80, r: -6, cat: 2 },
-  { k: "pill", t: "Claude Code, Cursor, Vercel", x: 16, y: 88, r: 6, cat: 2 },
-  { k: "star", t: "✳", ac: PALETTE.peach, x: 60, y: 34, r: 0, cat: 2 },
-
-  // 3 — making myself unnecessary
-  { k: "note", t: "She edits it\nherself", c: PALETTE.peach, x: 34, y: 56, r: -5, cat: 3 },
-  { k: "circ", t: "0 lines of\ncode, hers", c: PALETTE.lav, x: 6, y: 66, r: 4, cat: 3 },
-  { k: "tape", t: "playbooks that outlive me", c: PALETTE.mint, x: 78, y: 70, r: 9, cat: 3 },
-  { k: "card", t: "Automated\nthe inbox", ac: PALETTE.butter, x: 50, y: 82, r: 5, cat: 3 },
-  { k: "hl", t: "never needed again", ac: PALETTE.pink, x: 90, y: 22, r: -6, cat: 3 },
-];
-
-const COLS = [
-  { h: "Figuring it out", s: "Give me the thing nobody has defined yet." },
-  { h: "Structuring the mess", s: "Ambiguity in, shape out." },
-  { h: "Building the thing", s: "I ship it, not a recommendation of it." },
-  { h: "Making myself unnecessary", s: "It keeps running when I leave the room." },
-];
-
-const COL_BOX_COLORS = ["#eaf3fc", "#f1effc", "#eaf7f0", "#fdf0e4"];
-
-type Target = { x: number; y: number; s: number };
-
-function ShapeEl({ shape, elRef }: { shape: Shape; elRef: (el: HTMLDivElement | null) => void }) {
-  const style: React.CSSProperties & Record<string, string> = {};
-  if (shape.c) style.background = shape.c;
-  if (shape.ac) style["--ac"] = shape.ac;
-
-  return (
-    <div ref={elRef} className={`sh ${shape.k}`} style={style}>
-      {shape.k === "polaroid" ? (
-        <>
-          <div className="sq" style={{ background: shape.ac ?? PALETTE.lav }} />
-          <span>{shape.t}</span>
-        </>
-      ) : shape.k === "hl" ? (
-        <b>{shape.t}</b>
-      ) : (
-        <Lines text={shape.t} />
-      )}
-    </div>
-  );
-}
-
-const INTRO_BEATS = [
-  "Four years of chemical engineering.",
-  "Ten years in a state orchestra.",
-  "Then Big Four consulting.",
-];
-
-function ScrollStage() {
-  const stageRef = useRef<HTMLElement>(null);
-  const stickyRef = useRef<HTMLDivElement>(null);
-  const fieldRef = useRef<HTMLDivElement>(null);
-  const colsRef = useRef<HTMLDivElement>(null);
-  const stageCopyRef = useRef<HTMLDivElement>(null);
-  const introRef = useRef<HTMLDivElement>(null);
-  const cueRef = useRef<HTMLDivElement>(null);
-  const sortedTitleRef = useRef<HTMLDivElement>(null);
-  const shapeRefs = useRef<Array<HTMLDivElement | null>>([]);
-  const headRefs = useRef<Array<HTMLDivElement | null>>([]);
-  const colBoxesRef = useRef<HTMLDivElement>(null);
-  const boxRefs = useRef<Array<HTMLDivElement | null>>([]);
-
-  const [showBeats, setShowBeats] = useState(true);
-  const [beatText, setBeatText] = useState("");
-
-  useEffect(() => {
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setShowBeats(false);
+  /* The cat only sometimes responds */
+  const petCat = () => {
+    const c = cat.current;
+    const pet = petting.current;
+    const t = (performance.now() - t0.current) / 1000;
+    if (c.mode === "hiss" || c.mode === "zoom") return;
+    pet.clicks = t - pet.last < 6 ? pet.clicks + 1 : 1;
+    pet.last = t;
+    const [ig, baseHiss] = MOODS[CAT_MOOD];
+    const hs = baseHiss + (pet.clicks - 1) * 0.12;
+    const r = Math.random();
+    if (r < ig) {
+      c.flick = t;
+      if (Math.random() < 0.35) say("…", "ignore", 1200);
       return;
     }
-
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout>;
-
-    function finish() {
-      if (cancelled) return;
-      cancelled = true;
-      clearTimeout(timer);
-      setShowBeats(false);
+    if (r < ig + hs) {
+      c.mode = "hiss";
+      c.until = t + 1.3;
+      say(HISS[Math.floor(Math.random() * HISS.length)]!, "hiss", 1600);
+      return;
     }
+    pet.meow = (pet.meow + 1) % MEOWS.length;
+    c.mode = "sit";
+    c.until = t + 4;
+    say(MEOWS[pet.meow]!, "talk", 3800);
+  };
 
-    function typeBeat(beatIndex: number) {
-      if (cancelled) return;
-      if (beatIndex >= INTRO_BEATS.length) {
-        timer = setTimeout(finish, 250);
-        return;
-      }
-      const text = INTRO_BEATS[beatIndex]!;
-      let i = 0;
-      const tick = () => {
-        if (cancelled) return;
-        i++;
-        setBeatText(text.slice(0, i));
-        if (i < text.length) {
-          timer = setTimeout(tick, 28);
-        } else {
-          timer = setTimeout(() => {
-            if (cancelled) return;
-            setBeatText("");
-            typeBeat(beatIndex + 1);
-          }, 480);
-        }
-      };
-      tick();
+  const k = mobile ? 0.58 : Math.min(1, vw / 1400 + 0.18);
+  const ko = mobile ? 0.8 : 1;
+  const zoneH = mobile ? 240 : 290;
+
+  const runOrder = () => {
+    lunarTimers.current.forEach((t) => window.clearTimeout(t));
+    if (reduceRef.current) {
+      setLunar(PIPELINE.length);
+      return;
     }
-
-    typeBeat(0);
-    addEventListener("scroll", finish, { passive: true, once: true });
-    addEventListener("wheel", finish, { passive: true, once: true });
-    addEventListener("touchstart", finish, { passive: true, once: true });
-    addEventListener("pointerdown", finish, { passive: true, once: true });
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-      removeEventListener("scroll", finish);
-      removeEventListener("wheel", finish);
-      removeEventListener("touchstart", finish);
-      removeEventListener("pointerdown", finish);
-    };
-  }, []);
-
-  useEffect(() => {
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const stage = stageRef.current!;
-    const sticky = stickyRef.current!;
-    const stageCopy = stageCopyRef.current!;
-    const intro = introRef.current!;
-    const cue = cueRef.current!;
-    const cols = colsRef.current!;
-    const sortedTitle = sortedTitleRef.current!;
-    const els = shapeRefs.current;
-    const heads = headRefs.current;
-    const colBoxes = colBoxesRef.current!;
-    const boxes = boxRefs.current;
-
-    let W = 0;
-    let H = 0;
-    let wide = false;
-    let targets: Array<Target | undefined> = [];
-    const sizes: Array<{ w: number; h: number }> = SHAPES.map(() => ({ w: 120, h: 60 }));
-
-    function layout() {
-      W = sticky.clientWidth;
-      H = sticky.clientHeight;
-      wide = W >= 900;
-      targets = [];
-      const perCat: number[][] = [[], [], [], []];
-      SHAPES.forEach((s, i) => perCat[s.cat]!.push(i));
-
-      if (wide) {
-        const headY = H * 0.3;
-        const rowH = Math.min(74, (H * 0.52) / 5);
-        perCat.forEach((list, ci) => {
-          const cx = W * (0.145 + ci * 0.237);
-          const head = heads[ci];
-          if (head) {
-            const w = Math.min(W * 0.21, 230);
-            head.style.left = `${cx}px`;
-            head.style.top = `${headY - 64}px`;
-            head.style.width = `${w}px`;
-            head.style.marginLeft = `${-w / 2}px`;
-            head.style.transform = "translate(0,0)";
-          }
-          list.forEach((i, ri) => {
-            targets[i] = { x: cx, y: headY + 40 + ri * rowH, s: 0.78 };
-          });
-          const box = boxes[ci];
-          if (box) {
-            const boxW = Math.min(W * 0.21, 230) + 48;
-            const lastY = headY + 40 + (list.length - 1) * rowH;
-            const boxTop = headY - 86;
-            box.style.left = `${cx - boxW / 2}px`;
-            box.style.top = `${boxTop}px`;
-            box.style.width = `${boxW}px`;
-            box.style.height = `${lastY + 62 - boxTop}px`;
-          }
-        });
-      } else {
-        const bandH = Math.min(112, (H * 0.6) / 4);
-        const top = H * 0.26;
-        perCat.forEach((list, ci) => {
-          const by = top + ci * bandH;
-          const head = heads[ci];
-          if (head) {
-            const w = Math.min(W * 0.9, 360);
-            head.style.left = `${W * 0.5}px`;
-            head.style.top = `${by - 26}px`;
-            head.style.width = `${w}px`;
-            head.style.marginLeft = `${-w / 2}px`;
-          }
-          const slots = [0.22, 0.5, 0.78];
-          list.forEach((i, ri) => {
-            const col = ri % 3;
-            const row = Math.floor(ri / 3);
-            targets[i] = { x: W * slots[col]!, y: by + 22 + row * 30, s: 0.42 };
-          });
-          const box = boxes[ci];
-          if (box) {
-            const rows = Math.ceil(list.length / 3);
-            const boxW = Math.min(W * 0.94, 380);
-            const boxTop = by - 46;
-            box.style.left = `${W / 2 - boxW / 2}px`;
-            box.style.top = `${boxTop}px`;
-            box.style.width = `${boxW}px`;
-            box.style.height = `${22 + rows * 30 + 66}px`;
-          }
-        });
-      }
-      els.forEach((el, i) => {
-        if (el) sizes[i] = { w: el.offsetWidth, h: el.offsetHeight };
-      });
-    }
-
-    layout();
-    const layoutTimer = setTimeout(layout, 60);
-    document.fonts?.ready.then(layout);
-    addEventListener("resize", layout);
-
-    let mx = 0,
-      my = 0,
-      cx = 0,
-      cy = 0;
-    function onMouseMove(e: MouseEvent) {
-      mx = e.clientX / innerWidth - 0.5;
-      my = e.clientY / innerHeight - 0.5;
-    }
-    if (!reduce) addEventListener("mousemove", onMouseMove, { passive: true });
-
-    let raf = 0;
-    function frame(now: number) {
-      cx += (mx - cx) * 0.07;
-      cy += (my - cy) * 0.07;
-      const rect = stage.getBoundingClientRect();
-      const total = stage.offsetHeight - innerHeight;
-      const sp = cl(-rect.top / total, 0, 1);
-
-      if (rect.bottom > 0 && rect.top < innerHeight) {
-        const sort = ease(cl((sp - 0.2) / 0.42, 0, 1));
-        const bg = mixColor("#16161A", "#FAF6EF", sort);
-        sticky.style.setProperty("--stagebg", bg);
-
-        const introFade = 1 - cl(sp / 0.16, 0, 1);
-        stageCopy.style.opacity = introFade.toFixed(3);
-        intro.style.transform = `translateY(${(-cl(sp / 0.16, 0, 1) * 26).toFixed(1)}px)`;
-        intro.style.setProperty("--wd", (100 - cl(sp / 0.2, 0, 1) * 22).toFixed(0));
-        cue.style.opacity = (1 - cl(sp / 0.1, 0, 1)).toFixed(2);
-        cols.style.opacity = cl((sort - 0.42) / 0.42, 0, 1).toFixed(3);
-        const boxPop = ease(cl((sort - 0.5) / 0.4, 0, 1));
-        colBoxes.style.opacity = boxPop.toFixed(3);
-        colBoxes.style.transform = `translateY(${((1 - boxPop) * 14).toFixed(1)}px) scale(${(0.94 + boxPop * 0.06).toFixed(3)})`;
-        sortedTitle.style.transform = `translateY(${((1 - cl((sort - 0.3) / 0.5, 0, 1)) * -16).toFixed(1)}px)`;
-
-        for (let i = 0; i < els.length; i++) {
-          const el = els[i];
-          const t = targets[i];
-          if (!el || !t) continue;
-          const shape = SHAPES[i]!;
-          const { w, h } = sizes[i]!;
-          const stag = cl((sort - (i % 5) * 0.05) / 0.72, 0, 1);
-          const k = ease(stag);
-          const cxp = (shape.x / 100) * W;
-          const cyp = (shape.y / 100) * H;
-          const depth = 0.45 + (i % 5) * 0.3;
-          const driftX = (!reduce ? cx * 44 * depth : 0) * (1 - k);
-          const driftY = (!reduce ? cy * 34 * depth : 0) * (1 - k);
-          const idlePhase = now / 900 + i * 1.7;
-          const idleX = (!reduce ? Math.sin(idlePhase) * 5 * depth : 0) * (1 - k);
-          const idleY = (!reduce ? Math.cos(idlePhase * 0.8) * 6 * depth : 0) * (1 - k);
-          const tilt = !reduce ? cx * 9 * depth + Math.sin(idlePhase * 0.6) * 2.5 : 0;
-          const X = lerp(cxp, t.x, k) + driftX + idleX - w / 2;
-          const Y = lerp(cyp, t.y, k) + driftY + idleY - h / 2;
-          const R = lerp(shape.r + tilt, 0, k);
-          const S = lerp(1, t.s, k);
-          el.style.transform = `translate3d(${X.toFixed(1)}px,${Y.toFixed(1)}px,0) rotate(${R.toFixed(2)}deg) scale(${S.toFixed(3)})`;
-          if (shape.k === "pill" || shape.k === "hl") {
-            el.style.color = mixColor("#FAF6EF", "#16161A", sort);
-          }
-        }
-      }
-      raf = requestAnimationFrame(frame);
-    }
-    raf = requestAnimationFrame(frame);
-
-    return () => {
-      clearTimeout(layoutTimer);
-      removeEventListener("resize", layout);
-      removeEventListener("mousemove", onMouseMove);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  return (
-    <section id="stage" ref={stageRef}>
-      <div className="sticky" ref={stickyRef}>
-        <div className="col-boxes" ref={colBoxesRef}>
-          {COL_BOX_COLORS.map((color, i) => (
-            <div
-              className="col-box"
-              key={i}
-              ref={(el) => {
-                boxRefs.current[i] = el;
-              }}
-              style={{ background: color }}
-            />
-          ))}
-        </div>
-        <div className="field" ref={fieldRef}>
-          {SHAPES.map((shape, i) => (
-            <ShapeEl
-              key={i}
-              shape={shape}
-              elRef={(el) => {
-                shapeRefs.current[i] = el;
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="cols" ref={colsRef}>
-          {COLS.map((c, i) => (
-            <div
-              className="col-h"
-              key={c.h}
-              ref={(el) => {
-                headRefs.current[i] = el;
-              }}
-            >
-              <i />
-              <h3>{c.h}</h3>
-              <p>{c.s}</p>
-            </div>
-          ))}
-          <div className="sorted-title" ref={sortedTitleRef}>
-            <h2 className="d2">What I bring to the table</h2>
-            <p>Same pieces. I just know where they go now.</p>
-          </div>
-        </div>
-
-        <div className="stage-copy" ref={stageCopyRef}>
-          <div className="intro" ref={introRef}>
-            {showBeats ? (
-              <h1 className="d1 beat">
-                {beatText}
-                <span className="caret" />
-              </h1>
-            ) : (
-              <>
-                <h1 className="d1 beat-done">
-                  None of this
-                  <br />
-                  was a plan.
-                </h1>
-                <p>
-                  Engineering, an orchestra, a consulting job, an inbox nobody wanted. Keep
-                  scrolling. It adds up.
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="cue" ref={cueRef}>
-          <span>Scroll</span>
-          <i />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ═══════════════════════ path ═══════════════════════ */
-
-const STEPS = [
-  {
-    yr: "First",
-    title: "Chemical engineering",
-    body: "Four years of being taught that everything is a system with inputs, failure points and a bottleneck. I still think this way about every product.",
-  },
-  {
-    yr: "Ten years",
-    title: "State orchestra",
-    body: "A decade of practising something until it is genuinely right, in time with forty other people. Nothing has taught me more about shipping.",
-  },
-  {
-    yr: "Three years",
-    title: "Big Four consulting",
-    body: "Handed problems with no shape and asked to return structure. Learned to ask the obvious question everyone else had skipped.",
-  },
-  {
-    yr: "2024",
-    title: "Remote assistant",
-    body: "Cold-emailed a stack of companies. One hired me for admin, then made the mistake of asking what I thought.",
-  },
-  {
-    yr: "2025",
-    title: "Builder",
-    body: "Websites, automations, a product of my own. The admin stopped being the job.",
-  },
-  {
-    yr: "Now",
-    title: "Cofounder",
-    body: "Nobody promoted me. I kept building until the job title was wrong.",
-    now: true,
-  },
-];
-
-const STEP_COLORS = ["#dbe9fa", "#e2dffb", "#fbdce5", "#fadfc8", "#dcf0e7", "#faeec0"];
-
-function PathSection() {
-  return (
-    <section id="path" className="light">
-      <div className="wrap">
-        <p className="eyebrow rv">Not the LinkedIn version</p>
-        <h2 className="d2 rv">
-          Six jobs. One
-          <br />
-          <span className="it" style={{ fontFamily: "var(--pf-text)", fontWeight: 400 }}>
-            through-line.
-          </span>
-        </h2>
-      </div>
-      <div className="wrap">
-        <div className="steps">
-          {STEPS.map((step, i) => (
-            <div
-              className={`step rv${step.now ? " now" : ""}`}
-              key={step.title}
-              style={{ background: STEP_COLORS[i % STEP_COLORS.length] }}
-            >
-              <div className="dot">{i + 1}</div>
-              <div className="yr">{step.yr}</div>
-              <h4 className="d4">{step.title}</h4>
-              <p>{step.body}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ═══════════════════════ work ═══════════════════════ */
-
-type Dest = "Shandong" | "Hanoi" | "Kyoto";
-const DESTS: Dest[] = ["Shandong", "Hanoi", "Kyoto"];
-const DAY_OPTIONS = [3, 5, 7] as const;
-const YEAR_GROUPS = ["Y7–9", "Y10–11", "Y12–13"] as const;
-
-const PLANS: Record<Dest, Array<[string, string, string]>> = {
-  Shandong: [
-    ["Day 1", "Arrive Ji'nan, orientation and safety brief", "Coach 90 min, buffer built in"],
-    ["Day 2", "Yishui geology site, guided caves", "Maps to KS4 earth science"],
-    ["Day 3", "Linyi community project, student-led", "Assessed reflection task"],
-    ["Day 4", "Mountain hike, resilience day", "Weather contingency included"],
-    ["Day 5", "Debrief and departure", "Parent report generated"],
-    ["Day 6", "Coastal fieldwork extension", "Optional add-on"],
-    ["Day 7", "Free study and fly out", "Evidence pack for SLT"],
-  ],
-  Hanoi: [
-    ["Day 1", "Arrive, Old Quarter orientation walk", "Kept light for day one"],
-    ["Day 2", "Museum of Ethnology fieldwork", "Worksheet pack attached"],
-    ["Day 3", "Rural homestay, service learning", "Risk assessment pre-filled"],
-    ["Day 4", "Ha Long day trip", "Travel time flagged as long"],
-    ["Day 5", "Student presentations, fly out", "Evidence pack for SLT"],
-    ["Day 6", "Craft village workshop", "Small-group split"],
-    ["Day 7", "Reflection day", "Summary sent to parents"],
-  ],
-  Kyoto: [
-    ["Day 1", "Arrive, temple district orientation", "Jet lag day, kept gentle"],
-    ["Day 2", "Fushimi Inari early start", "6:45am beats the crowds"],
-    ["Day 3", "Craft workshop, hands-on", "Groups of four"],
-    ["Day 4", "Nara day trip", "The deer will take the worksheets"],
-    ["Day 5", "Reflection and departure", "Summary sent to parents"],
-    ["Day 6", "Arashiyama fieldwork", "Optional"],
-    ["Day 7", "Student showcase", "Evidence pack"],
-  ],
-};
-
-function OptionPills<T extends string | number>({
-  options,
-  value,
-  onChange,
-}: {
-  options: readonly T[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div className="opts">
-      {options.map((opt) => (
-        <button
-          key={opt}
-          type="button"
-          className={`opt${opt === value ? " on" : ""}`}
-          onClick={() => onChange(opt)}
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function SchoolTripsDrawer() {
-  const [dest, setDest] = useState<Dest>("Shandong");
-  const [days, setDays] = useState<(typeof DAY_OPTIONS)[number]>(5);
-  const [yearGroup, setYearGroup] = useState<(typeof YEAR_GROUPS)[number]>("Y10–11");
-  const [plan, setPlan] = useState<{
-    dest: Dest;
-    days: number;
-    yearGroup: string;
-    revealed: number;
-  } | null>(null);
-
-  function generate() {
-    setPlan({ dest, days, yearGroup, revealed: 0 });
-  }
-
-  useEffect(() => {
-    if (!plan) return;
-    const total = Math.min(plan.days, PLANS[plan.dest].length);
-    if (plan.revealed >= total) return;
-    const timer = setTimeout(
-      () => setPlan((p) => (p ? { ...p, revealed: p.revealed + 1 } : p)),
-      85,
+    setLunar(0);
+    lunarTimers.current = PIPELINE.map((_, j) =>
+      window.setTimeout(() => setLunar(j + 1), 1100 * (j + 1)),
     );
-    return () => clearTimeout(timer);
-  }, [plan]);
+  };
+
+  const navLinks = [
+    ["Work", "#work"],
+    ["Path", "#path"],
+    ["Playground", "#play"],
+    ["About", "#now"],
+  ] as const;
 
   return (
-    <>
-      <p className="dlbl">Destination</p>
-      <OptionPills options={DESTS} value={dest} onChange={setDest} />
-      <p className="dlbl">Days</p>
-      <OptionPills options={DAY_OPTIONS} value={days} onChange={setDays} />
-      <p className="dlbl">Year group</p>
-      <OptionPills options={YEAR_GROUPS} value={yearGroup} onChange={setYearGroup} />
-      <button className="gen" type="button" onClick={generate}>
-        Generate itinerary
-      </button>
-      {plan && (
-        <div style={{ marginTop: 14 }}>
-          <p className="dlbl">
-            {plan.dest} · {plan.days} days · {plan.yearGroup}
-          </p>
-          {PLANS[plan.dest].slice(0, Math.min(plan.days, PLANS[plan.dest].length)).map((row, i) => (
-            <div className={`day${i < plan.revealed ? " in" : ""}`} key={row[0]}>
-              <div className="d">{row[0]}</div>
-              <div className="t">
-                {row[1]}
-                <small>{row[2]}</small>
+    <div className="pf" ref={rootRef} id="top">
+      {/* ═════ Hero ═════ */}
+      <div className="pf-top">
+        <nav className="pf-nav">
+          <a href="#top" className="pf-brand">
+            <span className="pf-brand-dot">a</span>
+            <span>Ashleigh Chua</span>
+          </a>
+          <div className="pf-links">
+            {navLinks.map(([label, href]) => (
+              <a key={href} href={href}>
+                {label}
+              </a>
+            ))}
+            <a href="#contact" className="btn btn-primary pf-talk">
+              Let's talk
+            </a>
+          </div>
+          <button
+            type="button"
+            className="btn pf-menu"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            {menuOpen ? <X size={18} strokeWidth={2.75} /> : <Menu size={18} strokeWidth={2.75} />}
+          </button>
+          {menuOpen && (
+            <div className="pf-menu-panel">
+              {[...navLinks, ["Let's talk", "#contact"] as const].map(([label, href]) => (
+                <a key={href} href={href} onClick={() => setMenuOpen(false)}>
+                  {label}
+                </a>
+              ))}
+            </div>
+          )}
+        </nav>
+        <header className="pf-hero" ref={heroRef}>
+          <h1 ref={titleRef}>
+            None of this was a <span>plan.</span>
+          </h1>
+          <p ref={subRef}>Scroll. It sorts itself out.</p>
+          <a href="#table" className="pf-scroll" aria-label="Scroll down">
+            <ArrowDown size={18} strokeWidth={2.75} />
+          </a>
+        </header>
+      </div>
+
+      {/* ═════ What I bring to the table ═════ */}
+      <section className="pf-table-sec" id="table">
+        <div className="pf-head">
+          <h2>What I bring to the table</h2>
+          <p>Everything that was floating up there has a place now.</p>
+        </div>
+        <div className="pf-cloth">
+          {ZONES.map(([title, body, dot], zi) => (
+            <div className="pf-setting" key={title}>
+              <div className="pf-objarea" style={{ height: zoneH }}>
+                {STK.map((p, i) => {
+                  if (p.z !== zi) return null;
+                  const o = OBJ[p.obj];
+                  return (
+                    <div
+                      key={i}
+                      ref={(el) => {
+                        slotEls.current[i] = el;
+                      }}
+                      className="pf-slot"
+                      style={{ left: `${o.x}%`, top: o.y * ko, width: o.w * ko, height: o.h * ko }}
+                    />
+                  );
+                })}
+              </div>
+              <div className="pf-place">
+                <div className="pf-place-top">
+                  <span className="pf-num" style={{ background: dot }}>
+                    {zi + 1}
+                  </span>
+                  <h3>{title}</h3>
+                </div>
+                <p>{body}</p>
               </div>
             </div>
           ))}
         </div>
-      )}
-    </>
-  );
-}
+      </section>
 
-const HANNAH_TITLES = [
-  "New work, autumn collection",
-  "Studio sale, three pieces left",
-  "Commissions open for spring",
-  "Back from the kiln, finally",
-];
-const HANNAH_PRICES = ["From £480", "From £520", "From £610", "Price on request"];
-const HANNAH_PALETTES = [
-  { colors: ["#8B5CF6", "#F2B183", "#4F46E5"] },
-  { colors: ["#0F766E", "#A2DCC3", "#134E4A"] },
-  { colors: ["#9D174D", "#F3A8BF", "#3B0764"] },
-];
-
-function HannahDrawer() {
-  const [titleIndex, setTitleIndex] = useState(0);
-  const [priceIndex, setPriceIndex] = useState(0);
-  const [paletteIndex, setPaletteIndex] = useState(0);
-  const [offersOn, setOffersOn] = useState(true);
-  const [emailOn, setEmailOn] = useState(true);
-  const [titleVisible, setTitleVisible] = useState(true);
-
-  function nextTitle() {
-    setTitleVisible(false);
-    setTimeout(() => {
-      setTitleIndex((i) => (i + 1) % HANNAH_TITLES.length);
-      setTitleVisible(true);
-    }, 150);
-  }
-
-  return (
-    <div className="hgrid">
-      <div className="hsite">
-        <h4 style={{ opacity: titleVisible ? 1 : 0 }}>{HANNAH_TITLES[titleIndex]}</h4>
-        <div className="hs">Original paintings · commissions open</div>
-        <div className="canvasrow">
-          {HANNAH_PALETTES[paletteIndex]!.colors.map((c, i) => (
-            <div key={i} style={{ background: c }} />
-          ))}
-        </div>
-        <div className="pr">{HANNAH_PRICES[priceIndex]}</div>
-        {offersOn && <span className="bd">Accepting offers</span>}
-      </div>
-      <div className="hdash">
-        <div className="r">
-          <label>Headline</label>
-          <button className="pill" type="button" onClick={nextTitle}>
-            Change
-          </button>
-        </div>
-        <div className="r">
-          <label>Palette</label>
-          <div className="sws">
-            {HANNAH_PALETTES.map((p, i) => (
-              <span
-                key={i}
-                className={`sw${i === paletteIndex ? " sel" : ""}`}
-                style={{ background: `linear-gradient(90deg,${p.colors[0]},${p.colors[2]})` }}
-                onClick={() => setPaletteIndex(i)}
-              />
+      {/* ═════ Timeline ═════ */}
+      <section className="pf-tl" ref={tlRef} id="path">
+        <div className="pf-tl-pin">
+          <div className="pf-tl-head">
+            <div>
+              <span className="pf-kicker">Not the LinkedIn version</span>
+              <h2>
+                Six chapters. <span>One through-line.</span>
+              </h2>
+            </div>
+            <div className="pf-tl-progress">
+              <span>Keep scrolling</span>
+              <div className="pf-tl-bar">
+                <div ref={tlBarRef} />
+              </div>
+            </div>
+          </div>
+          <div className="pf-tl-track" ref={trackRef}>
+            {PATH.map((s, i) => (
+              <article
+                key={s.h}
+                className="pf-tl-card"
+                style={{ background: s.bg, color: s.fg, transform: `rotate(${s.r}deg)` }}
+              >
+                <div className="pf-tl-scene" style={{ background: s.panel }}>
+                  <SceneArt scene={s.scene} />
+                  <span className="pf-tl-n">{i + 1}</span>
+                </div>
+                <span className="pf-tl-span" style={{ color: s.muted }}>
+                  {s.span}
+                </span>
+                <h3>{s.h}</h3>
+                <span className="pf-tl-at" style={{ color: s.muted }}>
+                  <MapPin size={14} strokeWidth={2.75} aria-hidden="true" />
+                  {s.at}
+                </span>
+                <p style={{ color: s.muted }}>{s.b}</p>
+              </article>
             ))}
           </div>
         </div>
-        <div className="r">
-          <label>Pricing</label>
-          <button
-            className="pill"
-            type="button"
-            onClick={() => setPriceIndex((i) => (i + 1) % HANNAH_PRICES.length)}
-          >
-            Update
-          </button>
+      </section>
+
+      {/* ═════ The receipts ═════ */}
+      <section className="pf-receipts" id="work">
+        <div className="pf-receipts-head">
+          <h2>The receipts</h2>
+          <span>Three things I built, and where each one stands.</span>
         </div>
-        <div className="r">
-          <label>Offers</label>
-          <button
-            className={`pill${offersOn ? " on" : ""}`}
-            type="button"
-            onClick={() => setOffersOn((v) => !v)}
-          >
-            {offersOn ? "On" : "Off"}
-          </button>
-        </div>
-        <div className="r">
-          <label>Submission emails</label>
-          <button
-            className={`pill${emailOn ? " on" : ""}`}
-            type="button"
-            onClick={() => setEmailOn((v) => !v)}
-          >
-            {emailOn ? "Automated" : "Manual"}
-          </button>
-        </div>
-        <p className="hnote">
-          This is her dashboard, not mine. She ships the changes; I don't get a text at 11pm.
-        </p>
-      </div>
-    </div>
-  );
-}
 
-function WorkSection() {
-  const [schoolTripsOpen, setSchoolTripsOpen] = useState(false);
-  const [hannahOpen, setHannahOpen] = useState(false);
-
-  return (
-    <section id="work" className="light">
-      <div className="wrap">
-        <p className="eyebrow rv">The receipts</p>
-
-        <article className="proj lav rv">
-          <h3 className="d3">SchoolTrips.ai</h3>
-          <div className="pmeta">Cofounder · product and build · 2025 to now</div>
-          <div className="prow" style={{ marginTop: 16 }}>
-            <div>
-              <p className="pbody">
-                An AI trip planner underneath, a teacher network on top. Teachers find trips, review
-                them, and pass on the things that never make it into a brochure.
-              </p>
-              <div className="ptags">
-                <span className="ptag">Claude API</span>
-                <span className="ptag">MCP</span>
-                <span className="ptag">product strategy</span>
-                <span className="ptag">live beta</span>
-              </div>
-              <div className="tryrow">
-                <button
-                  className="trybtn"
-                  type="button"
-                  onClick={() => setSchoolTripsOpen((v) => !v)}
-                >
-                  Try the planner
-                </button>
-                <span className="live">
-                  <i /> Live beta
-                </span>
-              </div>
+        {/* SchoolTrips.ai */}
+        <article className="pf-st">
+          <div className="pf-st-glow" />
+          <div className="pf-st-copy">
+            <div className="pf-pills">
+              <span
+                className="pf-pill"
+                style={{ background: "var(--color-accent)", color: "var(--color-neutral-900)" }}
+              >
+                01 · Cofounder
+              </span>
+              <span
+                className="pf-pill"
+                style={{
+                  background: "var(--color-accent-2-300)",
+                  color: "var(--color-accent-2-900)",
+                }}
+              >
+                ● In beta
+              </span>
             </div>
-            <Shot
-              chrome="schooltrips.ai"
-              src={schoolTripsDashboard}
-              alt="SchoolTrips.ai dashboard"
-              label="SchoolTrips dashboard"
-              href="https://demo.schooltrips.ai"
-            />
-          </div>
-          <Drawer open={schoolTripsOpen}>
-            <SchoolTripsDrawer />
-          </Drawer>
-        </article>
-
-        <article className="proj peach rv">
-          <h3 className="d3">Hannah Jackson</h3>
-          <div className="pmeta">Artist website and self-serve dashboard · client</div>
-          <div className="prow" style={{ marginTop: 16 }}>
-            <div>
-              <p className="pbody">
-                She asked for a website. I built her a dashboard instead, so she could change her
-                own work, prices and offers without me. She paid 50% over my quote. Not needing me
-                was worth more than the site was.
-              </p>
-              <div className="ptags">
-                <span className="ptag">full build</span>
-                <span className="ptag">custom CMS</span>
-                <span className="ptag">bidding flow</span>
-                <span className="ptag">email automation</span>
-              </div>
-              <div className="tryrow">
-                <button className="trybtn" type="button" onClick={() => setHannahOpen((v) => !v)}>
-                  Use her dashboard
-                </button>
-                <span className="live">
-                  <i /> Interactive
-                </span>
-              </div>
-            </div>
-            <Shot
-              chrome="byhannahjackson.com"
-              src={hannahHome}
-              alt="Hannah Jackson artist site homepage"
-              label="Artist site homepage"
-              href="https://byhannahjackson.com"
-            />
-          </div>
-          <Drawer open={hannahOpen}>
-            <HannahDrawer />
-          </Drawer>
-        </article>
-
-        <article className="proj pink rv">
-          <h3 className="d3">The Lunar Playground</h3>
-          <div className="pmeta">Solo product · built, priced, launched, ran</div>
-          <div className="prow" style={{ marginTop: 16 }}>
-            <div>
-              <p className="pbody">
-                A digital product business from nothing: architecture, content engine, pricing,
-                checkout, launch. It taught me the difference between what sells and what merely
-                looks finished.
-              </p>
-              <div className="ptags">
-                <span className="ptag">solo build</span>
-                <span className="ptag">monetisation</span>
-                <span className="ptag">Claude Code</span>
-              </div>
-              <div className="tryrow">
-                <a
-                  className="trybtn"
-                  style={{ textDecoration: "none", display: "inline-block" }}
-                  href="https://thelunarplayground.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Visit the site
-                </a>
-              </div>
-            </div>
-            <Shot
-              chrome="thelunarplayground.com"
-              src={lunarPlaygroundHome}
-              alt="The Lunar Playground homepage"
-              label="Lunar Playground"
-              href="https://thelunarplayground.com"
-            />
-          </div>
-        </article>
-
-        <article className="proj mint rv">
-          <h3 className="d3">Trip operations, in the field</h3>
-          <div className="pmeta">Trip leader, then rebuilt the systems behind it</div>
-          <div className="prow" style={{ marginTop: 16 }}>
-            <div>
-              <p className="pbody">
-                Led Year 12 groups through Shandong, then went home and rebuilt the planning, risk
-                and feedback systems around what actually broke on the ground.
-              </p>
-              <div className="ptags">
-                <span className="ptag">operations</span>
-                <span className="ptag">field research</span>
-                <span className="ptag">systems</span>
-              </div>
-            </div>
-            <Shot
-              chrome="Shandong"
-              src={shandongTrip}
-              alt="Students crossing a glass bridge on a school trip in Shandong"
-              label="You, on a trip"
-            />
-          </div>
-        </article>
-      </div>
-    </section>
-  );
-}
-
-/* ═══════════════════════ playground ═══════════════════════ */
-
-const TILES = [
-  {
-    color: PALETTE.peach,
-    title: "Career Compass",
-    body: "Turns career history into evidence, then scores it against the role you actually want.",
-    status: "In progress",
-    href: "https://github.com/ashleighchua/Career-Compass",
-  },
-  {
-    color: PALETTE.sky,
-    title: "Clarity",
-    body: "Turns a raw spec into documentation nobody dreads reading.",
-    status: "Live",
-    href: "https://clarity-henna.vercel.app",
-  },
-  {
-    color: PALETTE.lav,
-    title: "Celestial",
-    body: "Five systems, one profile, an AI reading at the end.",
-    status: "Live",
-    href: "https://astrology-app-hazel.vercel.app",
-  },
-  {
-    color: PALETTE.pink,
-    title: "Fruition Passport",
-    body: "See what fruit is actually in season, anywhere.",
-    status: "Live",
-    href: "https://fruition-passport.ashleighchua.workers.dev",
-  },
-  {
-    color: PALETTE.mint,
-    title: "Mandarin survival kit",
-    body: "Drills for real conversations, not ordering coffee I don't drink.",
-    status: "Live",
-    href: "https://mandarin-survival-kit.vercel.app",
-  },
-  {
-    color: PALETTE.butter,
-    title: "Remote job tracker",
-    body: "Scrapes remote listings daily, mails itself a clean shortlist.",
-    status: "In use",
-    href: "https://github.com/ashleighchua/remote-job-tracker",
-  },
-  {
-    color: PALETTE.peach,
-    title: "Trading dashboard",
-    body: "Journals trades and checks whether my own signals hold up.",
-    status: "In use",
-    href: "https://github.com/ashleighchua/trading-dashboard",
-  },
-  {
-    color: PALETTE.sky,
-    title: "Reddit monitor",
-    body: "Drafts Reddit replies for The Lunar Playground. I approve every one.",
-    status: "In use",
-    href: "https://github.com/ashleighchua/lunar-reddit-monitor",
-  },
-];
-
-function PlaygroundSection() {
-  return (
-    <section id="play" className="light">
-      <div className="wrap">
-        <p className="eyebrow rv">Nobody asked for these</p>
-        <h2 className="d2 rv">
-          Built after hours,
-          <br />
-          <span className="it" style={{ fontFamily: "var(--pf-text)", fontWeight: 400 }}>
-            mostly out of curiosity.
-          </span>
-        </h2>
-        <p className="read rv" style={{ marginTop: 18 }}>
-          Every tile here is live. Click through to the actual site, not a screenshot of one.
-        </p>
-        <div className="tiles">
-          {TILES.map((tile) => (
+            <h3>SchoolTrips.ai</h3>
+            <p>
+              An AI trip planner underneath, a teacher network on top. Teachers find trips, review
+              them, and pass on the things that never make it into a brochure.
+            </p>
+            <ul className="pf-st-feats">
+              {(
+                [
+                  [Sparkles, "AI guidance", "A first draft of the whole trip in minutes."],
+                  [Star, "Educator reviews", "Notes from teachers who ran it first."],
+                  [ShieldCheck, "Risk templates", "Safeguarding and risk assessments, sorted."],
+                ] as const
+              ).map(([Icon, h, b]) => (
+                <li key={h}>
+                  <span>
+                    <Icon size={18} strokeWidth={2.75} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <b>{h}</b> {b}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="pf-st-mine">
+              <b>My part:</b> product, the build, and going on real school trips to learn what it
+              has to get right.
+            </p>
             <a
-              className="tile rv"
-              key={tile.title}
-              href={tile.href}
+              href={LINKS.planner}
               target="_blank"
               rel="noopener noreferrer"
+              className="btn btn-primary pf-btn-lg"
             >
-              <div className="dt" style={{ background: tile.color }} />
-              <b>{tile.title}</b>
-              <span>{tile.body}</span>
-              <div className="st">{tile.status}</div>
+              Try the beta ↗
             </a>
+          </div>
+          <a
+            href={LINKS.planner}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pf-st-shots"
+            aria-label="Open the SchoolTrips.ai beta"
+          >
+            <figure className="pf-snap pf-snap-a">
+              <span className="pf-tape" />
+              <img
+                src={stHome}
+                alt="SchoolTrips.ai home: school trip planning, without the overwhelm"
+                loading="lazy"
+              />
+            </figure>
+            <figure className="pf-snap pf-snap-b">
+              <span className="pf-tape pf-tape-sage" />
+              <img
+                src={stProblem}
+                alt="SchoolTrips.ai: AI guidance, educator reviews, proven itineraries, risk templates"
+                loading="lazy"
+              />
+            </figure>
+          </a>
+        </article>
+
+        {/* Hannah Jackson */}
+        <article className="pf-hj">
+          <div className="pf-hj-copy">
+            <div className="pf-pills">
+              <span
+                className="pf-pill"
+                style={{ background: "var(--color-accent-200)", color: "var(--color-accent-800)" }}
+              >
+                02 · Client build
+              </span>
+              <span
+                className="pf-pill"
+                style={{
+                  background: "var(--color-accent-2-200)",
+                  color: "var(--color-accent-2-800)",
+                }}
+              >
+                ● Live
+              </span>
+            </div>
+            <h3>Hannah Jackson</h3>
+            <p>
+              She asked for a website. I built her a dashboard as well, so she could change her own
+              work, prices and offers without me.
+            </p>
+            <div className="pf-hj-stat">
+              <span>+50%</span>
+              <span>
+                She paid over my quote. <b>Not needing me was worth more than the site.</b>
+              </span>
+            </div>
+            <blockquote className="pf-quote">
+              <p>“I paid you $750 because $500 wasn’t enough.”</p>
+              <cite>Hannah Jackson, painter</cite>
+            </blockquote>
+            <a
+              href={LINKS.hannah}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-ghost pf-hj-link"
+            >
+              See her site ↗
+            </a>
+          </div>
+          <div className="pf-hj-view">
+            <div className="pf-toggle" role="group" aria-label="Switch view">
+              <button
+                type="button"
+                aria-pressed={hjView === "public"}
+                onClick={() => setHjView("public")}
+              >
+                What collectors see
+              </button>
+              <button
+                type="button"
+                aria-pressed={hjView === "admin"}
+                onClick={() => setHjView("admin")}
+              >
+                What Hannah sees
+              </button>
+            </div>
+            <div className="pf-browser">
+              <div className="pf-browser-bar">
+                <span />
+                <span />
+                <span />
+                <em>
+                  {hjView === "public"
+                    ? "byhannahjackson.com"
+                    : "byhannahjackson.com · her dashboard"}
+                </em>
+              </div>
+              <img
+                src={hjView === "public" ? hjPublic : hjAdmin}
+                alt={
+                  hjView === "public"
+                    ? "Hannah Jackson's site: her original paintings with sizes and prices"
+                    : "Hannah's dashboard: her paintings list with prices and offer status, editable"
+                }
+              />
+            </div>
+            <p className="pf-hj-cap">
+              {hjView === "public"
+                ? "Her originals, sizes, prices and offer status."
+                : "The same paintings. She adds, prices and publishes them herself."}
+            </p>
+          </div>
+        </article>
+
+        {/* The Lunar Playground */}
+        <article className="pf-lp">
+          <div className="pf-lp-c1" />
+          <div className="pf-lp-c2" />
+          <div className="pf-lp-copy">
+            <div className="pf-pills">
+              <span
+                className="pf-pill"
+                style={{
+                  background: "var(--color-accent-2-100)",
+                  color: "var(--color-accent-2-800)",
+                }}
+              >
+                03 · Solo product
+              </span>
+              <span
+                className="pf-pill"
+                style={{
+                  background: "var(--color-accent-2-700)",
+                  color: "var(--color-accent-2-100)",
+                }}
+              >
+                ● Live, fully automated
+              </span>
+            </div>
+            <h3>The Lunar Playground</h3>
+            <p>
+              Relocation astrology and natal readings. Someone places an order, and the chart gets
+              calculated, the reading gets written and the PDF lands in their inbox. I don’t touch
+              any of it.
+            </p>
+            <a
+              href={LINKS.lunar}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-secondary pf-lp-link"
+            >
+              Visit the site ↗
+            </a>
+          </div>
+          <div className="pf-pipe" data-step={lunar}>
+            <div className="pf-pipe-head">
+              <span>Every order, start to finish</span>
+              <button
+                type="button"
+                className="btn pf-pipe-run"
+                onClick={runOrder}
+                disabled={lunar >= 0 && lunar < PIPELINE.length}
+              >
+                {lunar < 0
+                  ? "Run a test order ▸"
+                  : lunar < PIPELINE.length
+                    ? "Running…"
+                    : "Run it again ↺"}
+              </button>
+            </div>
+            <svg
+              viewBox="0 0 300 120"
+              className={`pf-pipe-map${lunar >= 1 ? " on" : ""}`}
+              aria-hidden="true"
+            >
+              {[30, 60, 90].map((y) => (
+                <line key={y} x1={0} x2={300} y1={y} y2={y} />
+              ))}
+              {[50, 100, 150, 200, 250].map((x) => (
+                <line key={x} y1={0} y2={120} x1={x} x2={x} />
+              ))}
+              <path
+                className="l1"
+                d="M0 70 C 60 20, 110 110, 170 60 S 260 30, 300 50"
+                pathLength={1}
+              />
+              <path
+                className="l2"
+                d="M0 30 C 70 80, 130 20, 190 80 S 270 100, 300 90"
+                pathLength={1}
+              />
+              <path className="l3" d="M40 0 C 60 40, 90 80, 120 120" pathLength={1} />
+              <circle cx={172} cy={60} r={5} className="pin" />
+            </svg>
+            <ol className="pf-pipe-steps">
+              {PIPELINE.map((st, j) => {
+                const state = lunar > j ? "done" : lunar === j ? "active" : "idle";
+                return (
+                  <li key={st.h} className={state}>
+                    <span className="pf-pipe-dot">
+                      {state === "done" ? <Check size={14} strokeWidth={3} /> : j + 1}
+                    </span>
+                    <div>
+                      <b>{st.h}</b>
+                      <span>{st.b}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+            <p className="pf-pipe-foot" aria-live="polite">
+              {lunar >= PIPELINE.length
+                ? "4 steps. 0 humans. Done."
+                : "A replay of what happens on every real order."}
+            </p>
+          </div>
+        </article>
+      </section>
+
+      {/* ═════ Playground ═════ */}
+      <section className="pf-play" id="play">
+        <div className="pf-play-grid">
+          <div className="pf-play-head">
+            <span className="pf-kicker">Nobody asked for these</span>
+            <h2>The playground.</h2>
+            <p>Built after hours, mostly out of curiosity. Some are live, some live on GitHub.</p>
+          </div>
+          <div className="pf-tiles">
+            {PLAY.map((t) => (
+              <a
+                key={t.h}
+                href={t.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pf-tile"
+                style={{ "--tilt": `${t.r}deg` } as CSSProperties}
+              >
+                <div className="pf-tile-top">
+                  <span style={{ background: t.bg, color: t.fg }}>{t.s}</span>
+                  <span className="pf-tile-arrow">↗</span>
+                </div>
+                <span className="pf-tile-h">{t.h}</span>
+                <span className="pf-tile-b">{t.b}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═════ Right now ═════ */}
+      <section className="pf-now" id="now">
+        <div className="pf-now-head">
+          <span className="pf-kicker">Right now</span>
+          <h2>For now, I’m on school trips in China.</h2>
+          <p>
+            SchoolTrips.ai is for teachers, so I’m learning the job where it actually happens: 5am
+            coach departures, remote villages, and a night camping by the Great Wall with 150
+            students. I won’t be here forever, but it’s the best product research I’ve done.
+          </p>
+        </div>
+        <div className="pf-cards">
+          {(
+            [
+              [portraitPhoto, "Ashleigh", "hi, it's me", -2, 0],
+              [
+                greatWallGroup,
+                "Ashleigh with the group on the Great Wall",
+                "the crew, on the Wall",
+                1.5,
+                36,
+              ],
+              [
+                greatWallTents,
+                "Tents lit up at night under the trees",
+                "150 tents by the Wall",
+                -1,
+                0,
+              ],
+              [
+                greatWallBridge,
+                "A glass bridge over a lake below the Great Wall",
+                "the Wall is under that water",
+                2,
+                28,
+              ],
+            ] as const
+          ).map(([src, alt, cap, r, mt]) => (
+            <figure
+              key={cap}
+              className="pf-postcard"
+              style={{ transform: `rotate(${r}deg)`, marginTop: mt }}
+            >
+              <div>
+                <img src={src} alt={alt} loading="lazy" />
+              </div>
+              <figcaption>{cap}</figcaption>
+            </figure>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-/* ═══════════════════════ about ═══════════════════════ */
-
-function AboutSection() {
-  return (
-    <section id="about" className="light">
-      <div className="wrap">
-        <p className="eyebrow rv">Off the clock</p>
-        <div className="ab">
-          <div className="rv">
-            <div className="polaroid-big">
-              <img src={portraitPhoto} alt="Ashleigh" width={620} height={775} loading="lazy" />
-              <p>Usually somewhere with bad wifi and a good idea.</p>
-            </div>
-          </div>
-          <div>
-            <h2 className="d2 rv">
-              Happiest in the middle of
-              <br />
-              something complicated.
-            </h2>
-            <p className="read rv" style={{ marginTop: 18 }}>
-              I'm a generalist. Engineering gave me systems, the orchestra gave me ten years of
-              practice and timing, consulting gave me structure. Building is where all three finally
-              became useful at once.
+        <div className="pf-next">
+          <div className="pf-next-dark">
+            <div className="pf-next-circle" />
+            <span className="pf-kicker">Open to</span>
+            <h3>Interesting projects. Especially circular ones.</h3>
+            <p>
+              I’ll take on anything that makes me curious. I’m most drawn to circular economy,
+              alternative materials and sustainability, so if you’re building there, I’d really like
+              to hear about it.
             </p>
-            <div className="now">
-              <div className="rv">
-                <b>Right now</b> SchoolTrips.ai is eating most of my week, on purpose
-              </div>
-              <div className="rv">
-                <b>Also</b> figuring out exactly where AI stops and a human has to take over
-              </div>
-              <div className="rv">
-                <b>Home base</b> wherever the wifi is decent, rarely the same time zone twice
-              </div>
-              <div className="rv">
-                <b>Confession</b> twelve tabs open, three of them matter
-              </div>
+            <a
+              href={`mailto:${LINKS.email}?subject=A%20project%20for%20you`}
+              className="btn pf-next-btn"
+            >
+              Pitch me your project ↗
+            </a>
+          </div>
+          <div className="pf-next-light">
+            <span className="pf-kicker">Learning</span>
+            <h3>How school trips actually work</h3>
+            <p>
+              Everything SchoolTrips.ai has to get right, seen from the ground instead of a
+              spreadsheet.
+            </p>
+            <div className="pf-chips">
+              {[
+                "Itineraries",
+                "Risk & permissions",
+                "Parents",
+                "The 5am coach",
+                "Villages with no wifi",
+              ].map((c) => (
+                <span key={c}>{c}</span>
+              ))}
             </div>
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </section>
 
-/* ═══════════════════════ contact ═══════════════════════ */
-
-function ContactSection() {
-  return (
-    <section id="contact">
-      <div className="wrap">
-        <p className="was">They hired me to do the admin</p>
-        <h2 className="d1">
-          Now I
-          <br />
-          build things.
-        </h2>
-        <p className="ask">Got something you want built?</p>
-        <a className="cta" href="mailto:hello@ashleighchua.com?subject=the%20messy%20thing">
-          Let's make it real
-        </a>
-        <div className="foot">
-          <a href="mailto:hello@ashleighchua.com">Email</a>
-          <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer">
-            LinkedIn
-          </a>
-          <span>No polished brief required</span>
+      {/* ═════ Contact ═════ */}
+      <section className="pf-contact" id="contact">
+        <div className="pf-contact-box">
+          <div className="pf-contact-c1" />
+          <div className="pf-contact-c2" />
+          <span className="pf-contact-kicker">Got something messy?</span>
+          <h2>Let’s build the thing.</h2>
+          <div className="pf-contact-row">
+            <a
+              href={`mailto:${LINKS.email}?subject=the%20messy%20thing`}
+              className="btn pf-contact-cta"
+            >
+              Start a conversation ↗
+            </a>
+            <span>No polished brief required.</span>
+          </div>
+          <div className="pf-foot">
+            <a href={`mailto:${LINKS.email}`}>{LINKS.email}</a>
+            <a href={LINKS.linkedin} target="_blank" rel="noopener noreferrer">
+              LinkedIn
+            </a>
+            <a href={LINKS.github} target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+            <span className="pf-foot-c">© 2026 Ashleigh Chua</span>
+          </div>
         </div>
+      </section>
+
+      {/* ═════ Sticker layer (positioned by the rAF loop) ═════ */}
+      <div className="pf-posts">
+        {STK.map((p, i) => (
+          <button
+            key={i}
+            type="button"
+            ref={(el) => {
+              postEls.current[i] = el;
+            }}
+            aria-label={p.label.replace("/", " ")}
+            className="pf-post"
+            onClick={() => poke(i)}
+            onMouseEnter={() => {
+              const s = sim.current[i]!;
+              s.pop = Math.max(s.pop, 0.35);
+            }}
+          >
+            <div
+              className="pf-face"
+              ref={(el) => {
+                faceS.current[i] = el;
+              }}
+            >
+              <StickerFace i={i} look={looks[i]!} k={k} />
+            </div>
+            <div
+              className="pf-face"
+              style={{ opacity: 0 }}
+              ref={(el) => {
+                faceO.current[i] = el;
+              }}
+            >
+              <TableObject objKey={p.obj} k={ko} />
+            </div>
+          </button>
+        ))}
       </div>
-    </section>
-  );
-}
 
-/* ═══════════════════════ reveal-on-scroll ═══════════════════════ */
-
-function useRevealOnScroll(rootRef: React.RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-    const els = Array.from(root.querySelectorAll<HTMLElement>(".rv"));
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("in");
-            io.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.14, rootMargin: "0px 0px -6% 0px" },
-    );
-    els.forEach((el, i) => {
-      el.style.transitionDelay = `${(i % 3) * 70}ms`;
-      io.observe(el);
-    });
-    return () => io.disconnect();
-  }, [rootRef]);
-}
-
-/* ═══════════════════════ page ═══════════════════════ */
-
-export function PortfolioPage() {
-  const rootRef = useRef<HTMLDivElement>(null);
-  useRevealOnScroll(rootRef);
-
-  return (
-    <div className="pf" ref={rootRef}>
-      <nav id="nav">
-        <span>Ashleigh Chua</span>
-        <span className="lk">
-          <a href="#work">Work</a>
-          <a href="#path">Path</a>
-          <a href="#play">Playground</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
-        </span>
-      </nav>
-
-      <ScrollStage />
-
-      <svg className="clouds" viewBox="0 0 1200 130" preserveAspectRatio="none" aria-hidden="true">
-        <path
-          fill="#F1EADE"
-          d="M0,130 L0,78 Q50,28 100,72 Q150,18 200,70 Q250,24 300,74 Q350,20 400,68 Q450,26 500,72 Q550,16 600,70 Q650,28 700,74 Q750,18 800,68 Q850,26 900,72 Q950,20 1000,70 Q1050,28 1100,74 Q1150,24 1200,72 L1200,130 Z"
-        />
-      </svg>
-      <svg className="clouds" viewBox="0 0 1200 110" preserveAspectRatio="none" aria-hidden="true">
-        <path
-          fill="#FAF6EF"
-          d="M0,110 L0,66 Q60,14 120,62 Q180,10 240,58 Q300,16 360,64 Q420,8 480,60 Q540,18 600,62 Q660,10 720,58 Q780,16 840,64 Q900,8 960,60 Q1020,18 1080,62 Q1140,12 1200,60 L1200,110 Z"
-        />
-      </svg>
-
-      <PathSection />
-      <WorkSection />
-      <PlaygroundSection />
-      <AboutSection />
-      <ContactSection />
+      {/* ═════ Cat ═════ */}
+      {SHOW_CAT && (
+        <div
+          className="pf-cat"
+          ref={catEl}
+          onClick={petCat}
+          role="button"
+          tabIndex={0}
+          aria-label="Pet the cat"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              petCat();
+            }
+          }}
+        >
+          {bubble && (
+            <div
+              className={`pf-bubble pf-bubble-${bubble.kind}`}
+              style={bubble.right ? { right: 0 } : { left: 0 }}
+            >
+              {bubble.text}
+            </div>
+          )}
+          <CatSvg refs={catParts.current} flipRef={catFlip} />
+        </div>
+      )}
     </div>
   );
 }

@@ -19,10 +19,8 @@
  */
 
 @theme inline {
-  --font-sans: "DM Sans", sans-serif;
-  --font-display: "DM Serif Display", serif;
-  --font-mono: "Roboto Mono", monospace;
-  --font-hand: "Kalam", cursive;
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -63,19 +61,6 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-paper-strong: var(--paper-strong);
-  --color-ink-soft: var(--ink-soft);
-  --color-accent-mark: var(--accent-mark);
-  --color-accent-light: var(--accent-light);
-  --color-note-yellow: var(--note-yellow);
-  --color-note-pink: var(--note-pink);
-  --color-note-green: var(--note-green);
-  --color-case-coral: var(--case-coral);
-  --color-case-blue: var(--case-blue);
-  --color-case-lilac: var(--case-lilac);
-  --color-case-olive: var(--case-olive);
-  --shadow-editorial: 14px 18px 0 color-mix(in oklab, var(--foreground) 10%, transparent);
-  --shadow-note: 3px 4px 0 color-mix(in oklab, var(--foreground) 12%, transparent);
 }
 
 :root {
@@ -99,17 +84,6 @@
   --border: oklch(0.89 0.008 75);
   --input: oklch(0.89 0.008 75);
   --ring: oklch(0.61 0.14 42);
-  --paper-strong: oklch(0.965 0.007 78);
-  --ink-soft: oklch(0.245 0.01 65);
-  --accent-mark: oklch(0.59 0.145 42);
-  --accent-light: oklch(0.79 0.095 53);
-  --note-yellow: oklch(0.92 0.09 91);
-  --note-pink: oklch(0.91 0.06 24);
-  --note-green: oklch(0.88 0.07 133);
-  --case-coral: oklch(0.78 0.105 39);
-  --case-blue: oklch(0.79 0.06 230);
-  --case-lilac: oklch(0.83 0.06 311);
-  --case-olive: oklch(0.72 0.07 116);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -173,18 +147,28 @@
     margin: 0;
   }
 
-  html { scroll-behavior: smooth; }
-  button, a, input, textarea { letter-spacing: 0; }
-  ::selection { background: var(--accent-light); color: var(--foreground); }
+  html {
+    scroll-behavior: smooth;
+  }
+  button,
+  a,
+  input,
+  textarea {
+    letter-spacing: 0;
+  }
+  ::selection {
+    background: var(--accent-light);
+    color: var(--foreground);
+  }
 }
 
-@utility nav-link { color: var(--muted-foreground); transition: color 160ms ease; &:hover { color: var(--foreground); } }
-@utility mobile-link { padding: .85rem .5rem; border-bottom: 1px solid var(--border); font-family: var(--font-display); font-size: 1.35rem; }
-@utility section-kicker { margin-bottom: 1.25rem; font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .18em; color: var(--muted-foreground); }
-@utility section-title { font-family: var(--font-display); font-size: clamp(2.8rem, 5vw, 5.6rem); line-height: .98; font-weight: 400; }
-@utility tag { border: 1px solid var(--border); padding: .4rem .65rem; font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; }
-@utility footer-link { display: inline-flex; align-items: center; gap: .5rem; color: color-mix(in oklab, var(--background) 65%, transparent); &:hover { color: var(--background); } }
-@utility field-label { display: grid; gap: .65rem; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .09em; color: color-mix(in oklab, var(--background) 70%, transparent); }
-@utility field { width: 100%; border: 0; border-bottom: 1px solid color-mix(in oklab, var(--background) 25%, transparent); border-radius: 0; background: transparent; padding: .8rem 0; color: var(--background); outline: none; text-transform: none; font-size: 1rem; font-weight: 400; letter-spacing: 0; &::placeholder { color: color-mix(in oklab, var(--background) 30%, transparent); } &:focus { border-color: var(--accent-light); } }
-
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

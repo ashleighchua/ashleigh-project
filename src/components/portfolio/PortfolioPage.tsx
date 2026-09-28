@@ -1,142 +1,1105 @@
-import { useState } from "react";
-import { ArrowDown, ArrowRight, Check, ExternalLink, Linkedin, Mail, Menu, MoveRight, Sparkles, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { caseStudies, problems, services, type CaseStudy } from "@/data/portfolio";
-import { cn } from "@/lib/utils";
-import hannahHome from "@/assets/hannah-home.jpg";
-import hannahDetail from "@/assets/hannah-detail.jpg";
-import hannahBid from "@/assets/hannah-bid.jpg";
-import hannahAdmin from "@/assets/hannah-admin.jpg";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import hannahHome from "@/assets/hannah-home.png";
+import schoolTripsDashboard from "@/assets/schooltrips-dashboard.png";
+import lunarPlaygroundHome from "@/assets/lunar-playground-home.png";
+import shandongTrip from "@/assets/shandong-trip.jpg";
+import portraitPhoto from "@/assets/portrait.jpg";
+import "./portfolio.css";
 
-const gallery = [
-  { src: hannahHome, label: "Homepage" }, { src: hannahDetail, label: "Artwork detail" },
-  { src: hannahBid, label: "Bidding modal" }, { src: hannahAdmin, label: "Admin management" },
-];
-const pipeline = ["Research", "Build", "Automate", "Launch"];
-const messyNotes = ["automate emails???", "fix the spreadsheet", "why is everything in Notion", "launch before October", "ask customers what they need", "someone own onboarding pls", "make a proper brief", "website copy??"];
-const lanes = [
-  { n: "01", title: "Research", items: ["Ask customers", "Define the real problem"] },
-  { n: "02", title: "Build", items: ["Write the brief", "Fix the spreadsheet"] },
-  { n: "03", title: "Systems", items: ["Automate emails", "Own onboarding"] },
-  { n: "04", title: "Launch", items: ["Website copy", "Ship before October"] },
-];
+/* ═══════════════════════ shared bits ═══════════════════════ */
 
-function scrollTo(id: string) { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); }
+function cl(v: number, a: number, b: number) {
+  return v < a ? a : v > b ? b : v;
+}
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
+function ease(t: number) {
+  return 1 - Math.pow(1 - t, 3);
+}
+function mixColor(a: string, b: string, t: number) {
+  const A = [parseInt(a.slice(1, 3), 16), parseInt(a.slice(3, 5), 16), parseInt(a.slice(5, 7), 16)];
+  const B = [parseInt(b.slice(1, 3), 16), parseInt(b.slice(3, 5), 16), parseInt(b.slice(5, 7), 16)];
+  return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i]!, t))).join(",")})`;
+}
 
-export function PortfolioPage() {
-  const [heroSorted, setHeroSorted] = useState(false);
-  const [selectedProblem, setSelectedProblem] = useState(0);
-  const [selectedCase, setSelectedCase] = useState<CaseStudy | null>(null);
-  const [lightbox, setLightbox] = useState<number | null>(null);
-  const [sorted, setSorted] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const openCase = (id: string) => setSelectedCase(caseStudies.find((item) => item.id === id) ?? null);
+/**
+ * Renders `\n`-delimited lines as a single inline element with real <br/>s.
+ * Must stay a single element (not a Fragment of siblings) — the `.sh` shapes
+ * are flex containers, so sibling elements would each become their own flex
+ * item and lay out side by side instead of stacking as text.
+ */
+function Lines({ text }: { text: string }) {
+  const lines = text.split("\n");
   return (
-    <main className="overflow-hidden bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-[minmax(0,1fr)_auto] items-center px-5 sm:px-8 lg:px-12">
-          <a href="#top" className="min-w-0 font-display text-xl font-semibold">Ashleigh Chua<span className="text-accent-mark">.</span></a>
-          <nav className="hidden items-center gap-8 text-sm md:flex" aria-label="Main navigation">
-            <a href="#services" className="nav-link">What I do</a><a href="#work" className="nav-link">Work</a><a href="#about" className="nav-link">About</a>
-            <Button size="sm" onClick={() => scrollTo("contact")}>Give me a problem <ArrowRight /></Button>
-          </nav>
-          <Button variant="ghost" size="icon" className="md:hidden" aria-label="Toggle menu" onClick={() => setMenuOpen((v) => !v)}>{menuOpen ? <X /> : <Menu />}</Button>
-        </div>
-        {menuOpen && <nav className="grid gap-1 border-t border-border bg-background p-4 md:hidden"><a href="#services" onClick={() => setMenuOpen(false)} className="mobile-link">What I do</a><a href="#work" onClick={() => setMenuOpen(false)} className="mobile-link">Work</a><a href="#about" onClick={() => setMenuOpen(false)} className="mobile-link">About</a><a href="#contact" onClick={() => setMenuOpen(false)} className="mobile-link text-accent-mark">Give me a problem →</a></nav>}
-      </header>
-
-      <section id="top" className="mx-auto grid min-h-[calc(100svh-4rem)] max-w-[1440px] content-center gap-14 px-5 py-14 sm:px-8 lg:grid-cols-[1.08fr_.92fr] lg:gap-20 lg:px-12 lg:py-20">
-        <div className="flex flex-col justify-center">
-          <p className="mb-8 flex items-center gap-3 text-xs font-semibold uppercase tracking-[.18em] text-muted-foreground"><span className="h-px w-8 bg-accent-mark"/>Founder operations + AI generalist</p>
-          <h1 className="max-w-4xl font-display text-[clamp(3.6rem,7.6vw,7.8rem)] font-medium leading-[.86]">
-            Give me the<br/><em className="font-normal text-accent-mark">messy</em> thing.<br/>I’ll figure it out.
-          </h1>
-          <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">I help founders turn messy ideas, problems and projects into things that actually get done.</p>
-          <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold uppercase tracking-[.14em]">{["Founder Ops", "AI", "Research", "Systems", "Projects"].map((tag) => <span key={tag}>{tag}</span>)}</div>
-          <div className="mt-10 flex flex-wrap items-center gap-4">
-            <Button size="lg" onClick={() => scrollTo("contact")}>Give me a problem <ArrowRight /></Button>
-            <Button variant="ghost" size="lg" onClick={() => scrollTo("work")}>See what I’ve built <ArrowDown /></Button>
-          </div>
-        </div>
-        <div className="relative flex items-center justify-center">
-          <div className="w-full border border-ink bg-paper-strong shadow-editorial">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4"><span className="font-mono text-xs uppercase tracking-widest">Untangle this</span><span className="h-2 w-2 rounded-full bg-accent-mark" /></div>
-            <div className="relative min-h-[410px] p-5 sm:p-8">
-              {!heroSorted ? <div className="relative h-[285px]" aria-label="A messy collection of tasks">
-                {messyNotes.slice(0, 6).map((note, i) => <div key={note} className={cn("absolute w-[46%] max-w-[190px] break-words border border-ink/20 p-3 font-hand text-base shadow-note transition-transform", i % 3 === 0 ? "bg-note-yellow" : i % 3 === 1 ? "bg-note-pink" : "bg-note-green")} style={{ left: `${[2,50,12,48,2,50][i]}%`, top: `${[5,1,35,40,68,72][i]}%`, transform: `rotate(${[-4,3,2,-3,4,1][i]}deg)` }}>{note}</div>)}
-              </div> : <div className="grid h-[285px] content-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">{pipeline.map((step, i) => <div key={step} className="grid grid-cols-[36px_1fr_auto] items-center gap-3 border-b border-border py-3"><span className="font-mono text-xs text-muted-foreground">0{i + 1}</span><span className="font-display text-2xl">{step}</span><Check className="size-4 text-accent-mark" /></div>)}</div>}
-              <Button className="w-full" variant={heroSorted ? "outline" : "default"} onClick={() => setHeroSorted((v) => !v)}>{heroSorted ? "Make it messy again" : "Make sense of it"} <Sparkles /></Button>
-            </div>
-          </div>
-          <p className="absolute -bottom-7 right-0 font-hand text-sm text-muted-foreground">Yes, this is a normal Tuesday.</p>
-        </div>
-      </section>
-
-      <section className="border-y border-border bg-paper-strong py-24 sm:py-32">
-        <div className="mx-auto max-w-[1280px] px-5 sm:px-8">
-          <p className="section-kicker">Start here</p><h2 className="section-title max-w-3xl">What’s currently driving you <em>slightly insane?</em></h2><p className="mt-4 text-muted-foreground">Pick one. I’ll show you what I’d do.</p>
-          <div className="mt-12 grid gap-px overflow-hidden border border-border bg-border md:grid-cols-2 lg:grid-cols-3">
-            {problems.map((p, i) => <button key={p.title} onClick={() => setSelectedProblem(i)} className={cn("group min-h-40 bg-background p-6 text-left transition-colors hover:bg-secondary", selectedProblem === i && "bg-foreground text-background hover:bg-foreground")}><span className="text-2xl" aria-hidden="true">{p.icon}</span><span className="mt-7 block font-display text-xl leading-tight">{p.title}</span></button>)}
-          </div>
-          <div key={selectedProblem} className="mt-6 grid gap-8 border-l-4 border-accent-mark bg-background p-6 animate-in fade-in slide-in-from-bottom-2 md:grid-cols-[1fr_auto] md:items-end md:p-9">
-            <div><p className="max-w-3xl font-display text-2xl leading-snug sm:text-3xl">“{problems[selectedProblem]!.response}”</p><div className="mt-6 flex flex-wrap gap-2">{problems[selectedProblem]!.tags.map((tag) => <span className="tag" key={tag}>{tag}</span>)}</div></div>
-            <div className="flex flex-col items-start gap-3 md:items-end"><button className="text-sm underline decoration-border underline-offset-4 hover:decoration-foreground" onClick={() => openCase(problems[selectedProblem]!.caseId)}>See a relevant project <ExternalLink className="ml-1 inline size-3" /></button><Button onClick={() => scrollTo("contact")}>This sounds familiar <ArrowRight /></Button></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="services" className="mx-auto max-w-[1280px] px-5 py-24 sm:px-8 sm:py-32">
-        <div className="grid gap-12 lg:grid-cols-[.7fr_1.3fr] lg:gap-24"><div><p className="section-kicker">What I do</p><h2 className="section-title">Things I can take off your plate.</h2><p className="mt-6 max-w-sm leading-relaxed text-muted-foreground">Not a fixed menu. More like the kinds of complicated, unfinished or slightly neglected things I’m good at picking up.</p></div>
-          <Accordion type="single" collapsible defaultValue="service-0">{services.map((s, i) => <AccordionItem key={s.number} value={`service-${i}`} className="border-foreground/25"><AccordionTrigger className="gap-5 py-7 hover:no-underline"><span className="font-mono text-xs text-accent-mark">{s.number}</span><span className="flex-1 text-left"><span className="block font-display text-2xl sm:text-3xl">{s.title}</span><span className="mt-1 block text-sm font-normal text-muted-foreground">{s.line}</span></span></AccordionTrigger><AccordionContent className="pb-8 pl-0 sm:pl-12"><p className="mb-5 max-w-2xl text-lg">{s.summary}</p><ul className="grid gap-3 sm:grid-cols-2">{s.tasks.map((task) => <li key={task} className="flex gap-3 text-sm leading-relaxed text-muted-foreground"><MoveRight className="mt-1 size-4 shrink-0 text-accent-mark" />{task}</li>)}</ul><div className="mt-6 border-l-2 border-accent-mark pl-4 text-sm"><strong>You get:</strong> {s.deliverable}</div></AccordionContent></AccordionItem>)}</Accordion>
-        </div>
-      </section>
-
-      <section id="work" className="bg-foreground py-24 text-background sm:py-32">
-        <div className="mx-auto max-w-[1280px] px-5 sm:px-8"><p className="section-kicker text-background/50">Selected work</p><h2 className="section-title text-background">Things I’ve actually built.</h2>
-          <div className="mt-14 grid gap-px bg-background/20 border-y border-background/20">{caseStudies.map((item, i) => <article key={item.id} className="group grid cursor-pointer bg-foreground py-8 transition-colors hover:bg-ink-soft sm:grid-cols-[80px_1.25fr_.75fr_auto] sm:items-center sm:gap-8" onClick={() => setSelectedCase(item)}>
-            <span className="font-mono text-xs text-background/45">{item.number}</span><div><p className="mb-2 text-xs uppercase tracking-[.16em] text-background/50">{item.client}</p><h3 className="max-w-2xl font-display text-2xl leading-tight sm:text-3xl">{item.title}</h3></div><div className="mt-5 flex flex-wrap gap-2 sm:mt-0">{item.tags.map((tag) => <span className="border border-background/25 px-2.5 py-1 text-[10px] uppercase tracking-wider" key={tag}>{tag}</span>)}</div><Button variant="ghost" size="icon" aria-label={`Open ${item.client} case study`} className="mt-5 border border-background/30 text-background group-hover:bg-background group-hover:text-foreground sm:mt-0"><ArrowRight className="transition-transform group-hover:translate-x-0.5" /></Button>
-          </article>)}</div>
-        </div>
-      </section>
-
-      <section className="bg-paper-strong py-24 sm:py-32"><div className="mx-auto max-w-[1280px] px-5 sm:px-8"><div className="grid gap-10 lg:grid-cols-[.68fr_1.32fr] lg:gap-20"><div><p className="section-kicker">A live demonstration</p><h2 className="section-title">This is basically how my brain works.</h2><p className="mt-6 text-muted-foreground">Messy doesn’t mean impossible. It usually just needs structure.</p><Button className="mt-8" onClick={() => setSorted((v) => !v)}>{sorted ? "Undo the tidying" : "Okay, sort this out"} <Sparkles /></Button></div>
-        <div className="min-h-[460px] border border-border bg-background p-5 sm:p-8">{!sorted ? <div className="relative h-[400px] overflow-hidden">{messyNotes.map((note, i) => <div key={note} className={cn("absolute w-[44%] max-w-44 break-words border border-ink/15 p-3 font-hand shadow-note transition-all", i % 3 === 0 ? "bg-note-yellow" : i % 3 === 1 ? "bg-note-pink" : "bg-note-green")} style={{left: `${[2,52,22,50,3,48,10,52][i]}%`, top: `${[2,5,23,29,49,54,75,77][i]}%`, transform: `rotate(${[-4,3,2,-3,4,1,-2,3][i]}deg)`}}>{note}</div>)}</div> : <div className="grid gap-3 animate-in fade-in zoom-in-95 duration-500 sm:grid-cols-2">{lanes.map((lane) => <div key={lane.n} className="min-h-44 border border-border p-5"><div className="flex justify-between"><span className="font-mono text-xs text-accent-mark">{lane.n}</span><Check className="size-4 text-muted-foreground" /></div><h3 className="mt-5 font-display text-2xl">{lane.title}</h3><ul className="mt-4 space-y-2 text-sm text-muted-foreground">{lane.items.map((item) => <li key={item}>→ {item}</li>)}</ul></div>)}</div>}</div></div></div></section>
-
-      <section className="mx-auto max-w-[1280px] px-5 py-24 sm:px-8 sm:py-32"><p className="section-kicker">How I work</p><h2 className="section-title max-w-3xl">Low drama. High follow-through.</h2><div className="mt-14 grid border-y border-border md:grid-cols-4">{[
-        ["01", "You bring me the problem", "Polished brief or chaotic voice note. Both work."], ["02", "I figure out what needs to happen", "Research, useful questions and a sensible structure."], ["03", "I build the thing", "Workflow, deliverable, MVP or automation."], ["04", "You get something useful", "And you don’t need to ask twice."],
-      ].map(([n,t,d]) => <div key={n} className="border-b border-border py-7 md:border-b-0 md:border-r md:px-7 md:first:pl-0 md:last:border-r-0"><span className="font-mono text-xs text-accent-mark">{n}</span><h3 className="mt-8 font-display text-2xl leading-tight">{t}</h3><p className="mt-4 text-sm leading-relaxed text-muted-foreground">{d}</p></div>)}</div></section>
-
-      <section className="border-y border-border bg-accent-mark py-20 text-accent-foreground sm:py-24"><div className="mx-auto max-w-[1280px] px-5 sm:px-8"><p className="text-xs font-semibold uppercase tracking-[.18em] text-accent-foreground/65">A few things you don’t need to explain to me</p><div className="mt-10 grid gap-px bg-accent-foreground/20 sm:grid-cols-2 lg:grid-cols-4">{["You can send me a chaotic voice note.", "Half-finished ideas are welcome.", "‘I know this is manual and bad’ is a valid brief.", "I will ask the obvious question everyone skipped."].map((text, i) => <div className="min-h-48 bg-accent-mark p-6" key={text}><span className="font-hand text-sm opacity-60">0{i+1}</span><p className="mt-10 font-display text-2xl leading-tight">{text}</p></div>)}</div></div></section>
-
-      <section id="about" className="mx-auto grid max-w-[1280px] gap-16 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-2 lg:gap-24"><div><p className="section-kicker">About</p><h2 className="section-title">So, who is Ashleigh?</h2><div className="mt-8 space-y-5 text-lg leading-relaxed text-muted-foreground"><p>I’m a generalist who likes being dropped into the middle of something complicated and making it make sense.</p><p>I started in regulatory risk consulting, where I learned how to ask better questions and structure ambiguous problems. Since then, I’ve moved closer and closer to building: products, workflows, small businesses and practical uses of AI.</p><p>I’m not here to be another layer of coordination. I’m here to understand the thing, take ownership and move it forward.</p></div></div><div className="relative pl-8 before:absolute before:bottom-4 before:left-[5px] before:top-3 before:w-px before:bg-border">{[["2019–22","Consulting","Built the problem-solving foundations."],["2022–24","Product","Moved from recommendations to making things."],["2024–Now","AI + Operations","Building practical systems for real work."],["Always","Independent","Curious, hands-on, usually with too many tabs open."]].map(([date,title,desc]) => <div className="relative mb-10" key={title}><span className="absolute -left-[31px] top-1.5 size-2.5 rounded-full border-2 border-background bg-accent-mark"/><span className="font-mono text-xs text-accent-mark">{date}</span><h3 className="mt-2 font-display text-2xl">{title}</h3><p className="mt-1 text-sm text-muted-foreground">{desc}</p></div>)}</div></section>
-
-      <section id="contact" className="bg-foreground py-24 text-background sm:py-32"><div className="mx-auto grid max-w-[1280px] gap-14 px-5 sm:px-8 lg:grid-cols-[.8fr_1.2fr] lg:gap-24"><div><p className="section-kicker text-background/50">Get in touch</p><h2 className="font-display text-[clamp(3.2rem,6vw,6.5rem)] leading-[.92]">Got something <em className="font-normal text-accent-light">messy?</em></h2><p className="mt-7 max-w-md text-lg leading-relaxed text-background/65">Send it my way. If I’m not the right person, I’ll tell you.</p></div><ContactForm /></div></section>
-
-      <footer className="bg-foreground text-background"><div className="mx-auto grid max-w-[1280px] gap-8 border-t border-background/20 px-5 py-10 sm:grid-cols-[1fr_auto] sm:items-end sm:px-8"><div><p className="font-display text-xl">Ashleigh Chua</p><p className="mt-1 text-xs uppercase tracking-[.14em] text-background/45">Founder Ops · AI · Projects</p></div><div className="flex flex-wrap items-center gap-6 text-sm"><a className="footer-link" href="https://www.linkedin.com" target="_blank" rel="noreferrer"><Linkedin className="size-4"/> LinkedIn</a><a className="footer-link" href="mailto:hello@ashleighchua.com"><Mail className="size-4"/> Email</a></div><p className="text-xs text-background/40 sm:col-span-2">Built with curiosity and an unreasonable number of tabs.</p></div></footer>
-
-      <CaseDialog item={selectedCase} onClose={() => setSelectedCase(null)} onImage={setLightbox} />
-      <Dialog open={lightbox !== null} onOpenChange={(open) => !open && setLightbox(null)}><DialogContent className="max-h-[94vh] max-w-6xl border-0 bg-transparent p-0 shadow-none"><DialogTitle className="sr-only">Project preview</DialogTitle><DialogDescription className="sr-only">Expanded website interface preview.</DialogDescription>{lightbox !== null && <img src={gallery[lightbox]!.src} alt={`${gallery[lightbox]!.label} interface preview`} width={1280} height={960} className="max-h-[88vh] w-full object-contain" />}</DialogContent></Dialog>
-    </main>
+    <span>
+      {lines.map((line, i) => (
+        <span key={i}>
+          {line}
+          {i < lines.length - 1 && <br />}
+        </span>
+      ))}
+    </span>
   );
 }
 
-function CaseDialog({ item, onClose, onImage }: { item: CaseStudy | null; onClose: () => void; onImage: (index: number) => void }) {
-  return <Dialog open={item !== null} onOpenChange={(open) => !open && onClose()}><DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto p-0"><DialogTitle className="sr-only">{item?.client ?? "Case study"}</DialogTitle><DialogDescription className="sr-only">Detailed project case study.</DialogDescription>{item && <article>
-    <div className={cn("p-7 sm:p-12", item.accent)}><p className="font-mono text-xs uppercase tracking-widest">Case {item.number} · {item.kicker}</p><h2 className="mt-12 max-w-4xl font-display text-4xl leading-tight sm:text-6xl">{item.title}</h2><p className="mt-6 max-w-2xl text-base opacity-75">{item.summary}</p></div>
-    {item.id === "hannah" && <div className="grid grid-cols-2 gap-px bg-border p-px">{gallery.map((image, i) => <button key={image.label} className="group relative overflow-hidden bg-background text-left" onClick={() => onImage(i)}><img src={image.src} alt={`${image.label} interface preview`} loading="lazy" width={1280} height={960} className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"/><span className="absolute bottom-3 left-3 bg-foreground px-3 py-1.5 text-xs text-background">{image.label} ↗</span></button>)}</div>}
-    {item.id === "hannah" && <div className="overflow-x-auto border-b border-border p-6 sm:p-10"><p className="mb-5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">The workflow</p><div className="flex min-w-[740px] items-center justify-between">{["Artist", "Website", "Catalogue", "Detail", "Bidding", "Admin", "Self-service"].map((step, i) => <div className="flex items-center" key={step}><span className={cn("border px-3 py-2 text-xs", i === 6 ? "border-accent-mark bg-accent-mark text-accent-foreground" : "border-border")}>{step}</span>{i < 6 && <ArrowRight className="mx-2 size-3 text-muted-foreground"/>}</div>)}</div></div>}
-    {item.id === "schooltrips" && <div className="p-6 sm:p-10"><div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr]"><div className="border border-border p-6"><span className="font-display text-5xl">7</span><p className="mt-2 text-sm text-muted-foreground">focused questions</p></div><ArrowRight className="mx-auto rotate-90 sm:rotate-0"/><div className="border border-accent-mark bg-secondary p-6"><Sparkles/><p className="mt-5 font-display text-xl">AI processing</p></div><ArrowRight className="mx-auto rotate-90 sm:rotate-0"/><div className="border border-border p-6"><p className="font-display text-xl">Itinerary + risk pack</p><p className="mt-2 text-sm text-muted-foreground">Structured, editable, useful.</p></div></div></div>}
-    <div className="grid gap-px bg-border sm:grid-cols-2"><CaseBlock n="01" title="The problem" text={item.problem}/><CaseBlock n="02" title="The thinking" text={item.thinking}/><CaseBlock n="03" title="The build" text={item.build}/><CaseBlock n="04" title="The result" text={item.result}/></div>
-    <div className="flex justify-end p-6"><Button onClick={() => { onClose(); scrollTo("contact"); }}>Bring me something like this <ArrowRight /></Button></div>
-  </article>}</DialogContent></Dialog>;
-}
-function CaseBlock({ n, title, text }: { n: string; title: string; text: string }) { return <div className="bg-background p-6 sm:p-9"><span className="font-mono text-xs text-accent-mark">{n}</span><h3 className="mt-5 font-display text-2xl">{title}</h3><p className="mt-4 text-sm leading-relaxed text-muted-foreground">{text}</p></div>; }
+/** A screenshot slot: shows the real image once one is supplied, otherwise a labeled placeholder. Links out to the live site when `href` is set. */
+function Shot({
+  chrome,
+  src,
+  alt,
+  label,
+  dims = "1200 × 800",
+  href,
+}: {
+  chrome: string;
+  src?: string;
+  alt: string;
+  label: string;
+  dims?: string;
+  href?: string;
+}) {
+  const body = (
+    <>
+      <div className="chr">
+        <i /> <i /> <i />
+        <span>{chrome}</span>
+      </div>
+      {src ? (
+        <img className="shot-img" src={src} alt={alt} width={1200} height={800} loading="lazy" />
+      ) : (
+        <div className="ph">
+          <b>Screenshot slot</b>
+          {label} · {dims}
+        </div>
+      )}
+    </>
+  );
 
-function ContactForm() {
-  const [sent, setSent] = useState(false);
-  const submit = (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); const form = new FormData(event.currentTarget); const name = String(form.get("name") ?? ""); const message = String(form.get("message") ?? ""); const company = String(form.get("company") ?? ""); window.location.href = `mailto:hello@ashleighchua.com?subject=${encodeURIComponent(`A messy thing from ${name}`)}&body=${encodeURIComponent(`${message}\n\nWebsite / company: ${company}`)}`; setSent(true); };
-  return <form className="grid gap-5" onSubmit={submit}><div className="grid gap-5 sm:grid-cols-2"><label className="field-label">Name<input required name="name" className="field" placeholder="Your name" /></label><label className="field-label">Email<input required name="email" type="email" className="field" placeholder="you@company.com" /></label></div><label className="field-label">Website / company <span className="font-normal text-background/35">(optional)</span><input name="company" className="field" placeholder="Where you’re building" /></label><label className="field-label">What are you trying to figure out?<textarea required name="message" rows={6} className="field resize-none" placeholder="Honestly? It’s a bit of a mess. Here’s what’s going on..." /></label><div className="flex flex-wrap items-center justify-between gap-4"><p className="text-xs text-background/40">No polished brief required.</p><Button type="submit" className="bg-accent-light text-foreground hover:bg-accent-light/90">Send the messy thing <ArrowRight /></Button></div>{sent && <p className="text-sm text-accent-light" role="status">Your email app should be opening now.</p>}</form>;
+  if (href) {
+    return (
+      <a
+        className="shot shot-live"
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Visit ${chrome} (opens in a new tab)`}
+      >
+        {body}
+      </a>
+    );
+  }
+
+  return <div className="shot">{body}</div>;
+}
+
+/** A drawer that auto-sizes to its (possibly changing) content while open. */
+function Drawer({ open, children }: { open: boolean; children: ReactNode }) {
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setContentHeight(el.scrollHeight));
+    ro.observe(el);
+    setContentHeight(el.scrollHeight);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div className="drawer" style={{ maxHeight: open ? contentHeight + 40 : 0 }}>
+      <div className="in" ref={innerRef}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════ scroll stage: chaos → sorted ═══════════════════════ */
+
+type ShapeKind =
+  | "note"
+  | "circ"
+  | "blob"
+  | "pill"
+  | "card"
+  | "tape"
+  | "torn"
+  | "polaroid"
+  | "tab"
+  | "hl"
+  | "star"
+  | "sq";
+type Shape = {
+  k: ShapeKind;
+  t: string;
+  c?: string;
+  ac?: string;
+  x: number;
+  y: number;
+  r: number;
+  cat: 0 | 1 | 2 | 3;
+};
+
+const PALETTE = {
+  peach: "#F2B183",
+  lav: "#C7C1F7",
+  sky: "#9DC9F2",
+  pink: "#F3A8BF",
+  mint: "#A2DCC3",
+  butter: "#F6D274",
+};
+
+const SHAPES: Shape[] = [
+  // 0 — figuring it out
+  { k: "note", t: "Chemical\nengineering", c: PALETTE.sky, x: 14, y: 20, r: -8, cat: 0 },
+  { k: "circ", t: "Cold email\nnumber 37", c: PALETTE.butter, x: 30, y: 74, r: 5, cat: 0 },
+  { k: "hl", t: "no roadmap", ac: PALETTE.butter, x: 76, y: 14, r: 6, cat: 0 },
+  {
+    k: "torn",
+    t: "Learned MCP\nfrom scratch",
+    c: "#fff",
+    ac: PALETTE.sky,
+    x: 88,
+    y: 58,
+    r: -5,
+    cat: 0,
+  },
+  { k: "tape", t: "figure it out", c: PALETTE.peach, x: 8, y: 48, r: -14, cat: 0 },
+
+  // 1 — structuring the mess
+  { k: "card", t: "Big Four\nconsulting", ac: PALETTE.lav, x: 22, y: 40, r: 3, cat: 1 },
+  { k: "tab", t: "regulatory risk", c: PALETTE.lav, x: 64, y: 86, r: 4, cat: 1 },
+  { k: "note", t: "Ask the obvious\nquestion", c: PALETTE.mint, x: 46, y: 16, r: -6, cat: 1 },
+  { k: "blob", t: "voice note\n→ plan", c: PALETTE.pink, x: 84, y: 34, r: 7, cat: 1 },
+  { k: "sq", t: "12 sheets,\n1 system", c: PALETTE.sky, x: 38, y: 92, r: -4, cat: 1 },
+
+  // 2 — building the thing
+  { k: "polaroid", t: "schooltrips", ac: PALETTE.lav, x: 70, y: 48, r: -7, cat: 2 },
+  { k: "note", t: "Ten years,\nstate orchestra", c: PALETTE.pink, x: 54, y: 62, r: 8, cat: 2 },
+  { k: "circ", t: "shipped it", c: PALETTE.mint, x: 94, y: 80, r: -6, cat: 2 },
+  { k: "pill", t: "Claude Code, Cursor, Vercel", x: 16, y: 88, r: 6, cat: 2 },
+  { k: "star", t: "✳", ac: PALETTE.peach, x: 60, y: 34, r: 0, cat: 2 },
+
+  // 3 — making myself unnecessary
+  { k: "note", t: "She edits it\nherself", c: PALETTE.peach, x: 34, y: 56, r: -5, cat: 3 },
+  { k: "circ", t: "0 lines of\ncode, hers", c: PALETTE.lav, x: 6, y: 66, r: 4, cat: 3 },
+  { k: "tape", t: "playbooks that outlive me", c: PALETTE.mint, x: 78, y: 70, r: 9, cat: 3 },
+  { k: "card", t: "Automated\nthe inbox", ac: PALETTE.butter, x: 50, y: 82, r: 5, cat: 3 },
+  { k: "hl", t: "never needed again", ac: PALETTE.pink, x: 90, y: 22, r: -6, cat: 3 },
+];
+
+const COLS = [
+  { h: "Figuring it out", s: "Give me the thing nobody has defined yet." },
+  { h: "Structuring the mess", s: "Ambiguity in, shape out." },
+  { h: "Building the thing", s: "I ship it, not a recommendation of it." },
+  { h: "Making myself unnecessary", s: "It keeps running when I leave the room." },
+];
+
+type Target = { x: number; y: number; s: number };
+
+function ShapeEl({ shape, elRef }: { shape: Shape; elRef: (el: HTMLDivElement | null) => void }) {
+  const style: React.CSSProperties & Record<string, string> = {};
+  if (shape.c) style.background = shape.c;
+  if (shape.ac) style["--ac"] = shape.ac;
+
+  return (
+    <div ref={elRef} className={`sh ${shape.k}`} style={style}>
+      {shape.k === "polaroid" ? (
+        <>
+          <div className="sq" style={{ background: shape.ac ?? PALETTE.lav }} />
+          <span>{shape.t}</span>
+        </>
+      ) : shape.k === "hl" ? (
+        <b>{shape.t}</b>
+      ) : (
+        <Lines text={shape.t} />
+      )}
+    </div>
+  );
+}
+
+function ScrollStage() {
+  const stageRef = useRef<HTMLElement>(null);
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const colsRef = useRef<HTMLDivElement>(null);
+  const introRef = useRef<HTMLDivElement>(null);
+  const cueRef = useRef<HTMLDivElement>(null);
+  const sortedTitleRef = useRef<HTMLDivElement>(null);
+  const shapeRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const headRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+  useEffect(() => {
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const stage = stageRef.current!;
+    const sticky = stickyRef.current!;
+    const intro = introRef.current!;
+    const cue = cueRef.current!;
+    const cols = colsRef.current!;
+    const sortedTitle = sortedTitleRef.current!;
+    const els = shapeRefs.current;
+    const heads = headRefs.current;
+
+    let W = 0;
+    let H = 0;
+    let wide = false;
+    let targets: Array<Target | undefined> = [];
+    const sizes: Array<{ w: number; h: number }> = SHAPES.map(() => ({ w: 120, h: 60 }));
+
+    function layout() {
+      W = sticky.clientWidth;
+      H = sticky.clientHeight;
+      wide = W >= 900;
+      targets = [];
+      const perCat: number[][] = [[], [], [], []];
+      SHAPES.forEach((s, i) => perCat[s.cat]!.push(i));
+
+      if (wide) {
+        const headY = H * 0.3;
+        perCat.forEach((list, ci) => {
+          const cx = W * (0.145 + ci * 0.237);
+          const head = heads[ci];
+          if (head) {
+            const w = Math.min(W * 0.21, 230);
+            head.style.left = `${cx}px`;
+            head.style.top = `${headY - 64}px`;
+            head.style.width = `${w}px`;
+            head.style.marginLeft = `${-w / 2}px`;
+            head.style.transform = "translate(0,0)";
+          }
+          list.forEach((i, ri) => {
+            targets[i] = { x: cx, y: headY + 40 + ri * Math.min(74, (H * 0.52) / 5), s: 0.78 };
+          });
+        });
+      } else {
+        const bandH = Math.min(112, (H * 0.6) / 4);
+        const top = H * 0.26;
+        perCat.forEach((list, ci) => {
+          const by = top + ci * bandH;
+          const head = heads[ci];
+          if (head) {
+            const w = Math.min(W * 0.9, 360);
+            head.style.left = `${W * 0.5}px`;
+            head.style.top = `${by - 26}px`;
+            head.style.width = `${w}px`;
+            head.style.marginLeft = `${-w / 2}px`;
+          }
+          const slots = [0.22, 0.5, 0.78];
+          list.forEach((i, ri) => {
+            const col = ri % 3;
+            const row = Math.floor(ri / 3);
+            targets[i] = { x: W * slots[col]!, y: by + 22 + row * 30, s: 0.42 };
+          });
+        });
+      }
+      els.forEach((el, i) => {
+        if (el) sizes[i] = { w: el.offsetWidth, h: el.offsetHeight };
+      });
+    }
+
+    layout();
+    const layoutTimer = setTimeout(layout, 60);
+    document.fonts?.ready.then(layout);
+    addEventListener("resize", layout);
+
+    let mx = 0,
+      my = 0,
+      cx = 0,
+      cy = 0;
+    function onMouseMove(e: MouseEvent) {
+      mx = e.clientX / innerWidth - 0.5;
+      my = e.clientY / innerHeight - 0.5;
+    }
+    if (!reduce) addEventListener("mousemove", onMouseMove, { passive: true });
+
+    let raf = 0;
+    function frame() {
+      cx += (mx - cx) * 0.07;
+      cy += (my - cy) * 0.07;
+      const rect = stage.getBoundingClientRect();
+      const total = stage.offsetHeight - innerHeight;
+      const sp = cl(-rect.top / total, 0, 1);
+
+      if (rect.bottom > 0 && rect.top < innerHeight) {
+        const sort = ease(cl((sp - 0.2) / 0.42, 0, 1));
+        const bg = mixColor("#16161A", "#FAF6EF", sort);
+        sticky.style.setProperty("--stagebg", bg);
+
+        const introFade = 1 - cl(sp / 0.16, 0, 1);
+        intro.style.opacity = introFade.toFixed(3);
+        intro.style.transform = `translateY(${(-cl(sp / 0.16, 0, 1) * 26).toFixed(1)}px)`;
+        intro.style.setProperty("--wd", (100 - cl(sp / 0.2, 0, 1) * 22).toFixed(0));
+        cue.style.opacity = (1 - cl(sp / 0.1, 0, 1)).toFixed(2);
+        cols.style.opacity = cl((sort - 0.42) / 0.42, 0, 1).toFixed(3);
+        sortedTitle.style.transform = `translateY(${((1 - cl((sort - 0.3) / 0.5, 0, 1)) * -16).toFixed(1)}px)`;
+
+        for (let i = 0; i < els.length; i++) {
+          const el = els[i];
+          const t = targets[i];
+          if (!el || !t) continue;
+          const shape = SHAPES[i]!;
+          const { w, h } = sizes[i]!;
+          const stag = cl((sort - (i % 5) * 0.05) / 0.72, 0, 1);
+          const k = ease(stag);
+          const cxp = (shape.x / 100) * W;
+          const cyp = (shape.y / 100) * H;
+          const depth = 0.45 + (i % 5) * 0.3;
+          const driftX = (!reduce ? cx * 44 * depth : 0) * (1 - k);
+          const driftY = (!reduce ? cy * 34 * depth : 0) * (1 - k);
+          const X = lerp(cxp, t.x, k) + driftX - w / 2;
+          const Y = lerp(cyp, t.y, k) + driftY - h / 2;
+          const R = lerp(shape.r, 0, k);
+          const S = lerp(1, t.s, k);
+          el.style.transform = `translate3d(${X.toFixed(1)}px,${Y.toFixed(1)}px,0) rotate(${R.toFixed(2)}deg) scale(${S.toFixed(3)})`;
+          if (shape.k === "pill" || shape.k === "hl") {
+            el.style.color = mixColor("#FAF6EF", "#16161A", sort);
+          }
+        }
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+
+    return () => {
+      clearTimeout(layoutTimer);
+      removeEventListener("resize", layout);
+      removeEventListener("mousemove", onMouseMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <section id="stage" ref={stageRef}>
+      <div className="sticky" ref={stickyRef}>
+        <div className="field" ref={fieldRef}>
+          {SHAPES.map((shape, i) => (
+            <ShapeEl
+              key={i}
+              shape={shape}
+              elRef={(el) => {
+                shapeRefs.current[i] = el;
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="cols" ref={colsRef}>
+          {COLS.map((c, i) => (
+            <div
+              className="col-h"
+              key={c.h}
+              ref={(el) => {
+                headRefs.current[i] = el;
+              }}
+            >
+              <i />
+              <h3>{c.h}</h3>
+              <p>{c.s}</p>
+            </div>
+          ))}
+          <div className="sorted-title" ref={sortedTitleRef}>
+            <h2 className="d2">What I bring to the table</h2>
+            <p>Same pieces. I just know where they go now.</p>
+          </div>
+        </div>
+
+        <div className="stage-copy">
+          <div className="intro" ref={introRef}>
+            <h1 className="d1">
+              None of this
+              <br />
+              was a plan.
+            </h1>
+            <p>
+              Engineering, an orchestra, a consulting job, an inbox nobody wanted. Keep scrolling —
+              it does add up.
+            </p>
+          </div>
+        </div>
+
+        <div className="cue" ref={cueRef}>
+          <span>Scroll</span>
+          <i />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════ path ═══════════════════════ */
+
+const STEPS = [
+  {
+    yr: "First",
+    title: "Chemical engineering",
+    body: "Four years of being taught that everything is a system with inputs, failure points and a bottleneck. I still think this way about every product.",
+  },
+  {
+    yr: "Ten years",
+    title: "State orchestra",
+    body: "A decade of practising something until it is genuinely right, in time with forty other people. Nothing has taught me more about shipping.",
+  },
+  {
+    yr: "Three years",
+    title: "Big Four consulting",
+    body: "Handed problems with no shape and asked to return structure. Learned to ask the obvious question everyone else had skipped.",
+  },
+  {
+    yr: "2024",
+    title: "Remote assistant",
+    body: "Cold-emailed a stack of companies. One hired me for admin, then made the mistake of asking what I thought.",
+  },
+  {
+    yr: "2025",
+    title: "Builder",
+    body: "Websites, automations, a product of my own. The admin stopped being the job.",
+  },
+  {
+    yr: "Now",
+    title: "Cofounder",
+    body: "Nobody promoted me. I kept building until the job title was wrong.",
+    now: true,
+  },
+];
+
+function PathSection() {
+  return (
+    <section id="path" className="light">
+      <div className="wrap">
+        <p className="eyebrow rv">How it actually went</p>
+        <h2 className="d2 rv">
+          Six jobs. One
+          <br />
+          <span className="it" style={{ fontFamily: "var(--pf-text)", fontWeight: 400 }}>
+            through-line.
+          </span>
+        </h2>
+      </div>
+      <div className="wrap">
+        <div className="steps">
+          {STEPS.map((step) => (
+            <div className={`step${step.now ? " now" : ""}`} key={step.title}>
+              <div className="yr">{step.yr}</div>
+              <h4 className="d4">{step.title}</h4>
+              <p>{step.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════ work ═══════════════════════ */
+
+type Dest = "Shandong" | "Hanoi" | "Kyoto";
+const DESTS: Dest[] = ["Shandong", "Hanoi", "Kyoto"];
+const DAY_OPTIONS = [3, 5, 7] as const;
+const YEAR_GROUPS = ["Y7–9", "Y10–11", "Y12–13"] as const;
+
+const PLANS: Record<Dest, Array<[string, string, string]>> = {
+  Shandong: [
+    ["Day 1", "Arrive Ji'nan, orientation and safety brief", "Coach 90 min, buffer built in"],
+    ["Day 2", "Yishui geology site, guided caves", "Maps to KS4 earth science"],
+    ["Day 3", "Linyi community project, student-led", "Assessed reflection task"],
+    ["Day 4", "Mountain hike, resilience day", "Weather contingency included"],
+    ["Day 5", "Debrief and departure", "Parent report generated"],
+    ["Day 6", "Coastal fieldwork extension", "Optional add-on"],
+    ["Day 7", "Free study and fly out", "Evidence pack for SLT"],
+  ],
+  Hanoi: [
+    ["Day 1", "Arrive, Old Quarter orientation walk", "Kept light for day one"],
+    ["Day 2", "Museum of Ethnology fieldwork", "Worksheet pack attached"],
+    ["Day 3", "Rural homestay, service learning", "Risk assessment pre-filled"],
+    ["Day 4", "Ha Long day trip", "Travel time flagged as long"],
+    ["Day 5", "Student presentations, fly out", "Evidence pack for SLT"],
+    ["Day 6", "Craft village workshop", "Small-group split"],
+    ["Day 7", "Reflection day", "Summary sent to parents"],
+  ],
+  Kyoto: [
+    ["Day 1", "Arrive, temple district orientation", "Jet lag day, kept gentle"],
+    ["Day 2", "Fushimi Inari early start", "6:45am beats the crowds"],
+    ["Day 3", "Craft workshop, hands-on", "Groups of four"],
+    ["Day 4", "Nara day trip", "The deer will take the worksheets"],
+    ["Day 5", "Reflection and departure", "Summary sent to parents"],
+    ["Day 6", "Arashiyama fieldwork", "Optional"],
+    ["Day 7", "Student showcase", "Evidence pack"],
+  ],
+};
+
+function OptionPills<T extends string | number>({
+  options,
+  value,
+  onChange,
+}: {
+  options: readonly T[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="opts">
+      {options.map((opt) => (
+        <button
+          key={opt}
+          type="button"
+          className={`opt${opt === value ? " on" : ""}`}
+          onClick={() => onChange(opt)}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SchoolTripsDrawer() {
+  const [dest, setDest] = useState<Dest>("Shandong");
+  const [days, setDays] = useState<(typeof DAY_OPTIONS)[number]>(5);
+  const [yearGroup, setYearGroup] = useState<(typeof YEAR_GROUPS)[number]>("Y10–11");
+  const [plan, setPlan] = useState<{
+    dest: Dest;
+    days: number;
+    yearGroup: string;
+    revealed: number;
+  } | null>(null);
+
+  function generate() {
+    setPlan({ dest, days, yearGroup, revealed: 0 });
+  }
+
+  useEffect(() => {
+    if (!plan) return;
+    const total = Math.min(plan.days, PLANS[plan.dest].length);
+    if (plan.revealed >= total) return;
+    const timer = setTimeout(
+      () => setPlan((p) => (p ? { ...p, revealed: p.revealed + 1 } : p)),
+      85,
+    );
+    return () => clearTimeout(timer);
+  }, [plan]);
+
+  return (
+    <>
+      <p className="dlbl">Destination</p>
+      <OptionPills options={DESTS} value={dest} onChange={setDest} />
+      <p className="dlbl">Days</p>
+      <OptionPills options={DAY_OPTIONS} value={days} onChange={setDays} />
+      <p className="dlbl">Year group</p>
+      <OptionPills options={YEAR_GROUPS} value={yearGroup} onChange={setYearGroup} />
+      <button className="gen" type="button" onClick={generate}>
+        Generate itinerary
+      </button>
+      {plan && (
+        <div style={{ marginTop: 14 }}>
+          <p className="dlbl">
+            {plan.dest} · {plan.days} days · {plan.yearGroup}
+          </p>
+          {PLANS[plan.dest].slice(0, Math.min(plan.days, PLANS[plan.dest].length)).map((row, i) => (
+            <div className={`day${i < plan.revealed ? " in" : ""}`} key={row[0]}>
+              <div className="d">{row[0]}</div>
+              <div className="t">
+                {row[1]}
+                <small>{row[2]}</small>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+const HANNAH_TITLES = [
+  "New work, autumn collection",
+  "Studio sale, three pieces left",
+  "Commissions open for spring",
+  "Back from the kiln, finally",
+];
+const HANNAH_PRICES = ["From £480", "From £520", "From £610", "Price on request"];
+const HANNAH_PALETTES = [
+  { colors: ["#8B5CF6", "#F2B183", "#4F46E5"] },
+  { colors: ["#0F766E", "#A2DCC3", "#134E4A"] },
+  { colors: ["#9D174D", "#F3A8BF", "#3B0764"] },
+];
+
+function HannahDrawer() {
+  const [titleIndex, setTitleIndex] = useState(0);
+  const [priceIndex, setPriceIndex] = useState(0);
+  const [paletteIndex, setPaletteIndex] = useState(0);
+  const [offersOn, setOffersOn] = useState(true);
+  const [emailOn, setEmailOn] = useState(true);
+  const [titleVisible, setTitleVisible] = useState(true);
+
+  function nextTitle() {
+    setTitleVisible(false);
+    setTimeout(() => {
+      setTitleIndex((i) => (i + 1) % HANNAH_TITLES.length);
+      setTitleVisible(true);
+    }, 150);
+  }
+
+  return (
+    <div className="hgrid">
+      <div className="hsite">
+        <h4 style={{ opacity: titleVisible ? 1 : 0 }}>{HANNAH_TITLES[titleIndex]}</h4>
+        <div className="hs">Original paintings · commissions open</div>
+        <div className="canvasrow">
+          {HANNAH_PALETTES[paletteIndex]!.colors.map((c, i) => (
+            <div key={i} style={{ background: c }} />
+          ))}
+        </div>
+        <div className="pr">{HANNAH_PRICES[priceIndex]}</div>
+        {offersOn && <span className="bd">Accepting offers</span>}
+      </div>
+      <div className="hdash">
+        <div className="r">
+          <label>Headline</label>
+          <button className="pill" type="button" onClick={nextTitle}>
+            Change
+          </button>
+        </div>
+        <div className="r">
+          <label>Palette</label>
+          <div className="sws">
+            {HANNAH_PALETTES.map((p, i) => (
+              <span
+                key={i}
+                className={`sw${i === paletteIndex ? " sel" : ""}`}
+                style={{ background: `linear-gradient(90deg,${p.colors[0]},${p.colors[2]})` }}
+                onClick={() => setPaletteIndex(i)}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="r">
+          <label>Pricing</label>
+          <button
+            className="pill"
+            type="button"
+            onClick={() => setPriceIndex((i) => (i + 1) % HANNAH_PRICES.length)}
+          >
+            Update
+          </button>
+        </div>
+        <div className="r">
+          <label>Offers</label>
+          <button
+            className={`pill${offersOn ? " on" : ""}`}
+            type="button"
+            onClick={() => setOffersOn((v) => !v)}
+          >
+            {offersOn ? "On" : "Off"}
+          </button>
+        </div>
+        <div className="r">
+          <label>Submission emails</label>
+          <button
+            className={`pill${emailOn ? " on" : ""}`}
+            type="button"
+            onClick={() => setEmailOn((v) => !v)}
+          >
+            {emailOn ? "Automated" : "Manual"}
+          </button>
+        </div>
+        <p className="hnote">
+          This is her dashboard, not mine. She ships the changes; I don't get a text at 11pm.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function WorkSection() {
+  const [schoolTripsOpen, setSchoolTripsOpen] = useState(false);
+  const [hannahOpen, setHannahOpen] = useState(false);
+
+  return (
+    <section id="work" className="light">
+      <div className="wrap">
+        <p className="eyebrow rv">Selected work</p>
+
+        <article className="proj lav rv">
+          <h3 className="d3">SchoolTrips.ai</h3>
+          <div className="pmeta">Cofounder · product and build · 2025 to now</div>
+          <div className="prow" style={{ marginTop: 16 }}>
+            <div>
+              <p className="pbody">
+                An AI trip planner underneath, a teacher network on top. Teachers find trips, review
+                them, and pass on the things that never make it into a brochure.
+              </p>
+              <div className="ptags">
+                <span className="ptag">Claude API</span>
+                <span className="ptag">MCP</span>
+                <span className="ptag">product strategy</span>
+                <span className="ptag">live beta</span>
+              </div>
+              <div className="tryrow">
+                <button
+                  className="trybtn"
+                  type="button"
+                  onClick={() => setSchoolTripsOpen((v) => !v)}
+                >
+                  Try the planner
+                </button>
+                <span className="live">
+                  <i /> Live beta
+                </span>
+              </div>
+            </div>
+            <Shot
+              chrome="schooltrips.ai"
+              src={schoolTripsDashboard}
+              alt="SchoolTrips.ai dashboard"
+              label="SchoolTrips dashboard"
+              href="https://demo.schooltrips.ai"
+            />
+          </div>
+          <Drawer open={schoolTripsOpen}>
+            <SchoolTripsDrawer />
+          </Drawer>
+        </article>
+
+        <article className="proj peach rv">
+          <h3 className="d3">Hannah Jackson</h3>
+          <div className="pmeta">Artist website and self-serve dashboard · client</div>
+          <div className="prow" style={{ marginTop: 16 }}>
+            <div>
+              <p className="pbody">
+                She asked for a website. I built her a dashboard instead, so she could change her
+                own work, prices and offers without me. She paid 50% over my quote — because not
+                needing me was worth more than the site was.
+              </p>
+              <div className="ptags">
+                <span className="ptag">full build</span>
+                <span className="ptag">custom CMS</span>
+                <span className="ptag">bidding flow</span>
+                <span className="ptag">email automation</span>
+              </div>
+              <div className="tryrow">
+                <button className="trybtn" type="button" onClick={() => setHannahOpen((v) => !v)}>
+                  Use her dashboard
+                </button>
+                <span className="live">
+                  <i /> Interactive
+                </span>
+              </div>
+            </div>
+            <Shot
+              chrome="byhannahjackson.com"
+              src={hannahHome}
+              alt="Hannah Jackson artist site homepage"
+              label="Artist site homepage"
+              href="https://byhannahjackson.com"
+            />
+          </div>
+          <Drawer open={hannahOpen}>
+            <HannahDrawer />
+          </Drawer>
+        </article>
+
+        <article className="proj pink rv">
+          <h3 className="d3">The Lunar Playground</h3>
+          <div className="pmeta">Solo product · built, priced, launched, ran</div>
+          <div className="prow" style={{ marginTop: 16 }}>
+            <div>
+              <p className="pbody">
+                A digital product business from nothing: architecture, content engine, pricing,
+                checkout, launch. It taught me the difference between what sells and what merely
+                looks finished.
+              </p>
+              <div className="ptags">
+                <span className="ptag">solo build</span>
+                <span className="ptag">monetisation</span>
+                <span className="ptag">Claude Code</span>
+              </div>
+              <div className="tryrow">
+                <a
+                  className="trybtn"
+                  style={{ textDecoration: "none", display: "inline-block" }}
+                  href="https://thelunarplayground.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Visit the site
+                </a>
+              </div>
+            </div>
+            <Shot
+              chrome="thelunarplayground.com"
+              src={lunarPlaygroundHome}
+              alt="The Lunar Playground homepage"
+              label="Lunar Playground"
+              href="https://thelunarplayground.com"
+            />
+          </div>
+        </article>
+
+        <article className="proj mint rv">
+          <h3 className="d3">Trip operations, in the field</h3>
+          <div className="pmeta">Trip leader, then rebuilt the systems behind it</div>
+          <div className="prow" style={{ marginTop: 16 }}>
+            <div>
+              <p className="pbody">
+                Led Year 12 groups through Shandong, then went home and rebuilt the planning, risk
+                and feedback systems around what actually broke on the ground.
+              </p>
+              <div className="ptags">
+                <span className="ptag">operations</span>
+                <span className="ptag">field research</span>
+                <span className="ptag">systems</span>
+              </div>
+            </div>
+            <Shot
+              chrome="Shandong"
+              src={shandongTrip}
+              alt="Students crossing a glass bridge on a school trip in Shandong"
+              label="You, on a trip"
+            />
+          </div>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════ playground ═══════════════════════ */
+
+const TILES = [
+  {
+    color: PALETTE.peach,
+    title: "Career Compass",
+    body: "Turns career history into evidence, maps it against a target role, and tells you the difference between a skill gap and an evidence gap.",
+    status: "In progress",
+    href: "https://github.com/ashleighchua/Career-Compass",
+  },
+  {
+    color: PALETTE.sky,
+    title: "Clarity",
+    body: "Paste in a raw spec and get back technical documentation that doesn't read like it was written by committee.",
+    status: "Live",
+    href: "https://clarity-henna.vercel.app",
+  },
+  {
+    color: PALETTE.lav,
+    title: "Celestial",
+    body: "Western, Chinese, BaZi, Human Design, MBTI — one profile in, five systems and an AI reading out.",
+    status: "Live",
+    href: "https://astrology-app-hazel.vercel.app",
+  },
+  {
+    color: PALETTE.pink,
+    title: "Fruition Passport",
+    body: "Search any city, see what fruit is actually in season there right now.",
+    status: "Live",
+    href: "https://fruition-passport.ashleighchua.workers.dev",
+  },
+  {
+    color: PALETTE.mint,
+    title: "Mandarin survival kit",
+    body: "Real-world lessons, spaced-repetition flashcards, pronunciation drills — built because every app kept teaching me to order coffee I don't drink.",
+    status: "Live",
+    href: "https://mandarin-survival-kit.vercel.app",
+  },
+  {
+    color: PALETTE.butter,
+    title: "Remote job tracker",
+    body: "Scrapes remote listings daily, filters by keyword and timezone, mails itself a clean report.",
+    status: "In use",
+    href: "https://github.com/ashleighchua/remote-job-tracker",
+  },
+  {
+    color: PALETTE.peach,
+    title: "Trading dashboard",
+    body: "A Flask app for journalling trades, scanning premarket, and tracking whether the signals actually hold up.",
+    status: "In use",
+    href: "https://github.com/ashleighchua/trading-dashboard",
+  },
+  {
+    color: PALETTE.sky,
+    title: "Reddit monitor",
+    body: "Watches Reddit for relevant posts and drafts replies for The Lunar Playground. I still read every one before it sends.",
+    status: "In use",
+    href: "https://github.com/ashleighchua/lunar-reddit-monitor",
+  },
+];
+
+function PlaygroundSection() {
+  return (
+    <section id="play" className="light">
+      <div className="wrap">
+        <p className="eyebrow rv">Playground</p>
+        <h2 className="d2 rv">
+          Built after hours,
+          <br />
+          <span className="it" style={{ fontFamily: "var(--pf-text)", fontWeight: 400 }}>
+            mostly out of curiosity.
+          </span>
+        </h2>
+        <p className="read rv" style={{ marginTop: 18 }}>
+          No mockups here — every tile below is a real build, one click from the site or the code.
+        </p>
+        <div className="tiles">
+          {TILES.map((tile) => (
+            <a
+              className="tile rv"
+              key={tile.title}
+              href={tile.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div className="dt" style={{ background: tile.color }} />
+              <b>{tile.title}</b>
+              <span>{tile.body}</span>
+              <div className="st">{tile.status}</div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════ about ═══════════════════════ */
+
+function AboutSection() {
+  return (
+    <section id="about" className="light">
+      <div className="wrap">
+        <p className="eyebrow rv">The human</p>
+        <div className="ab">
+          <div className="rv">
+            <div className="polaroid-big">
+              <img src={portraitPhoto} alt="Ashleigh" width={620} height={775} loading="lazy" />
+              <p>Usually somewhere with bad wifi and a good idea.</p>
+            </div>
+          </div>
+          <div>
+            <h2 className="d2 rv">
+              Happiest in the middle of
+              <br />
+              something complicated.
+            </h2>
+            <p className="read rv" style={{ marginTop: 18 }}>
+              I'm a generalist. Engineering gave me systems, the orchestra gave me ten years of
+              practice and timing, consulting gave me structure. Building is where all three finally
+              became useful at once.
+            </p>
+            <div className="now">
+              <div className="rv">
+                <b>Building</b> SchoolTrips.ai into a platform teachers come back to
+              </div>
+              <div className="rv">
+                <b>Learning</b> how far AI goes before it needs a human again
+              </div>
+              <div className="rv">
+                <b>Working</b> remotely, usually a few time zones from home
+              </div>
+              <div className="rv">
+                <b>Always</b> too many tabs, three of them useful
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════ contact ═══════════════════════ */
+
+function ContactSection() {
+  return (
+    <section id="contact">
+      <div className="wrap">
+        <p className="was">They hired me to do the admin</p>
+        <h2 className="d1">
+          Now I
+          <br />
+          build things.
+        </h2>
+        <p className="ask">Got something you want built?</p>
+        <a className="cta" href="mailto:hello@ashleighchua.com?subject=the%20messy%20thing">
+          Let's make it real
+        </a>
+        <div className="foot">
+          <a href="mailto:hello@ashleighchua.com">Email</a>
+          <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer">
+            LinkedIn
+          </a>
+          <span>No polished brief required</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════ reveal-on-scroll ═══════════════════════ */
+
+function useRevealOnScroll(rootRef: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const els = Array.from(root.querySelectorAll<HTMLElement>(".rv"));
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.14, rootMargin: "0px 0px -6% 0px" },
+    );
+    els.forEach((el, i) => {
+      el.style.transitionDelay = `${(i % 3) * 70}ms`;
+      io.observe(el);
+    });
+    return () => io.disconnect();
+  }, [rootRef]);
+}
+
+/* ═══════════════════════ page ═══════════════════════ */
+
+export function PortfolioPage() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  useRevealOnScroll(rootRef);
+
+  return (
+    <div className="pf" ref={rootRef}>
+      <nav id="nav">
+        <span>Ashleigh Chua</span>
+        <span className="lk">
+          <a href="#work">Work</a>
+          <a href="#path">Path</a>
+          <a href="#play">Playground</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </span>
+      </nav>
+
+      <ScrollStage />
+
+      <svg className="clouds" viewBox="0 0 1200 130" preserveAspectRatio="none" aria-hidden="true">
+        <path
+          fill="#F1EADE"
+          d="M0,130 L0,78 Q50,28 100,72 Q150,18 200,70 Q250,24 300,74 Q350,20 400,68 Q450,26 500,72 Q550,16 600,70 Q650,28 700,74 Q750,18 800,68 Q850,26 900,72 Q950,20 1000,70 Q1050,28 1100,74 Q1150,24 1200,72 L1200,130 Z"
+        />
+      </svg>
+      <svg className="clouds" viewBox="0 0 1200 110" preserveAspectRatio="none" aria-hidden="true">
+        <path
+          fill="#FAF6EF"
+          d="M0,110 L0,66 Q60,14 120,62 Q180,10 240,58 Q300,16 360,64 Q420,8 480,60 Q540,18 600,62 Q660,10 720,58 Q780,16 840,64 Q900,8 960,60 Q1020,18 1080,62 Q1140,12 1200,60 L1200,110 Z"
+        />
+      </svg>
+
+      <PathSection />
+      <WorkSection />
+      <PlaygroundSection />
+      <AboutSection />
+      <ContactSection />
+    </div>
+  );
 }

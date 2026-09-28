@@ -35,6 +35,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.pf {
+  background: var(--cream);
+}
 .pf a {
   color: inherit;
 }
@@ -151,7 +154,7 @@ body {
   color: #16161a;
   font-family: var(--pf-display);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.2;
   cursor: pointer;
   user-select: none;
@@ -161,27 +164,37 @@ body {
   justify-content: center;
   text-align: center;
 }
+.pf .sh.note,
+.pf .sh.circ,
+.pf .sh.blob,
+.pf .sh.card,
+.pf .sh.tape,
+.pf .sh.torn,
+.pf .sh.polaroid,
+.pf .sh.tab,
+.pf .sh.sq {
+  box-shadow:
+    3px 3px 0 rgba(22, 22, 26, 0.45),
+    0 12px 26px rgba(0, 0, 0, 0.22);
+}
 .pf .sh.note {
-  padding: 13px 15px;
+  padding: 15px 17px;
   border-radius: 11px;
-  max-width: 150px;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34);
+  max-width: 168px;
 }
 .pf .sh.circ {
-  width: 92px;
-  height: 92px;
+  width: 102px;
+  height: 102px;
   border-radius: 50%;
   padding: 10px;
-  font-size: 12px;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34);
+  font-size: 13px;
 }
 .pf .sh.blob {
-  width: 112px;
-  height: 88px;
+  width: 124px;
+  height: 96px;
   border-radius: 62% 38% 45% 55% / 55% 48% 52% 45%;
   padding: 10px;
-  font-size: 12px;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.3);
+  font-size: 13px;
 }
 .pf .sh.pill {
   padding: 10px 17px;
@@ -192,42 +205,38 @@ body {
   font-weight: 600;
 }
 .pf .sh.card {
-  padding: 14px 15px 15px;
+  padding: 15px 17px 17px;
   border-radius: 4px;
-  max-width: 158px;
+  max-width: 174px;
   background: #fff !important;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.3);
   border-left: 5px solid var(--ac, #f2b183);
   justify-content: flex-start;
   text-align: left;
 }
 .pf .sh.tape {
-  padding: 9px 18px;
+  padding: 11px 21px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 13px;
   transform-origin: center;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
   clip-path: polygon(0 4%, 100% 0, 100% 96%, 0 100%);
 }
 .pf .sh.torn {
-  padding: 13px 15px;
-  max-width: 150px;
+  padding: 15px 17px;
+  max-width: 166px;
   background: #fff !important;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.3);
   clip-path: polygon(0 0, 100% 0, 100% 88%, 88% 100%, 72% 90%, 54% 100%, 36% 90%, 18% 100%, 0 92%);
-  padding-bottom: 22px;
+  padding-bottom: 24px;
 }
 .pf .sh.polaroid {
   background: #fff !important;
   padding: 9px 9px 26px;
   border-radius: 3px;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.34);
   flex-direction: column;
   gap: 8px;
 }
 .pf .sh.polaroid .sq {
-  width: 86px;
-  height: 66px;
+  width: 96px;
+  height: 74px;
   border-radius: 2px;
 }
 .pf .sh.polaroid span {
@@ -238,11 +247,10 @@ body {
   color: #44403a;
 }
 .pf .sh.tab {
-  padding: 11px 18px 10px;
+  padding: 13px 20px 12px;
   border-radius: 10px 10px 0 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 -2px 14px rgba(0, 0, 0, 0.2);
 }
 .pf .sh.hl {
   background: transparent !important;
@@ -268,12 +276,11 @@ body {
   background: transparent !important;
 }
 .pf .sh.sq {
-  width: 84px;
-  height: 84px;
+  width: 92px;
+  height: 92px;
   border-radius: 3px;
   padding: 10px;
-  font-size: 12px;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.3);
+  font-size: 13px;
 }
 
 .pf .stage-copy {
@@ -287,8 +294,47 @@ body {
   padding: 0 22px;
   pointer-events: none;
 }
+.pf .stage-copy::before {
+  content: "";
+  position: absolute;
+  inset: -18% -10%;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse 58% 60% at center,
+    var(--stagebg, #16161a) 0%,
+    var(--stagebg, #16161a) 42%,
+    transparent 76%
+  );
+}
 .pf .stage-copy .intro h1 {
   font-variation-settings: "wdth" var(--wd, 100);
+}
+.pf .stage-copy .intro .caret {
+  display: inline-block;
+  width: 0.12em;
+  height: 0.85em;
+  margin-left: 0.05em;
+  background: currentColor;
+  vertical-align: -0.05em;
+  animation: pf-caret-blink 0.9s steps(1) infinite;
+}
+@keyframes pf-caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+.pf .stage-copy .intro .beat-done {
+  animation: pf-beat-in 0.5s ease both;
+}
+@keyframes pf-beat-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 .pf .stage-copy .intro p {
   margin-top: 18px;
@@ -333,6 +379,18 @@ body {
   }
 }
 
+.pf .col-boxes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+.pf .col-box {
+  position: absolute;
+  border-radius: 28px;
+  border: 2px solid rgba(22, 22, 26, 0.08);
+  box-shadow: 0 16px 34px rgba(22, 22, 26, 0.1);
+}
 .pf .cols {
   position: absolute;
   inset: 0;
@@ -427,15 +485,36 @@ body {
 }
 .pf .step {
   scroll-snap-align: start;
-  flex: 0 0 min(70vw, 238px);
-  border-top: 2px solid #16161a;
-  padding-top: 13px;
+  flex: 0 0 min(72vw, 246px);
+  border-radius: 22px;
+  padding: 20px 20px 22px;
+  box-shadow: 0 12px 28px rgba(22, 22, 26, 0.08);
+  transition: transform 0.25s cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+.pf .step:hover {
+  transform: translateY(-5px);
+}
+.pf .step .dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #16161a;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--pf-display);
+  font-weight: 700;
+  font-size: 0.82rem;
+  margin-bottom: 14px;
 }
 .pf .step .yr {
   font-family: var(--pf-display);
   font-weight: 800;
   font-size: 0.8rem;
-  color: var(--indigo);
+  color: rgba(22, 22, 26, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   margin-bottom: 7px;
 }
 .pf .step h4 {
@@ -447,10 +526,20 @@ body {
   color: rgba(22, 22, 26, 0.62);
 }
 .pf .step.now {
-  border-top-color: var(--indigo);
+  background: #16161a !important;
+}
+.pf .step.now .dot {
+  background: var(--butter);
+  color: #16161a;
+}
+.pf .step.now .yr {
+  color: var(--butter);
 }
 .pf .step.now h4 {
-  color: var(--indigo);
+  color: var(--cream);
+}
+.pf .step.now p {
+  color: rgba(250, 246, 239, 0.68);
 }
 
 /* ─── work ─── */
@@ -842,7 +931,9 @@ body {
   margin-top: 24px;
 }
 .pf .tile {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   border-radius: 16px;
   padding: 15px;
   background: #fff;
@@ -879,7 +970,8 @@ body {
   display: block;
 }
 .pf .tile .st {
-  margin-top: 10px;
+  margin-top: auto;
+  padding-top: 10px;
   font-family: var(--pf-display);
   font-weight: 600;
   font-size: 0.72rem;

@@ -197,6 +197,8 @@ const COLS = [
   { h: "Making myself unnecessary", s: "It keeps running when I leave the room." },
 ];
 
+const COL_BOX_COLORS = ["#eaf3fc", "#f1effc", "#eaf7f0", "#fdf0e4"];
+
 type Target = { x: number; y: number; s: number };
 
 function ShapeEl({ shape, elRef }: { shape: Shape; elRef: (el: HTMLDivElement | null) => void }) {
@@ -220,27 +222,99 @@ function ShapeEl({ shape, elRef }: { shape: Shape; elRef: (el: HTMLDivElement | 
   );
 }
 
+const INTRO_BEATS = [
+  "Four years of chemical engineering.",
+  "Ten years in a state orchestra.",
+  "Then Big Four consulting.",
+];
+
 function ScrollStage() {
   const stageRef = useRef<HTMLElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<HTMLDivElement>(null);
   const colsRef = useRef<HTMLDivElement>(null);
+  const stageCopyRef = useRef<HTMLDivElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
   const cueRef = useRef<HTMLDivElement>(null);
   const sortedTitleRef = useRef<HTMLDivElement>(null);
   const shapeRefs = useRef<Array<HTMLDivElement | null>>([]);
   const headRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const colBoxesRef = useRef<HTMLDivElement>(null);
+  const boxRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+  const [showBeats, setShowBeats] = useState(true);
+  const [beatText, setBeatText] = useState("");
+
+  useEffect(() => {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setShowBeats(false);
+      return;
+    }
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    function finish() {
+      if (cancelled) return;
+      cancelled = true;
+      clearTimeout(timer);
+      setShowBeats(false);
+    }
+
+    function typeBeat(beatIndex: number) {
+      if (cancelled) return;
+      if (beatIndex >= INTRO_BEATS.length) {
+        timer = setTimeout(finish, 250);
+        return;
+      }
+      const text = INTRO_BEATS[beatIndex]!;
+      let i = 0;
+      const tick = () => {
+        if (cancelled) return;
+        i++;
+        setBeatText(text.slice(0, i));
+        if (i < text.length) {
+          timer = setTimeout(tick, 28);
+        } else {
+          timer = setTimeout(() => {
+            if (cancelled) return;
+            setBeatText("");
+            typeBeat(beatIndex + 1);
+          }, 480);
+        }
+      };
+      tick();
+    }
+
+    typeBeat(0);
+    addEventListener("scroll", finish, { passive: true, once: true });
+    addEventListener("wheel", finish, { passive: true, once: true });
+    addEventListener("touchstart", finish, { passive: true, once: true });
+    addEventListener("pointerdown", finish, { passive: true, once: true });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      removeEventListener("scroll", finish);
+      removeEventListener("wheel", finish);
+      removeEventListener("touchstart", finish);
+      removeEventListener("pointerdown", finish);
+    };
+  }, []);
 
   useEffect(() => {
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const stage = stageRef.current!;
     const sticky = stickyRef.current!;
+    const stageCopy = stageCopyRef.current!;
     const intro = introRef.current!;
     const cue = cueRef.current!;
     const cols = colsRef.current!;
     const sortedTitle = sortedTitleRef.current!;
     const els = shapeRefs.current;
     const heads = headRefs.current;
+    const colBoxes = colBoxesRef.current!;
+    const boxes = boxRefs.current;
 
     let W = 0;
     let H = 0;
@@ -258,6 +332,7 @@ function ScrollStage() {
 
       if (wide) {
         const headY = H * 0.3;
+        const rowH = Math.min(74, (H * 0.52) / 5);
         perCat.forEach((list, ci) => {
           const cx = W * (0.145 + ci * 0.237);
           const head = heads[ci];
@@ -270,8 +345,18 @@ function ScrollStage() {
             head.style.transform = "translate(0,0)";
           }
           list.forEach((i, ri) => {
-            targets[i] = { x: cx, y: headY + 40 + ri * Math.min(74, (H * 0.52) / 5), s: 0.78 };
+            targets[i] = { x: cx, y: headY + 40 + ri * rowH, s: 0.78 };
           });
+          const box = boxes[ci];
+          if (box) {
+            const boxW = Math.min(W * 0.21, 230) + 48;
+            const lastY = headY + 40 + (list.length - 1) * rowH;
+            const boxTop = headY - 86;
+            box.style.left = `${cx - boxW / 2}px`;
+            box.style.top = `${boxTop}px`;
+            box.style.width = `${boxW}px`;
+            box.style.height = `${lastY + 62 - boxTop}px`;
+          }
         });
       } else {
         const bandH = Math.min(112, (H * 0.6) / 4);
@@ -292,6 +377,16 @@ function ScrollStage() {
             const row = Math.floor(ri / 3);
             targets[i] = { x: W * slots[col]!, y: by + 22 + row * 30, s: 0.42 };
           });
+          const box = boxes[ci];
+          if (box) {
+            const rows = Math.ceil(list.length / 3);
+            const boxW = Math.min(W * 0.94, 380);
+            const boxTop = by - 46;
+            box.style.left = `${W / 2 - boxW / 2}px`;
+            box.style.top = `${boxTop}px`;
+            box.style.width = `${boxW}px`;
+            box.style.height = `${22 + rows * 30 + 66}px`;
+          }
         });
       }
       els.forEach((el, i) => {
@@ -315,7 +410,7 @@ function ScrollStage() {
     if (!reduce) addEventListener("mousemove", onMouseMove, { passive: true });
 
     let raf = 0;
-    function frame() {
+    function frame(now: number) {
       cx += (mx - cx) * 0.07;
       cy += (my - cy) * 0.07;
       const rect = stage.getBoundingClientRect();
@@ -328,11 +423,14 @@ function ScrollStage() {
         sticky.style.setProperty("--stagebg", bg);
 
         const introFade = 1 - cl(sp / 0.16, 0, 1);
-        intro.style.opacity = introFade.toFixed(3);
+        stageCopy.style.opacity = introFade.toFixed(3);
         intro.style.transform = `translateY(${(-cl(sp / 0.16, 0, 1) * 26).toFixed(1)}px)`;
         intro.style.setProperty("--wd", (100 - cl(sp / 0.2, 0, 1) * 22).toFixed(0));
         cue.style.opacity = (1 - cl(sp / 0.1, 0, 1)).toFixed(2);
         cols.style.opacity = cl((sort - 0.42) / 0.42, 0, 1).toFixed(3);
+        const boxPop = ease(cl((sort - 0.5) / 0.4, 0, 1));
+        colBoxes.style.opacity = boxPop.toFixed(3);
+        colBoxes.style.transform = `translateY(${((1 - boxPop) * 14).toFixed(1)}px) scale(${(0.94 + boxPop * 0.06).toFixed(3)})`;
         sortedTitle.style.transform = `translateY(${((1 - cl((sort - 0.3) / 0.5, 0, 1)) * -16).toFixed(1)}px)`;
 
         for (let i = 0; i < els.length; i++) {
@@ -348,9 +446,13 @@ function ScrollStage() {
           const depth = 0.45 + (i % 5) * 0.3;
           const driftX = (!reduce ? cx * 44 * depth : 0) * (1 - k);
           const driftY = (!reduce ? cy * 34 * depth : 0) * (1 - k);
-          const X = lerp(cxp, t.x, k) + driftX - w / 2;
-          const Y = lerp(cyp, t.y, k) + driftY - h / 2;
-          const R = lerp(shape.r, 0, k);
+          const idlePhase = now / 900 + i * 1.7;
+          const idleX = (!reduce ? Math.sin(idlePhase) * 5 * depth : 0) * (1 - k);
+          const idleY = (!reduce ? Math.cos(idlePhase * 0.8) * 6 * depth : 0) * (1 - k);
+          const tilt = !reduce ? cx * 9 * depth + Math.sin(idlePhase * 0.6) * 2.5 : 0;
+          const X = lerp(cxp, t.x, k) + driftX + idleX - w / 2;
+          const Y = lerp(cyp, t.y, k) + driftY + idleY - h / 2;
+          const R = lerp(shape.r + tilt, 0, k);
           const S = lerp(1, t.s, k);
           el.style.transform = `translate3d(${X.toFixed(1)}px,${Y.toFixed(1)}px,0) rotate(${R.toFixed(2)}deg) scale(${S.toFixed(3)})`;
           if (shape.k === "pill" || shape.k === "hl") {
@@ -373,6 +475,18 @@ function ScrollStage() {
   return (
     <section id="stage" ref={stageRef}>
       <div className="sticky" ref={stickyRef}>
+        <div className="col-boxes" ref={colBoxesRef}>
+          {COL_BOX_COLORS.map((color, i) => (
+            <div
+              className="col-box"
+              key={i}
+              ref={(el) => {
+                boxRefs.current[i] = el;
+              }}
+              style={{ background: color }}
+            />
+          ))}
+        </div>
         <div className="field" ref={fieldRef}>
           {SHAPES.map((shape, i) => (
             <ShapeEl
@@ -405,17 +519,26 @@ function ScrollStage() {
           </div>
         </div>
 
-        <div className="stage-copy">
+        <div className="stage-copy" ref={stageCopyRef}>
           <div className="intro" ref={introRef}>
-            <h1 className="d1">
-              None of this
-              <br />
-              was a plan.
-            </h1>
-            <p>
-              Engineering, an orchestra, a consulting job, an inbox nobody wanted. Keep scrolling —
-              it does add up.
-            </p>
+            {showBeats ? (
+              <h1 className="d1 beat">
+                {beatText}
+                <span className="caret" />
+              </h1>
+            ) : (
+              <>
+                <h1 className="d1 beat-done">
+                  None of this
+                  <br />
+                  was a plan.
+                </h1>
+                <p>
+                  Engineering, an orchestra, a consulting job, an inbox nobody wanted. Keep
+                  scrolling. It adds up.
+                </p>
+              </>
+            )}
           </div>
         </div>
 
@@ -464,11 +587,13 @@ const STEPS = [
   },
 ];
 
+const STEP_COLORS = ["#dbe9fa", "#e2dffb", "#fbdce5", "#fadfc8", "#dcf0e7", "#faeec0"];
+
 function PathSection() {
   return (
     <section id="path" className="light">
       <div className="wrap">
-        <p className="eyebrow rv">How it actually went</p>
+        <p className="eyebrow rv">Not the LinkedIn version</p>
         <h2 className="d2 rv">
           Six jobs. One
           <br />
@@ -479,8 +604,13 @@ function PathSection() {
       </div>
       <div className="wrap">
         <div className="steps">
-          {STEPS.map((step) => (
-            <div className={`step${step.now ? " now" : ""}`} key={step.title}>
+          {STEPS.map((step, i) => (
+            <div
+              className={`step rv${step.now ? " now" : ""}`}
+              key={step.title}
+              style={{ background: STEP_COLORS[i % STEP_COLORS.length] }}
+            >
+              <div className="dot">{i + 1}</div>
               <div className="yr">{step.yr}</div>
               <h4 className="d4">{step.title}</h4>
               <p>{step.body}</p>
@@ -718,7 +848,7 @@ function WorkSection() {
   return (
     <section id="work" className="light">
       <div className="wrap">
-        <p className="eyebrow rv">Selected work</p>
+        <p className="eyebrow rv">The receipts</p>
 
         <article className="proj lav rv">
           <h3 className="d3">SchoolTrips.ai</h3>
@@ -768,8 +898,8 @@ function WorkSection() {
             <div>
               <p className="pbody">
                 She asked for a website. I built her a dashboard instead, so she could change her
-                own work, prices and offers without me. She paid 50% over my quote — because not
-                needing me was worth more than the site was.
+                own work, prices and offers without me. She paid 50% over my quote. Not needing me
+                was worth more than the site was.
               </p>
               <div className="ptags">
                 <span className="ptag">full build</span>
@@ -870,56 +1000,56 @@ const TILES = [
   {
     color: PALETTE.peach,
     title: "Career Compass",
-    body: "Turns career history into evidence, maps it against a target role, and tells you the difference between a skill gap and an evidence gap.",
+    body: "Turns career history into evidence, then scores it against the role you actually want.",
     status: "In progress",
     href: "https://github.com/ashleighchua/Career-Compass",
   },
   {
     color: PALETTE.sky,
     title: "Clarity",
-    body: "Paste in a raw spec and get back technical documentation that doesn't read like it was written by committee.",
+    body: "Turns a raw spec into documentation nobody dreads reading.",
     status: "Live",
     href: "https://clarity-henna.vercel.app",
   },
   {
     color: PALETTE.lav,
     title: "Celestial",
-    body: "Western, Chinese, BaZi, Human Design, MBTI — one profile in, five systems and an AI reading out.",
+    body: "Five systems, one profile, an AI reading at the end.",
     status: "Live",
     href: "https://astrology-app-hazel.vercel.app",
   },
   {
     color: PALETTE.pink,
     title: "Fruition Passport",
-    body: "Search any city, see what fruit is actually in season there right now.",
+    body: "See what fruit is actually in season, anywhere.",
     status: "Live",
     href: "https://fruition-passport.ashleighchua.workers.dev",
   },
   {
     color: PALETTE.mint,
     title: "Mandarin survival kit",
-    body: "Real-world lessons, spaced-repetition flashcards, pronunciation drills — built because every app kept teaching me to order coffee I don't drink.",
+    body: "Drills for real conversations, not ordering coffee I don't drink.",
     status: "Live",
     href: "https://mandarin-survival-kit.vercel.app",
   },
   {
     color: PALETTE.butter,
     title: "Remote job tracker",
-    body: "Scrapes remote listings daily, filters by keyword and timezone, mails itself a clean report.",
+    body: "Scrapes remote listings daily, mails itself a clean shortlist.",
     status: "In use",
     href: "https://github.com/ashleighchua/remote-job-tracker",
   },
   {
     color: PALETTE.peach,
     title: "Trading dashboard",
-    body: "A Flask app for journalling trades, scanning premarket, and tracking whether the signals actually hold up.",
+    body: "Journals trades and checks whether my own signals hold up.",
     status: "In use",
     href: "https://github.com/ashleighchua/trading-dashboard",
   },
   {
     color: PALETTE.sky,
     title: "Reddit monitor",
-    body: "Watches Reddit for relevant posts and drafts replies for The Lunar Playground. I still read every one before it sends.",
+    body: "Drafts Reddit replies for The Lunar Playground. I approve every one.",
     status: "In use",
     href: "https://github.com/ashleighchua/lunar-reddit-monitor",
   },
@@ -929,7 +1059,7 @@ function PlaygroundSection() {
   return (
     <section id="play" className="light">
       <div className="wrap">
-        <p className="eyebrow rv">Playground</p>
+        <p className="eyebrow rv">Nobody asked for these</p>
         <h2 className="d2 rv">
           Built after hours,
           <br />
@@ -938,7 +1068,7 @@ function PlaygroundSection() {
           </span>
         </h2>
         <p className="read rv" style={{ marginTop: 18 }}>
-          No mockups here — every tile below is a real build, one click from the site or the code.
+          Every tile here is live. Click through to the actual site, not a screenshot of one.
         </p>
         <div className="tiles">
           {TILES.map((tile) => (
@@ -967,7 +1097,7 @@ function AboutSection() {
   return (
     <section id="about" className="light">
       <div className="wrap">
-        <p className="eyebrow rv">The human</p>
+        <p className="eyebrow rv">Off the clock</p>
         <div className="ab">
           <div className="rv">
             <div className="polaroid-big">
@@ -988,16 +1118,16 @@ function AboutSection() {
             </p>
             <div className="now">
               <div className="rv">
-                <b>Building</b> SchoolTrips.ai into a platform teachers come back to
+                <b>Right now</b> SchoolTrips.ai is eating most of my week, on purpose
               </div>
               <div className="rv">
-                <b>Learning</b> how far AI goes before it needs a human again
+                <b>Also</b> figuring out exactly where AI stops and a human has to take over
               </div>
               <div className="rv">
-                <b>Working</b> remotely, usually a few time zones from home
+                <b>Home base</b> wherever the wifi is decent, rarely the same time zone twice
               </div>
               <div className="rv">
-                <b>Always</b> too many tabs, three of them useful
+                <b>Confession</b> twelve tabs open, three of them matter
               </div>
             </div>
           </div>

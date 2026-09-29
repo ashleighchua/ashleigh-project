@@ -418,26 +418,26 @@ function objectKids(kind: ObjKey): ReactNode {
         <>
           <rect x={6} y={6} width={138} height={168} rx={16} fill="var(--color-accent-2-300)" />
           <rect x={6} y={6} width={24} height={168} rx={12} fill="var(--color-accent-2-600)" />
+          <rect x={118} y={6} width={7} height={168} fill="var(--color-accent-500)" />
           <rect x={42} y={42} width={88} height={58} rx={12} fill={N1} />
           <text
-            x={86}
+            x={82}
             y={66}
             textAnchor="middle"
             fill="var(--color-accent-2-900)"
-            style={{ fontFamily: HEADING, fontSize: 15 }}
+            style={{ fontFamily: HEADING, fontSize: 13 }}
           >
             FIND THE
           </text>
           <text
-            x={86}
+            x={82}
             y={86}
             textAnchor="middle"
             fill="var(--color-accent-2-900)"
-            style={{ fontFamily: HEADING, fontSize: 15 }}
+            style={{ fontFamily: HEADING, fontSize: 13 }}
           >
             PROBLEM
           </text>
-          <rect x={118} y={6} width={7} height={168} fill="var(--color-accent-500)" />
         </>
       );
     case "cup":
@@ -497,7 +497,7 @@ function objectKids(kind: ObjKey): ReactNode {
             style={{ fontFamily: HEADING, fontSize: 11, letterSpacing: ".08em" }}
           >
             <textPath href="#plate-ring" textLength={440} lengthAdjust="spacing">
-              MAKE THE MESS LEGIBLE • TURN SOMETHING VAGUE INTO A PLAN •{" "}
+              MAKE THE MESS LEGIBLE • 12 SHEETS, ONE SYSTEM •{" "}
             </textPath>
           </text>
           {(
@@ -600,7 +600,7 @@ function objectKids(kind: ObjKey): ReactNode {
             fill="var(--color-accent-300)"
             style={{ fontFamily: HEADING, fontSize: 16 }}
           >
-            MAKE IT USEFUL
+            GO LIVE
           </text>
           <rect x={164} y={35} width={3} height={16} fill="var(--color-accent-300)" />
           <rect x={16} y={80} width={158} height={30} rx={7} fill="var(--color-neutral-500)" />
@@ -623,7 +623,7 @@ function objectKids(kind: ObjKey): ReactNode {
             fill={INK}
             style={{ fontFamily: HEADING, fontSize: 9 }}
           >
-            GO LIVE
+            SHIPPED
           </text>
           <rect x={16} y={66} width={34} height={3} rx={1.5} fill={N3} />
           <rect x={16} y={72} width={24} height={3} rx={1.5} fill={N3} />
@@ -1058,6 +1058,35 @@ function sceneKids(scene: Scene): ReactNode {
         </>
       );
   }
+}
+
+/** "ac" monogram tile: the brand mark in the nav and above the hero headline */
+export function Logo({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" className="pf-logo" aria-hidden="true">
+      <rect x={3} y={3} width={94} height={94} rx={28} fill="var(--color-accent)" />
+      <text
+        x={48}
+        y={52}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="var(--color-neutral-100)"
+        style={{ fontFamily: HEADING, fontSize: 54, letterSpacing: "-0.05em" }}
+      >
+        ac
+      </text>
+      <text
+        x={78}
+        y={24}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="var(--color-accent-200)"
+        style={{ fontFamily: HEADING, fontSize: 20 }}
+      >
+        {"✳︎"}
+      </text>
+    </svg>
+  );
 }
 
 export function SceneArt({ scene }: { scene: Scene }) {

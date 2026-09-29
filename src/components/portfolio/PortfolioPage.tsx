@@ -16,7 +16,7 @@ import stHome from "@/assets/st-home.jpg";
 import stProblem from "@/assets/st-problem.jpg";
 import hjPublic from "@/assets/hj-public.jpg";
 import hjAdmin from "@/assets/hj-admin.jpg";
-import { LunarPipeline, SceneArt, StickerFace, TableObject, type Look } from "./art";
+import { Logo, LunarPipeline, SceneArt, StickerFace, TableObject, type Look } from "./art";
 import { CatSvg, type CatRefs } from "./cat";
 import {
   COL,
@@ -34,6 +34,7 @@ import {
   ZONES,
   ROLES,
   ADVENTURES,
+  DECOR,
 } from "./data";
 import "./portfolio.css";
 
@@ -82,38 +83,6 @@ const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
 type Box = { cx: number; cy: number; hw: number; hh: number };
 
-/** Random, loosely spaced sticker spots anywhere in the hero except over the headline */
-function scatter(
-  W: number,
-  H: number,
-  head: Box,
-  r: number,
-  n: number,
-  fallback: [number, number][],
-) {
-  const pts: [number, number][] = [];
-  let minD = r * 1.9;
-  let fails = 0;
-  for (let tries = 0; pts.length < n && tries < 6000; tries++) {
-    const x = rnd(r * 0.7, W - r * 0.7);
-    const y = rnd(r * 0.6, H - r * 0.6);
-    const overHead =
-      Math.abs(x - head.cx) < head.hw + r * 0.8 && Math.abs(y - head.cy) < head.hh + r * 0.6;
-    const crowded = pts.some(([px, py]) => Math.hypot(px - x, py - y) < minD);
-    if (overHead || crowded) {
-      if (++fails > 150) {
-        minD *= 0.9;
-        fails = 0;
-      }
-      continue;
-    }
-    pts.push([x, y]);
-  }
-  const spots = pts.map(([x, y]): [number, number] => [x / W, y / H]);
-  while (spots.length < n) spots.push(fallback[spots.length]!);
-  return spots;
-}
-
 type Sim = {
   spot: number;
   sx: number;
@@ -152,8 +121,7 @@ export function PortfolioPage() {
   /* DOM refs written to directly by the rAF loop */
   const rootRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const subRef = useRef<HTMLParagraphElement>(null);
+  const heroTextRef = useRef<HTMLDivElement>(null);
   const tlRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const tlBarRef = useRef<HTMLDivElement>(null);
@@ -199,7 +167,6 @@ export function PortfolioPage() {
   const reduceRef = useRef(false);
   const bubbleTimer = useRef<number | undefined>(undefined);
   const petting = useRef({ clicks: 0, last: -99, meow: -1 });
-  const scatterRef = useRef<{ key: string; spots: [number, number][] } | null>(null);
 
   useEffect(() => {
     reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -236,31 +203,18 @@ export function PortfolioPage() {
         const H = hr.height;
         const scroll = -rr.top;
         const drift = reduce ? 0 : DRIFT;
-        const fallback = mobileRef.current ? MSP : DSP;
+        const spots = mobileRef.current ? MSP : DSP;
 
         let E: Box | null = null;
-        const tEl = titleRef.current;
+        const tEl = heroTextRef.current;
         if (tEl) {
           const a1 = tEl.getBoundingClientRect();
-          const b1 = subRef.current ? subRef.current.getBoundingClientRect() : a1;
-          const l = Math.min(a1.left, b1.left) - rr.left - 16;
-          const rt = Math.max(a1.right, b1.right) - rr.left + 16;
-          const tp = Math.min(a1.top, b1.top) - rr.top - 16;
-          const bt = Math.max(a1.bottom, b1.bottom) - rr.top + 16;
+          const l = a1.left - rr.left - 16;
+          const rt = a1.right - rr.left + 16;
+          const tp = a1.top - rr.top - 16;
+          const bt = a1.bottom - rr.top + 16;
           E = { cx: (l + rt) / 2, cy: (tp + bt) / 2, hw: (rt - l) / 2, hh: (bt - tp) / 2 };
         }
-
-        // re-scatter only when the layout meaningfully changes, not on every mobile URL-bar resize
-        const layoutKey = `${mobileRef.current}-${Math.round(W / 60)}`;
-        if (E && scatterRef.current?.key !== layoutKey) {
-          const r = mobileRef.current ? 50 : 88 * Math.min(1, W / 1400 + 0.18);
-          const head = { ...E, cx: E.cx - hx, cy: E.cy - hy };
-          scatterRef.current = {
-            key: layoutKey,
-            spots: scatter(W, H, head, r, STK.length, fallback),
-          };
-        }
-        const spots = scatterRef.current?.spots ?? fallback;
 
         STK.forEach((_, i) => {
           const el = postEls.current[i];
@@ -476,7 +430,7 @@ export function PortfolioPage() {
     say(MEOWS[pet.meow]!, "talk", 3800);
   };
 
-  const k = mobile ? Math.min(0.54, vw / 740) : Math.min(1, vw / 1400 + 0.18);
+  const k = mobile ? Math.min(0.54, vw / 740) : Math.min(1, vw / 1500 + 0.1);
   const ko = mobile ? 0.8 : 1;
   const zoneH = mobile ? 240 : 290;
 
@@ -505,7 +459,7 @@ export function PortfolioPage() {
       <div className="pf-top">
         <nav className="pf-nav">
           <a href="#top" className="pf-brand">
-            <span className="pf-brand-dot">a</span>
+            <Logo size={34} />
             <span>Ashleigh Chua</span>
           </a>
           <div className="pf-links">
@@ -538,10 +492,22 @@ export function PortfolioPage() {
           )}
         </nav>
         <header className="pf-hero" ref={heroRef}>
-          <h1 ref={titleRef}>
-            I turn a good idea into something <span>tangible</span> you can use.
-          </h1>
-          <p ref={subRef}>When the path from idea to reality is unclear, I help work it out.</p>
+          <div className="pf-hero-text" ref={heroTextRef}>
+            <div className="pf-hero-logo">
+              <Logo size={88} />
+            </div>
+            <h1>
+              You know something should exist. <br />I help you <span>build&nbsp;it.</span>
+            </h1>
+            <p>
+              A product, a tool, or a process held together by twelve spreadsheets: I work out what
+              it needs to be, build it, and hand it over.
+            </p>
+            <p className="pf-avail">
+              <span aria-hidden="true" />
+              Open to long-term roles and ongoing partnerships.
+            </p>
+          </div>
           <a href="#table" className="pf-scroll" aria-label="Scroll down">
             <ArrowDown size={18} strokeWidth={2.75} />
           </a>
@@ -553,8 +519,8 @@ export function PortfolioPage() {
         <div className="pf-head">
           <h2>What I bring to the table</h2>
           <p>
-            I help when the work is tangled, unclear, or stuck. By the end, people know what they're
-            doing and have something they can run with.
+            Most people I work with know something should be better but can’t see the path yet. I
+            help find it, build the thing, and leave it running without me.
           </p>
         </div>
         <div className="pf-cloth">
@@ -573,6 +539,18 @@ export function PortfolioPage() {
                       className="pf-slot"
                       style={{ left: `${o.x}%`, top: o.y * ko, width: o.w * ko, height: o.h * ko }}
                     />
+                  );
+                })}
+                {DECOR.filter((d) => d.z === zi).map(({ obj }) => {
+                  const o = OBJ[obj];
+                  return (
+                    <div
+                      key={obj}
+                      className="pf-slot"
+                      style={{ left: `${o.x}%`, top: o.y * ko, width: o.w * ko, height: o.h * ko }}
+                    >
+                      <TableObject objKey={obj} k={ko} />
+                    </div>
                   );
                 })}
               </div>
@@ -663,9 +641,8 @@ export function PortfolioPage() {
             </div>
             <h3>SchoolTrips.ai</h3>
             <p>
-              Less a trip planner, more an ecosystem for teachers. Every trip that gets run and
-              reviewed feeds back in, so the recommendations get sharper the more the platform is
-              used, while it quietly absorbs the admin slog teachers are sick of doing.
+              Teachers are tired of the admin that comes with every trip. SchoolTrips.ai takes it
+              off their plate, and it gets smarter every time a trip is run and reviewed.
             </p>
             <ul className="pf-st-feats">
               {(

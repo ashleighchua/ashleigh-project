@@ -34,17 +34,13 @@ export type Sticker = {
 
 export const STK: Sticker[] = [
   { label: "FIND THE/REAL PROBLEM", obj: "notebook", z: 0, s: 11, c: 0, m: 0.9 },
-  { label: "NO ROADMAP?/WE CAN START/ANYWAY", obj: "cup", z: 0, s: 2, c: 3, m: 0.82 },
-  { label: "ASK WHAT'S/MISSING", obj: "compass", z: 0, s: 9, c: 6, m: 0.8 },
+  { label: "NO ROADMAP?/WE CAN START/ANYWAY", obj: "cup", z: 0, s: 2, c: 3, m: 0.84 },
   { label: "MAKE THE MESS/LEGIBLE", obj: "plate", z: 1, s: 4, c: 2, m: 0.9 },
-  { label: "12 SHEETS,/ONE WORKING/SYSTEM", obj: "notes", z: 1, s: 1, c: 5, m: 0.85 },
-  { label: "TURN SOMETHING/VAGUE INTO/A PLAN", obj: "jar", z: 1, s: 6, c: 1, m: 0.8 },
-  { label: "MAKE IT/USEFUL", obj: "laptop", z: 2, s: 8, c: 4, m: 0.9 },
-  { label: "BUILT TO/GO LIVE", obj: "parcel", z: 2, s: 7, c: 0, m: 0.85 },
-  { label: "READY FOR/REAL PEOPLE", obj: "phone", z: 2, s: 3, c: 3, m: 0.82 },
-  { label: "EASY TO/RUN", obj: "plant", z: 3, s: 10, c: 6, m: 0.9 },
-  { label: "PLAYBOOKS/PEOPLE CAN/PICK UP", obj: "card", z: 3, s: 5, c: 2, m: 0.85 },
-  { label: "HANDOVER,/DONE PROPERLY", obj: "keys", z: 3, s: 0, c: 4, m: 0.8 },
+  { label: "12 SHEETS,/ONE WORKING/SYSTEM", obj: "notes", z: 1, s: 1, c: 5, m: 0.86 },
+  { label: "BUILT TO/GO LIVE", obj: "laptop", z: 2, s: 7, c: 0, m: 0.88 },
+  { label: "SHIPPED,/NOT SHELVED", obj: "parcel", z: 2, s: 8, c: 4, m: 0.88 },
+  { label: "YOU WON'T/NEED ME/FOREVER", obj: "plant", z: 3, s: 9, c: 6, m: 0.9 },
+  { label: "HANDOVER,/DONE PROPERLY", obj: "keys", z: 3, s: 5, c: 1, m: 0.86 },
 ];
 
 /** Sticker shapes; a click cycles to a different one */
@@ -82,25 +78,33 @@ export const OBJ: Record<ObjKey, ObjSpec> = {
   keys: { w: 86, h: 86, x: 84, y: 40, r: -12 },
 };
 
+/** Table objects with no sticker of their own; they're already set out on the table */
+export const DECOR: { obj: ObjKey; z: number }[] = [
+  { obj: "compass", z: 0 },
+  { obj: "jar", z: 1 },
+  { obj: "phone", z: 2 },
+  { obj: "card", z: 3 },
+];
+
 export const ZONES: [title: string, body: string, dot: string][] = [
   [
     "Finding the real problem",
-    "I start with what is stuck. Sometimes it is a decision. Sometimes it is a process that no longer works.",
+    "I start with what’s stuck. Sometimes it’s a decision nobody has made. Sometimes it’s a process everyone quietly works around.",
     "var(--color-accent)",
   ],
   [
     "Making the mess make sense",
-    "I turn a pile of information into a system people can follow.",
+    "I turn a pile of information into a system people can follow, like twelve spreadsheets becoming one working system.",
     "var(--color-accent-2-600)",
   ],
   [
     "Turning the plan into something useful",
-    "Once the direction is clear, I make the practical version of it: a site, a tool, or a workflow people can pick up and use.",
+    "Once the direction is clear, I build the practical version: a site, a tool, or a workflow people can pick up and use.",
     "var(--color-accent-700)",
   ],
   [
     "Leaving it easy to run",
-    "I make the handover clear, so the work can keep moving without someone needing to translate it first.",
+    "I make the handover clear, so the work keeps moving long after I’ve stepped back.",
     "var(--color-accent-2-800)",
   ],
 ];
@@ -116,35 +120,27 @@ export const COL: [string, string][] = [
   ["var(--color-accent-2-500)", "var(--color-accent-2-900)"],
 ];
 
-/** Float spots as fractions of the hero rect — desktop / mobile */
+/** Sticker spots as fractions of the hero rect, one per sticker: two clusters beside the headline */
 export const DSP: [number, number][] = [
-  [0.07, 0.22],
-  [0.12, 0.82],
-  [0.26, 0.08],
-  [0.33, 0.9],
-  [0.73, 0.1],
-  [0.62, 0.93],
-  [0.94, 0.24],
-  [0.9, 0.8],
-  [0.05, 0.52],
-  [0.55, 0.05],
-  [0.41, 0.16],
-  [0.78, 0.95],
+  [0.12, 0.3],
+  [0.87, 0.28],
+  [0.2, 0.44],
+  [0.8, 0.42],
+  [0.1, 0.6],
+  [0.89, 0.58],
+  [0.19, 0.75],
+  [0.81, 0.75],
 ];
-/** Mobile: scattered above and below the headline */
+/** Mobile: a cluster above the headline and one below */
 export const MSP: [number, number][] = [
-  [0.16, 0.06],
-  [0.2, 0.84],
-  [0.52, 0.1],
-  [0.5, 0.79],
-  [0.86, 0.05],
-  [0.84, 0.9],
-  [0.78, 0.2],
-  [0.14, 0.96],
-  [0.22, 0.19],
-  [0.8, 0.76],
-  [0.5, 0.23],
-  [0.5, 0.95],
+  [0.2, 0.08],
+  [0.78, 0.07],
+  [0.45, 0.14],
+  [0.84, 0.18],
+  [0.16, 0.86],
+  [0.8, 0.85],
+  [0.44, 0.93],
+  [0.72, 0.95],
 ];
 
 export const MEOWS = [
@@ -190,7 +186,7 @@ export const PATH: Chapter[] = [
     span: "4 years",
     h: "Chemical engineering",
     at: "University",
-    b: "Engineering school taught me to notice where a system gets stuck. I still bring that instinct to product work, looking for the bottleneck holding everything else up.",
+    b: "Engineering school taught me to notice where a system gets stuck, and I still look for the bottleneck holding everything else up.",
     bg: "var(--color-surface)",
     panel: "var(--color-accent-100)",
     r: -1,
@@ -213,7 +209,7 @@ export const PATH: Chapter[] = [
     span: "3 years",
     h: "Regulatory consulting",
     at: "Big Four",
-    b: "I helped clients work through complex requirements and turn them into clear next steps. It taught me to ask the questions that get a conversation moving.",
+    b: "I helped clients turn dense regulatory requirements into next steps they could act on. It taught me that the right question early saves weeks of work later.",
     bg: "var(--color-accent-100)",
     panel: "var(--color-bg)",
     r: -0.5,
@@ -235,7 +231,7 @@ export const PATH: Chapter[] = [
     span: "A few months",
     h: "Virtual assistant",
     at: "Beyond Classrooms",
-    b: "I cold-emailed a stack of companies and joined Beyond Classrooms as a virtual assistant. Before long, I was asked to work on SchoolTrips.ai.",
+    b: "I cold-emailed a stack of companies and joined Beyond Classrooms as a virtual assistant. I kept spotting things that could work better and fixing them, and before long I was building SchoolTrips.ai.",
     bg: "var(--color-accent-2-200)",
     panel: "var(--color-accent-2-100)",
     muted: "var(--color-accent-2-900)",
@@ -246,7 +242,7 @@ export const PATH: Chapter[] = [
     span: "Now",
     h: "Cofounder",
     at: "SchoolTrips.ai",
-    b: "I kept finding the work that needed doing and doing it. Eventually the role caught up with me. I’m now a cofounder at SchoolTrips.ai.",
+    b: "The more I built, the more I owned. Eventually the title caught up. I’m now a cofounder at SchoolTrips.ai.",
     bg: "var(--color-neutral-900)",
     panel: "var(--color-neutral-800)",
     fg: "var(--color-neutral-100)",
@@ -321,7 +317,7 @@ export const PLAY = [
   },
   {
     h: "Reddit monitor",
-    b: "Drafts posts for The Lunar Playground and posts on my behalf.",
+    b: "Drafts posts for The Lunar Playground so I can review and share them.",
     s: "In use",
     ...use,
     r: -1,

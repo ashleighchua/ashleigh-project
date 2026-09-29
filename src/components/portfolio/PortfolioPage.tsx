@@ -497,15 +497,12 @@ export function PortfolioPage() {
               <Logo size={88} />
             </div>
             <h1>
-              You know something should exist. <br />I help you <span>build&nbsp;it.</span>
+              I help turn ideas into <span>real&nbsp;products</span>
             </h1>
-            <p>
-              A product, a tool, or a process held together by twelve spreadsheets: I work out what
-              it needs to be, build it, and hand it over.
-            </p>
+            <p>Start with one project. Stay for as long as it makes sense.</p>
             <p className="pf-avail">
               <span aria-hidden="true" />
-              Open to long-term roles and ongoing partnerships.
+              Open to freelance, contract and long-term work.
             </p>
           </div>
           <a href="#table" className="pf-scroll" aria-label="Scroll down">

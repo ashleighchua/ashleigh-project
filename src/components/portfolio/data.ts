@@ -33,18 +33,18 @@ export type Sticker = {
 };
 
 export const STK: Sticker[] = [
-  { label: "FIGURE/IT OUT", obj: "notebook", z: 0, s: 0, c: 0, m: 0.9 },
-  { label: "NO ROADMAP,/NO PROBLEM", obj: "cup", z: 0, s: 2, c: 3, m: 0.82 },
-  { label: "ASK THE/OBVIOUS/QUESTION", obj: "compass", z: 0, s: 5, c: 6, m: 0.8 },
-  { label: "STRUCTURE/THE MESS", obj: "plate", z: 1, s: 4, c: 2, m: 0.9 },
-  { label: "12 SHEETS IN,/1 SYSTEM OUT", obj: "notes", z: 1, s: 1, c: 5, m: 0.85 },
-  { label: "AMBIGUITY IN,/SHAPE OUT", obj: "jar", z: 1, s: 6, c: 1, m: 0.8 },
-  { label: "BUILD/THE THING", obj: "laptop", z: 2, s: 0, c: 4, m: 0.9 },
-  { label: "SHIPPED,/NOT PITCHED", obj: "parcel", z: 2, s: 7, c: 0, m: 0.85 },
-  { label: "LIVE,/NOT A DECK", obj: "phone", z: 2, s: 3, c: 3, m: 0.82 },
-  { label: "RUNS/WITHOUT ME", obj: "plant", z: 3, s: 4, c: 6, m: 0.9 },
-  { label: "PLAYBOOKS THAT/OUTLIVE ME", obj: "card", z: 3, s: 1, c: 2, m: 0.85 },
-  { label: "HANDED/OVER", obj: "keys", z: 3, s: 2, c: 4, m: 0.8 },
+  { label: "FIND THE/REAL PROBLEM", obj: "notebook", z: 0, s: 0, c: 0, m: 0.9 },
+  { label: "NO ROADMAP?/WE CAN START/ANYWAY", obj: "cup", z: 0, s: 2, c: 3, m: 0.82 },
+  { label: "ASK WHAT'S/MISSING", obj: "compass", z: 0, s: 5, c: 6, m: 0.8 },
+  { label: "MAKE THE MESS/LEGIBLE", obj: "plate", z: 1, s: 4, c: 2, m: 0.9 },
+  { label: "12 SHEETS,/ONE WORKING/SYSTEM", obj: "notes", z: 1, s: 1, c: 5, m: 0.85 },
+  { label: "TURN SOMETHING/VAGUE INTO/A PLAN", obj: "jar", z: 1, s: 6, c: 1, m: 0.8 },
+  { label: "MAKE IT/USEFUL", obj: "laptop", z: 2, s: 0, c: 4, m: 0.9 },
+  { label: "BUILT TO/GO LIVE", obj: "parcel", z: 2, s: 7, c: 0, m: 0.85 },
+  { label: "READY FOR/REAL PEOPLE", obj: "phone", z: 2, s: 3, c: 3, m: 0.82 },
+  { label: "EASY TO/RUN", obj: "plant", z: 3, s: 4, c: 6, m: 0.9 },
+  { label: "PLAYBOOKS/PEOPLE CAN/PICK UP", obj: "card", z: 3, s: 1, c: 2, m: 0.85 },
+  { label: "HANDOVER,/DONE PROPERLY", obj: "keys", z: 3, s: 2, c: 4, m: 0.8 },
 ];
 
 /** Sticker shapes; a click cycles to a different one */
@@ -80,19 +80,23 @@ export const OBJ: Record<ObjKey, ObjSpec> = {
 
 export const ZONES: [title: string, body: string, dot: string][] = [
   [
-    "Figuring it out",
-    "Give me the thing nobody has defined yet. No roadmap, no problem.",
+    "Finding the real problem",
+    "I start with what is stuck. Sometimes it is a decision. Sometimes it is a process that no longer works.",
     "var(--color-accent)",
   ],
   [
-    "Structuring the mess",
-    "Ambiguity in, shape out. Twelve spreadsheets in, one system out.",
+    "Making the mess make sense",
+    "I turn a pile of information into a system people can follow.",
     "var(--color-accent-2-600)",
   ],
-  ["Building the thing", "I ship it, not a recommendation of it.", "var(--color-accent-700)"],
   [
-    "Making myself unnecessary",
-    "It keeps running when I leave the room. The playbooks outlive me.",
+    "Turning the plan into something useful",
+    "Once the direction is clear, I make the practical version of it: a site, a tool, or a workflow people can pick up and use.",
+    "var(--color-accent-700)",
+  ],
+  [
+    "Leaving it easy to run",
+    "I make the handover clear, so the work can keep moving without someone needing to translate it first.",
     "var(--color-accent-2-800)",
   ],
 ];
@@ -139,14 +143,20 @@ export const MSP: [number, number][] = [
 ];
 
 export const MEOWS = [
-  "meow. I’m the only one here who hasn’t shipped anything.",
-  "those stickers up top? I knocked them off the table. she sorted them.",
-  "hire her. I need a bigger cardboard box.",
-  "she went assistant → cofounder. I went floor → sofa.",
-  "the SchoolTrips planner is in beta. go poke it.",
-  "twelve tabs open. I’m sitting on three of them.",
+  "meow. i’m the only one here who hasn’t shipped anything.",
+  "hire her. i need a bigger cardboard box.",
+  "she went from assistant to cofounder. i went from floor to sofa.",
+  "the SchoolTrips.ai planner is in beta. go poke it.",
+  "she makes complicated work less annoying. i make Zoom calls less productive.",
+  "don’t be fooled by the face. i am available for consulting.",
 ];
-export const HISS = ["HSSSSS.", "hsss. personal space.", "HISS. (affectionately)"];
+export const HISS = [
+  "HSSSSS.",
+  "hsss. personal space.",
+  "HISS. (affectionately)",
+  "that was not a pet. that was an administrative error.",
+  "hss. i’m on break.",
+];
 
 /* ── Timeline ── */
 
@@ -175,7 +185,7 @@ export const PATH: Chapter[] = [
     span: "4 years",
     h: "Chemical engineering",
     at: "University",
-    b: "Taught that everything is a system with inputs, failure points and a bottleneck. I still think this way about every product.",
+    b: "Engineering school taught me to notice where a system gets stuck. I still bring that instinct to product work, looking for the bottleneck holding everything else up.",
     bg: "var(--color-surface)",
     panel: "var(--color-accent-100)",
     r: -1,
@@ -186,7 +196,7 @@ export const PATH: Chapter[] = [
     span: "10 years",
     h: "Violin & viola",
     at: "State orchestra",
-    b: "Played both, depending on the occasion. A decade of rehearsing until it’s genuinely right, in time with forty other people.",
+    b: "I played both instruments, depending on what the score needed. Ten years in an orchestra taught me how to keep time with forty other people and make music that only exists when everyone shows up.",
     bg: "var(--color-accent-2-200)",
     panel: "var(--color-accent-2-100)",
     muted: "var(--color-accent-2-900)",
@@ -198,7 +208,7 @@ export const PATH: Chapter[] = [
     span: "3 years",
     h: "Regulatory consulting",
     at: "Big Four",
-    b: "Handed problems with no shape and asked to return structure. Learned to ask the obvious question everyone else had skipped.",
+    b: "I helped clients work through complex requirements and turn them into clear next steps. It taught me to ask the questions that get a conversation moving.",
     bg: "var(--color-accent-100)",
     panel: "var(--color-bg)",
     r: -0.5,
@@ -207,9 +217,9 @@ export const PATH: Chapter[] = [
     ...light,
     scene: "signpost",
     span: "1 year",
-    h: "Figuring out my life",
+    h: "Figuring things out",
     at: "On my own",
-    b: "Launched The Lunar Playground, published a kids’ book and built websites for clients. Figuring it out looked a lot like shipping.",
+    b: "I launched The Lunar Playground, published a kids’ book, and built websites for clients. Some ideas worked; others joined my idea graveyard, where I learned to fail faster and take the useful lesson with me.",
     bg: "var(--color-surface)",
     panel: "var(--color-neutral-100)",
     r: 1.2,
@@ -218,9 +228,9 @@ export const PATH: Chapter[] = [
     ...light,
     scene: "inbox",
     span: "A few months",
-    h: "Remote assistant",
-    at: "SchoolTrips.ai",
-    b: "Cold-emailed a stack of companies. One hired me for admin, then made the mistake of asking what I thought.",
+    h: "Virtual assistant",
+    at: "Beyond Classrooms",
+    b: "I cold-emailed a stack of companies and joined Beyond Classrooms as a virtual assistant. Before long, I was asked to work on SchoolTrips.ai.",
     bg: "var(--color-accent-2-200)",
     panel: "var(--color-accent-2-100)",
     muted: "var(--color-accent-2-900)",
@@ -231,7 +241,7 @@ export const PATH: Chapter[] = [
     span: "Now",
     h: "Cofounder",
     at: "SchoolTrips.ai",
-    b: "Same company that hired me for admin. I made myself so useful the titles couldn’t keep up.",
+    b: "I kept finding the work that needed doing and doing it. Eventually the role caught up with me. I’m now a cofounder at SchoolTrips.ai.",
     bg: "var(--color-neutral-900)",
     panel: "var(--color-neutral-800)",
     fg: "var(--color-neutral-100)",
@@ -249,7 +259,7 @@ const wip = { bg: "var(--color-neutral-200)", fg: "var(--color-neutral-800)" };
 export const PLAY = [
   {
     h: "Career Compass",
-    b: "Turns career history into evidence, scored against the role you want.",
+    b: "Turns career history into evidence, then scores it against the role you want.",
     s: "In progress",
     ...wip,
     r: -1,
@@ -257,7 +267,7 @@ export const PLAY = [
   },
   {
     h: "Clarity",
-    b: "Chaotic spec in, readable docs out. Built for a technical writer application at Squirro. They reckoned I’d suit product better.",
+    b: "Turns a chaotic spec into readable documentation. I built it for a technical writer application at Squirro. They thought I might suit product better.",
     s: "Live",
     ...live,
     r: 1,
@@ -265,7 +275,7 @@ export const PLAY = [
   },
   {
     h: "Celestial",
-    b: "Five systems, one profile, an AI reading at the end.",
+    b: "Brings together astrology, personality frameworks, and other ways people try to understand themselves. It ends with an AI reading that pulls it into one profile.",
     s: "Live",
     ...live,
     r: 0.5,
@@ -273,7 +283,7 @@ export const PLAY = [
   },
   {
     h: "Fruition Passport",
-    b: "What fruit is actually in season, anywhere.",
+    b: "Tells you what fruit is actually in season, wherever you are.",
     s: "Live",
     ...live,
     r: -1.2,
@@ -281,7 +291,7 @@ export const PLAY = [
   },
   {
     h: "Dino Kart Mandarin",
-    b: "Mandarin drills disguised as a dinosaur kart race. Yes, really.",
+    b: "Mandarin practice disguised as a dinosaur kart race. Yes, really.",
     s: "On GitHub",
     bg: "var(--color-neutral-900)",
     fg: "var(--color-neutral-100)",
@@ -290,7 +300,7 @@ export const PLAY = [
   },
   {
     h: "Remote job tracker",
-    b: "Scrapes listings daily, mails itself a clean shortlist.",
+    b: "Checks listings daily and sends me a clean shortlist.",
     s: "In use",
     ...use,
     r: -0.5,
@@ -298,7 +308,7 @@ export const PLAY = [
   },
   {
     h: "Trading dashboard",
-    b: "Journals trades; checks whether my signals hold up.",
+    b: "Journals trades and checks whether my signals hold up.",
     s: "In use",
     ...use,
     r: 0.8,
@@ -317,10 +327,10 @@ export const PLAY = [
 /* ── Lunar Playground pipeline teaser ── */
 
 export const PIPELINE = [
-  { h: "Order in", b: "Relocation reading, birth details attached" },
-  { h: "Chart calculated", b: "Astrocartography lines plotted for their places" },
-  { h: "Reading written", b: "Interpreted and laid out as a report" },
-  { h: "PDF delivered", b: "In the client’s inbox. Nobody lifted a finger." },
+  { h: "Order in", b: "A relocation reading, with the client's birth details attached." },
+  { h: "Chart calculated", b: "Astrocartography lines are plotted for the places that matter to them." },
+  { h: "Reading written", b: "The results are interpreted and laid out as a report." },
+  { h: "PDF delivered", b: "It lands in the client’s inbox!" },
 ];
 
 export const LINKS = {

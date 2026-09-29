@@ -125,7 +125,7 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
           fill={fg}
           style={{ fontFamily: HEADING, fontSize: 38 * z }}
         >
-          ✳
+          {"✳︎"}
         </text>
       </>
     );
@@ -155,7 +155,7 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
           fill={fg}
           style={{ fontFamily: HEADING, fontSize: 30 * z }}
         >
-          ✳
+          {"✳︎"}
         </text>
         <Label
           lines={lines}
@@ -315,7 +315,7 @@ function objectKids(kind: ObjKey): ReactNode {
             fill="var(--color-accent-2-900)"
             style={{ fontFamily: HEADING, fontSize: 15 }}
           >
-            FIGURE
+            FIND THE
           </text>
           <text
             x={86}
@@ -324,7 +324,7 @@ function objectKids(kind: ObjKey): ReactNode {
             fill="var(--color-accent-2-900)"
             style={{ fontFamily: HEADING, fontSize: 15 }}
           >
-            IT OUT
+            PROBLEM
           </text>
           <rect x={118} y={6} width={7} height={168} fill="var(--color-accent-500)" />
         </>
@@ -386,7 +386,7 @@ function objectKids(kind: ObjKey): ReactNode {
             style={{ fontFamily: HEADING, fontSize: 11, letterSpacing: ".08em" }}
           >
             <textPath href="#plate-ring" textLength={440} lengthAdjust="spacing">
-              STRUCTURE THE MESS • AMBIGUITY IN, SHAPE OUT •{" "}
+              MAKE THE MESS LEGIBLE • TURN SOMETHING VAGUE INTO A PLAN •{" "}
             </textPath>
           </text>
           {(
@@ -489,7 +489,7 @@ function objectKids(kind: ObjKey): ReactNode {
             fill="var(--color-accent-300)"
             style={{ fontFamily: HEADING, fontSize: 16 }}
           >
-            BUILD THE THING
+            MAKE IT USEFUL
           </text>
           <rect x={164} y={35} width={3} height={16} fill="var(--color-accent-300)" />
           <rect x={16} y={80} width={158} height={30} rx={7} fill="var(--color-neutral-500)" />
@@ -512,7 +512,7 @@ function objectKids(kind: ObjKey): ReactNode {
             fill={INK}
             style={{ fontFamily: HEADING, fontSize: 9 }}
           >
-            SHIPPED
+            GO LIVE
           </text>
           <rect x={16} y={66} width={34} height={3} rx={1.5} fill={N3} />
           <rect x={16} y={72} width={24} height={3} rx={1.5} fill={N3} />
@@ -533,7 +533,7 @@ function objectKids(kind: ObjKey): ReactNode {
             fill="var(--color-accent-2-900)"
             style={{ fontFamily: HEADING, fontSize: 7 }}
           >
-            LIVE
+            READY
           </text>
           <circle cx={32} cy={60} r={14} fill="var(--color-accent-2-500)" />
           <path
@@ -584,7 +584,7 @@ function objectKids(kind: ObjKey): ReactNode {
             fill="var(--color-accent-700)"
             style={{ fontFamily: HEADING, fontSize: 15 }}
           >
-            PLAYBOOK
+            PLAYBOOKS
           </text>
           {[98, 84, 60].map((lw, j) => (
             <rect key={j} x={16} y={44 + j * 14} width={lw} height={5} rx={2.5} fill={N3} />

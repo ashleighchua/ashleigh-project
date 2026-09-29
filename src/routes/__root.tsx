@@ -77,11 +77,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Ashleigh Chua" },
+      { title: "Ashleigh Chua - professional problem solver" },
       {
         name: "description",
         content:
-          "Engineering, orchestra, consulting, assistant — now I build products. Scroll and watch the mess sort itself out.",
+          "Ashleigh turns vague ideas and tangled processes into products, systems, and tools people can actually use.",
       },
       { name: "author", content: "Ashleigh Chua" },
       { property: "og:type", content: "website" },

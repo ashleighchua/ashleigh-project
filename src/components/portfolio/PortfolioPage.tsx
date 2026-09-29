@@ -461,9 +461,9 @@ export function PortfolioPage() {
         </nav>
         <header className="pf-hero" ref={heroRef}>
           <h1 ref={titleRef}>
-            None of this was a <span>plan.</span>
+            I turn a good idea into something <span>tangible</span> you can use.
           </h1>
-          <p ref={subRef}>Scroll. It sorts itself out.</p>
+          <p ref={subRef}>When the path from idea to reality is unclear, I help work it out.</p>
           <a href="#table" className="pf-scroll" aria-label="Scroll down">
             <ArrowDown size={18} strokeWidth={2.75} />
           </a>
@@ -474,7 +474,10 @@ export function PortfolioPage() {
       <section className="pf-table-sec" id="table">
         <div className="pf-head">
           <h2>What I bring to the table</h2>
-          <p>Everything that was floating up there has a place now.</p>
+          <p>
+            I help when the work is tangled, unclear, or stuck. By the end, people know what
+            they're doing and have something they can run with.
+          </p>
         </div>
         <div className="pf-cloth">
           {ZONES.map(([title, body, dot], zi) => (
@@ -516,7 +519,7 @@ export function PortfolioPage() {
             <div>
               <span className="pf-kicker">Not the LinkedIn version</span>
               <h2>
-                Six chapters. <span>One through-line.</span>
+                None of this happened in a <span>straight line.</span>
               </h2>
             </div>
             <div className="pf-tl-progress">
@@ -556,7 +559,7 @@ export function PortfolioPage() {
       <section className="pf-receipts" id="work">
         <div className="pf-receipts-head">
           <h2>The receipts</h2>
-          <span>Three things I built, and where each one stands.</span>
+          <span>Three things I built, and what each one does in the real world.</span>
         </div>
 
         {/* SchoolTrips.ai */}
@@ -582,15 +585,20 @@ export function PortfolioPage() {
             </div>
             <h3>SchoolTrips.ai</h3>
             <p>
-              An AI trip planner underneath, a teacher network on top. Teachers find trips, review
-              them, and pass on the things that never make it into a brochure.
+              An AI trip planner underneath, a teacher network on top. Teachers can find trips,
+              learn from people who have run them, and get the details that never make it into a
+              brochure.
             </p>
             <ul className="pf-st-feats">
               {(
                 [
-                  [Sparkles, "AI guidance", "A first draft of the whole trip in minutes."],
-                  [Star, "Educator reviews", "Notes from teachers who ran it first."],
-                  [ShieldCheck, "Risk templates", "Safeguarding and risk assessments, sorted."],
+                  [Sparkles, "AI guidance", "A useful first draft of the whole trip in minutes."],
+                  [Star, "Educator reviews", "Notes from teachers who have already run it."],
+                  [
+                    ShieldCheck,
+                    "Risk templates",
+                    "Safeguarding and risk assessments, ready to work from.",
+                  ],
                 ] as const
               ).map(([Icon, h, b]) => (
                 <li key={h}>
@@ -604,8 +612,8 @@ export function PortfolioPage() {
               ))}
             </ul>
             <p className="pf-st-mine">
-              <b>My part:</b> product, the build, and going on real school trips to learn what it
-              has to get right.
+              <b>My part:</b> I lead product and build it. I also go on the ground on real school
+              trips to learn about the entire process from planning a trip to seeing it through.
             </p>
             <a
               href={LINKS.planner}
@@ -664,8 +672,8 @@ export function PortfolioPage() {
             </div>
             <h3>Hannah Jackson</h3>
             <p>
-              She asked for a website. I built her a dashboard as well, so she could change her own
-              work, prices and offers without me.
+              Hannah asked for a website. I built her a dashboard too, so she can update her work,
+              prices, and offers herself whenever she needs to, without touching code.
             </p>
             <div className="pf-hj-stat">
               <span>+50%</span>
@@ -700,7 +708,7 @@ export function PortfolioPage() {
                 aria-pressed={hjView === "admin"}
                 onClick={() => setHjView("admin")}
               >
-                What Hannah sees
+                What Hannah manages
               </button>
             </div>
             <div className="pf-browser">
@@ -758,9 +766,9 @@ export function PortfolioPage() {
             </div>
             <h3>The Lunar Playground</h3>
             <p>
-              Relocation astrology and natal readings. Someone places an order, and the chart gets
-              calculated, the reading gets written and the PDF lands in their inbox. I don’t touch
-              any of it.
+              Relocation astrology and natal readings. Someone places an order, their chart is
+              calculated, their reading is written, and the finished PDF arrives in their inbox.
+              The process runs without me touching each order.
             </p>
             <a
               href={LINKS.lunar}
@@ -829,8 +837,8 @@ export function PortfolioPage() {
             </ol>
             <p className="pf-pipe-foot" aria-live="polite">
               {lunar >= PIPELINE.length
-                ? "4 steps. 0 humans. Done."
-                : "A replay of what happens on every real order."}
+                ? "Four steps. Fully handled."
+                : "A replay of what happens with every real order."}
             </p>
           </div>
         </article>
@@ -842,7 +850,10 @@ export function PortfolioPage() {
           <div className="pf-play-head">
             <span className="pf-kicker">Nobody asked for these</span>
             <h2>The playground.</h2>
-            <p>Built after hours, mostly out of curiosity. Some are live, some live on GitHub.</p>
+            <p>
+              Side projects, useful experiments, and ideas I wanted to see working. Some are live.
+              Some are still happily being tinkered with.
+            </p>
           </div>
           <div className="pf-tiles">
             {PLAY.map((t) => (
@@ -870,11 +881,12 @@ export function PortfolioPage() {
       <section className="pf-now" id="now">
         <div className="pf-now-head">
           <span className="pf-kicker">Right now</span>
-          <h2>For now, I’m on school trips in China.</h2>
+          <h2>Learning SchoolTrips.ai from the inside.</h2>
           <p>
-            SchoolTrips.ai is for teachers, so I’m learning the job where it actually happens: 5am
-            coach departures, remote villages, and a night camping by the Great Wall with 150
-            students. I won’t be here forever, but it’s the best product research I’ve done.
+            SchoolTrips.ai is for teachers, so I’m spending time on the trips themselves. This year
+            has included 5am coach departures and camping beside the Great Wall with 150 students.
+            Seeing the job up close is the fastest way to learn what the product needs to get
+            right.
           </p>
         </div>
         <div className="pf-cards">
@@ -920,11 +932,11 @@ export function PortfolioPage() {
           <div className="pf-next-dark">
             <div className="pf-next-circle" />
             <span className="pf-kicker">Open to</span>
-            <h3>Interesting projects. Especially circular ones.</h3>
+            <h3>Work with a real-world problem in it.</h3>
             <p>
-              I’ll take on anything that makes me curious. I’m most drawn to circular economy,
-              alternative materials and sustainability, so if you’re building there, I’d really like
-              to hear about it.
+              I’m open to work that solves a real problem. I’m especially interested in circular
+              economy and alternative materials, where sustainable ideas still need to work in
+              practice.
             </p>
             <a
               href={`mailto:${LINKS.email}?subject=A%20project%20for%20you`}
@@ -960,8 +972,8 @@ export function PortfolioPage() {
         <div className="pf-contact-box">
           <div className="pf-contact-c1" />
           <div className="pf-contact-c2" />
-          <span className="pf-contact-kicker">Got something messy?</span>
-          <h2>Let’s build the thing.</h2>
+          <span className="pf-contact-kicker">Got an idea that needs untangling?</span>
+          <h2>Let’s talk.</h2>
           <div className="pf-contact-row">
             <a
               href={`mailto:${LINKS.email}?subject=the%20messy%20thing`}

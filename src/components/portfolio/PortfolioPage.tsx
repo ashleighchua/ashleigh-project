@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { memo, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   ArrowDown,
   Check,
@@ -37,6 +37,61 @@ import {
   DECOR,
 } from "./data";
 import "./portfolio.css";
+
+type StickerProps = {
+  i: number;
+  k: number;
+  ko: number;
+  refs: {
+    post: React.MutableRefObject<(HTMLButtonElement | null)[]>;
+    faceS: React.MutableRefObject<(HTMLDivElement | null)[]>;
+    faceO: React.MutableRefObject<(HTMLDivElement | null)[]>;
+    reshuffle: React.MutableRefObject<(() => void)[]>;
+  };
+  onPoke: (i: number) => void;
+  onHover: (i: number) => void;
+};
+
+/** One hero sticker. Owns its colour/shape so a tap re-renders only this sticker, not the page. */
+const Sticker = memo(function Sticker({ i, k, ko, refs, onPoke, onHover }: StickerProps) {
+  const p = STK[i]!;
+  const [look, setLook] = useState<Look>({ c: p.c, s: p.s });
+  refs.reshuffle.current[i] = () =>
+    setLook((L) => ({
+      c: (L.c + 1 + Math.floor(Math.random() * (COL.length - 1))) % COL.length,
+      s: (L.s + 1 + Math.floor(Math.random() * (SH.length - 1))) % SH.length,
+    }));
+  return (
+    <button
+      type="button"
+      ref={(el) => {
+        refs.post.current[i] = el;
+      }}
+      aria-label={p.label.replace("/", " ")}
+      className="pf-post"
+      onClick={() => onPoke(i)}
+      onMouseEnter={() => onHover(i)}
+    >
+      <div
+        className="pf-face"
+        ref={(el) => {
+          refs.faceS.current[i] = el;
+        }}
+      >
+        <StickerFace i={i} look={look} k={k} />
+      </div>
+      <div
+        className="pf-face"
+        style={{ opacity: 0 }}
+        ref={(el) => {
+          refs.faceO.current[i] = el;
+        }}
+      >
+        <TableObject objKey={p.obj} k={ko} />
+      </div>
+    </button>
+  );
+});
 
 /** "I'm a ___" slot. Every word is laid out invisibly in the same cell so the line never jumps. */
 function RotatingRole() {
@@ -131,7 +186,6 @@ type Bubble = { text: string; kind: "talk" | "hiss" | "ignore"; right: boolean }
 export function PortfolioPage() {
   const [mobile, setMobile] = useState(false);
   const [vw, setVw] = useState(1400);
-  const [looks, setLooks] = useState<Look[]>(() => STK.map((p) => ({ c: p.c, s: p.s })));
   const [bubble, setBubble] = useState<Bubble>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hjView, setHjView] = useState<"public" | "admin">("public");
@@ -150,6 +204,10 @@ export function PortfolioPage() {
   const slotEls = useRef<(HTMLDivElement | null)[]>([]);
   const faceS = useRef<(HTMLDivElement | null)[]>([]);
   const faceO = useRef<(HTMLDivElement | null)[]>([]);
+  const reshuffle = useRef<(() => void)[]>([]);
+  const [stickerRefs] = useState(() => ({ post: postEls, faceS, faceO, reshuffle }));
+  /** Headline keep-clear box, relative to the hero; measured on layout changes, not every frame */
+  const headBox = useRef<Box | null>(null);
   const landed = useRef<boolean[]>([]);
   const catEl = useRef<HTMLDivElement>(null);
   const catFlip = useRef<HTMLDivElement>(null);
@@ -200,6 +258,29 @@ export function PortfolioPage() {
     onResize();
     window.addEventListener("resize", onResize);
 
+    const measureHead = () => {
+      const tEl = heroTextRef.current;
+      const hero = heroRef.current;
+      if (!tEl || !hero) return;
+      const h = hero.getBoundingClientRect();
+      const a1 = inkBox(tEl);
+      const l = a1.left - h.left - 16;
+      const rt = a1.right - h.left + 16;
+      const tp = a1.top - h.top - 16;
+      const bt = a1.bottom - h.top + 16;
+      headBox.current = {
+        cx: (l + rt) / 2,
+        cy: (tp + bt) / 2,
+        hw: (rt - l) / 2,
+        hh: (bt - tp) / 2,
+      };
+    };
+    measureHead();
+    document.fonts?.ready.then(measureHead);
+    const ro = new ResizeObserver(measureHead);
+    if (heroTextRef.current) ro.observe(heroTextRef.current);
+    if (heroRef.current) ro.observe(heroRef.current);
+
     t0.current = performance.now();
     let last = t0.current;
     let raf = 0;
@@ -226,16 +307,23 @@ export function PortfolioPage() {
         const drift = reduce ? 0 : DRIFT;
         const spots = mobileRef.current ? MSP : DSP;
 
-        let E: Box | null = null;
-        const tEl = heroTextRef.current;
-        if (tEl) {
-          const a1 = inkBox(tEl);
-          const l = a1.left - rr.left - 16;
-          const rt = a1.right - rr.left + 16;
-          const tp = a1.top - rr.top - 16;
-          const bt = a1.bottom - rr.top + 16;
-          E = { cx: (l + rt) / 2, cy: (tp + bt) / 2, hw: (rt - l) / 2, hh: (bt - tp) / 2 };
-        }
+        const hb = headBox.current;
+        const E: Box | null = hb ? { ...hb, cx: hb.cx + hx, cy: hb.cy + hy } : null;
+        // time-based easing: same feel at 60Hz and 120Hz, and quicker off the mark than a fixed lerp
+        const fPos = 1 - Math.exp(-dt * 7.5);
+        const fRot = 1 - Math.exp(-dt * 9);
+        const popDecay = Math.exp(-dt * 6.5);
+
+        // read every size/position first, then write: no forced re-layout per sticker
+        const reads = STK.map((_, i) => {
+          const slot = slotEls.current[i];
+          const kid = faceS.current[i]?.firstElementChild as HTMLElement | null;
+          return {
+            sr: slot?.getBoundingClientRect(),
+            kw: kid ? kid.offsetWidth : 0,
+            kh: kid ? kid.offsetHeight : 0,
+          };
+        });
 
         STK.forEach((_, i) => {
           const el = postEls.current[i];
@@ -252,18 +340,17 @@ export function PortfolioPage() {
             s.sy = tsy;
             s.init = true;
           }
-          s.sx += (tsx - s.sx) * 0.06;
-          s.sy += (tsy - s.sy) * 0.06;
-          s.rot += (s.trot - s.rot) * 0.08;
-          s.pop *= 0.9;
+          s.sx += (tsx - s.sx) * fPos;
+          s.sy += (tsy - s.sy) * fPos;
+          s.rot += (s.trot - s.rot) * fRot;
+          s.pop *= popDecay;
 
           const a = reduce ? 1 : clamp((t - 0.2 - i * 0.09) / 0.75);
           let fx = hx + s.sx * W + Math.sin(t * s.sp + s.ph) * drift;
           let fy = hy + s.sy * H + Math.cos(t * s.sp * 0.8 + s.ph) * drift;
-          const kid = fS.firstElementChild as HTMLElement | null;
-          const kr = kid?.getBoundingClientRect();
-          const hw = (kid ? kid.offsetWidth || kr!.width : 0) / 2 + 14;
-          const hh = (kid ? kid.offsetHeight || kr!.height : 0) / 2 + 14;
+          const rd = reads[i]!;
+          const hw = rd.kw / 2 + 14;
+          const hh = rd.kh / 2 + 14;
           fx = clamp(fx, hx + hw, hx + W - hw);
           fy = clamp(fy, hy + hh, hy + H - hh);
           // keep stickers off the headline
@@ -282,7 +369,7 @@ export function PortfolioPage() {
             fy = clamp(fy, hy + hh, hy + H - hh);
           }
 
-          const sr = slot.getBoundingClientRect();
+          const sr = rd.sr!;
           const tx = sr.left - rr.left + sr.width / 2;
           const ty = sr.top - rr.top + sr.height / 2;
           const end = Math.max(1, sr.top - rr.top - vh * 0.6);
@@ -386,6 +473,7 @@ export function PortfolioPage() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
+      ro.disconnect();
       window.clearTimeout(bubbleTimer.current);
       lunarTimers.current.forEach((t) => window.clearTimeout(t));
     };
@@ -405,16 +493,11 @@ export function PortfolioPage() {
     s.trot = rnd(-24, 24);
     o.trot = rnd(-24, 24);
     o.pop = 0.5;
-    const nS = SH.length;
-    setLooks((prev) => {
-      const next = prev.slice();
-      const L = next[i]!;
-      next[i] = {
-        c: (L.c + 1 + Math.floor(Math.random() * (COL.length - 1))) % COL.length,
-        s: (L.s + 1 + Math.floor(Math.random() * (nS - 1))) % nS,
-      };
-      return next;
-    });
+    reshuffle.current[i]?.();
+  }, []);
+  const hover = useCallback((i: number) => {
+    const s = sim.current[i]!;
+    s.pop = Math.max(s.pop, 0.35);
   }, []);
 
   const say = (text: string, kind: "talk" | "hiss" | "ignore", ms: number) => {
@@ -906,23 +989,35 @@ export function PortfolioPage() {
             </p>
           </div>
           <div className="pf-tiles">
-            {PLAY.map((t) => (
-              <a
-                key={t.h}
-                href={t.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="pf-tile"
-                style={{ "--tilt": `${t.r}deg` } as CSSProperties}
-              >
-                <div className="pf-tile-top">
-                  <span style={{ background: t.bg, color: t.fg }}>{t.s}</span>
-                  <span className="pf-tile-arrow">↗</span>
+            {PLAY.map((t) => {
+              const inner = (
+                <>
+                  <div className="pf-tile-top">
+                    <span style={{ background: t.bg, color: t.fg }}>{t.s}</span>
+                    {t.href && <span className="pf-tile-arrow">↗</span>}
+                  </div>
+                  <span className="pf-tile-h">{t.h}</span>
+                  <span className="pf-tile-b">{t.b}</span>
+                </>
+              );
+              const style = { "--tilt": `${t.r}deg` } as CSSProperties;
+              return t.href ? (
+                <a
+                  key={t.h}
+                  href={t.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pf-tile"
+                  style={style}
+                >
+                  {inner}
+                </a>
+              ) : (
+                <div key={t.h} className="pf-tile pf-tile-static" style={style}>
+                  {inner}
                 </div>
-                <span className="pf-tile-h">{t.h}</span>
-                <span className="pf-tile-b">{t.b}</span>
-              </a>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -1012,39 +1107,8 @@ export function PortfolioPage() {
 
       {/* ═════ Sticker layer (positioned by the rAF loop) ═════ */}
       <div className="pf-posts">
-        {STK.map((p, i) => (
-          <button
-            key={i}
-            type="button"
-            ref={(el) => {
-              postEls.current[i] = el;
-            }}
-            aria-label={p.label.replace("/", " ")}
-            className="pf-post"
-            onClick={() => poke(i)}
-            onMouseEnter={() => {
-              const s = sim.current[i]!;
-              s.pop = Math.max(s.pop, 0.35);
-            }}
-          >
-            <div
-              className="pf-face"
-              ref={(el) => {
-                faceS.current[i] = el;
-              }}
-            >
-              <StickerFace i={i} look={looks[i]!} k={k} />
-            </div>
-            <div
-              className="pf-face"
-              style={{ opacity: 0 }}
-              ref={(el) => {
-                faceO.current[i] = el;
-              }}
-            >
-              <TableObject objKey={p.obj} k={ko} />
-            </div>
-          </button>
+        {STK.map((_, i) => (
+          <Sticker key={i} i={i} k={k} ko={ko} refs={stickerRefs} onPoke={poke} onHover={hover} />
         ))}
       </div>
 

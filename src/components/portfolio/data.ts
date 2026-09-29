@@ -257,7 +257,25 @@ const live = { bg: "var(--color-accent-2-200)", fg: "var(--color-accent-2-800)" 
 const use = { bg: "var(--color-accent-200)", fg: "var(--color-accent-800)" };
 const wip = { bg: "var(--color-neutral-200)", fg: "var(--color-neutral-800)" };
 
-export const PLAY = [
+export const PLAY: {
+  h: string;
+  b: string;
+  s: string;
+  bg: string;
+  fg: string;
+  r: number;
+  /** no link = private project, shown as a tile you can't click */
+  href?: string;
+}[] = [
+  {
+    h: "100 Things to Do Before Dinner",
+    b: "A children's book I wrote and published. Now on Amazon.",
+    s: "Published",
+    bg: "var(--color-accent)",
+    fg: "var(--color-neutral-900)",
+    r: 1.4,
+    href: "https://www.amazon.sg/dp/B0GNJP8PK1",
+  },
   {
     h: "Career Compass",
     b: "Turns career history into evidence, then scores it against the role you want.",
@@ -283,21 +301,19 @@ export const PLAY = [
     href: "https://astrology-app-hazel.vercel.app",
   },
   {
-    h: "Fruition Passport",
-    b: "Tells you what fruit is actually in season, in whichever part of the world you choose.",
-    s: "Live",
-    ...live,
+    h: "Bangkok expat newsletter",
+    b: "A Python pipeline that scrapes events across Bangkok, extracts them into a clean format and scores them, so the newsletter only features the good ones.",
+    s: "Private repo",
+    ...wip,
     r: -1.2,
-    href: "https://fruition-passport.ashleighchua.workers.dev",
   },
   {
-    h: "Dino Kart Mandarin",
-    b: "Mandarin practice disguised as a dinosaur kart race. Yes, really.",
-    s: "On GitHub",
-    bg: "var(--color-neutral-900)",
-    fg: "var(--color-neutral-100)",
+    h: "Mandarin Survival Kit",
+    b: "Real-world lessons, spaced-repetition flashcards and pronunciation drills. Built because every app kept teaching me to order coffee I don't drink.",
+    s: "Live",
+    ...live,
     r: 1.2,
-    href: "https://github.com/liamaspeling/mandarin",
+    href: "https://mandarin-survival-kit.vercel.app",
   },
   {
     h: "Remote job tracker",

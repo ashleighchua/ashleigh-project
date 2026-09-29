@@ -443,10 +443,12 @@ export function PortfolioPage() {
       if (tl && track) {
         const r = tl.getBoundingClientRect();
         const dist = Math.max(0, track.scrollWidth - window.innerWidth);
-        const want = dist + vh;
-        if (Math.abs(tlH - want) > 1) {
-          tl.style.height = `${want}px`;
-          tlH = want;
+        // the tail is 100svh in CSS, not window.innerHeight: on a phone the URL
+        // bar collapses as you scroll, which changes innerHeight mid-scroll and
+        // would resize this section under your thumb, jumping the whole page
+        if (Math.abs(tlH - dist) > 1) {
+          tl.style.height = `calc(${dist}px + 100svh)`;
+          tlH = dist;
         }
         const p = clamp(-r.top / Math.max(1, dist));
         track.style.transform = `translate3d(${-p * dist}px,0,0)`;

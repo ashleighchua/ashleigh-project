@@ -755,12 +755,16 @@ body {
 /* SchoolTrips */
 
 .pf .pf-st-shots {
+  /* how far the lower polaroid sits below the upper one */
+  --snap-drop: 70px;
   position: relative;
   display: block;
-  min-height: 460px;
+  /* the upper polaroid stays in flow, so this box is exactly as tall as the
+     photos render at any width; the padding leaves room for the lower one */
+  padding-bottom: calc(var(--snap-drop) + 14px);
 }
 .pf-snap {
-  position: absolute;
+  position: relative;
   margin: 0;
   width: min(62%, 300px);
   padding: 10px 10px 14px;
@@ -782,8 +786,9 @@ body {
   transform: rotate(-5deg);
 }
 .pf-snap-b {
+  position: absolute;
   right: 2%;
-  top: 70px;
+  top: var(--snap-drop);
   transform: rotate(4deg);
 }
 .pf-st-shots:hover .pf-snap-a {
@@ -1340,8 +1345,11 @@ body {
   display: flex;
   gap: 22px;
   overflow-x: auto;
-  scroll-snap-type: x mandatory;
+  /* proximity, not mandatory: mandatory re-snaps on every reflow and fights
+     the vertical page scroll when a thumb starts inside the strip */
+  scroll-snap-type: x proximity;
   scroll-padding-left: 8px;
+  overscroll-behavior-x: contain;
   margin: 0 calc(-1 * var(--pad-x)) 0 -8px;
   padding: 18px var(--pad-x) 26px 8px;
 }

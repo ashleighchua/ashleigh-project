@@ -32,15 +32,17 @@ export type Sticker = {
   m: number;
 };
 
+/** Order sets the starting spot: even = left of the headline, odd = right (top to bottom).
+ *  "Built to go live" (left) and "Built to last" (right) are kept apart on purpose. */
 export const STK: Sticker[] = [
   { label: "FIND THE/REAL PROBLEM", obj: "notebook", z: 0, s: 11, c: 0, m: 0.9 },
+  { label: "BUILT TO/LAST", obj: "plant", z: 3, s: 9, c: 6, m: 0.9 },
   { label: "NO ROADMAP?/WE CAN START/ANYWAY", obj: "cup", z: 0, s: 2, c: 3, m: 0.84 },
-  { label: "MAKE THE MESS/LEGIBLE", obj: "plate", z: 1, s: 4, c: 2, m: 0.9 },
   { label: "12 SHEETS,/ONE WORKING/SYSTEM", obj: "notes", z: 1, s: 1, c: 5, m: 0.86 },
   { label: "BUILT TO/GO LIVE", obj: "laptop", z: 2, s: 7, c: 0, m: 0.88 },
+  { label: "MAKE THE MESS/LEGIBLE", obj: "plate", z: 1, s: 4, c: 2, m: 0.9 },
   { label: "SHIPPED,/NOT SHELVED", obj: "parcel", z: 2, s: 8, c: 4, m: 0.88 },
-  { label: "YOU WON'T/NEED ME/FOREVER", obj: "plant", z: 3, s: 9, c: 6, m: 0.9 },
-  { label: "HANDOVER,/DONE PROPERLY", obj: "keys", z: 3, s: 5, c: 1, m: 0.86 },
+  { label: "IN IT FOR/THE LONG/HAUL", obj: "card", z: 3, s: 5, c: 1, m: 0.86 },
 ];
 
 /** Sticker shapes; a click cycles to a different one */
@@ -83,7 +85,7 @@ export const DECOR: { obj: ObjKey; z: number }[] = [
   { obj: "compass", z: 0 },
   { obj: "jar", z: 1 },
   { obj: "phone", z: 2 },
-  { obj: "card", z: 3 },
+  { obj: "keys", z: 3 },
 ];
 
 export const ZONES: [title: string, body: string, dot: string][] = [
@@ -103,8 +105,8 @@ export const ZONES: [title: string, body: string, dot: string][] = [
     "var(--color-accent-700)",
   ],
   [
-    "Leaving it easy to run",
-    "I make the handover clear, so the work keeps moving long after I’ve stepped back.",
+    "Built for the long run",
+    "Whatever I build is clear enough for other people to run, so the work keeps moving without bottlenecking on me.",
     "var(--color-accent-2-800)",
   ],
 ];
@@ -303,7 +305,7 @@ export const PLAY: {
   {
     h: "Bangkok expat newsletter",
     b: "A Python pipeline that scrapes events across Bangkok, extracts them into a clean format and scores them, so the newsletter only features the good ones.",
-    s: "Private repo",
+    s: "Behind the scenes",
     ...wip,
     r: -1.2,
   },
@@ -314,30 +316,6 @@ export const PLAY: {
     ...live,
     r: 1.2,
     href: "https://mandarin-survival-kit.vercel.app",
-  },
-  {
-    h: "Remote job tracker",
-    b: "Checks listings daily for specific filters and sends me a clean shortlist.",
-    s: "In use",
-    ...use,
-    r: -0.5,
-    href: "https://github.com/ashleighchua/remote-job-tracker",
-  },
-  {
-    h: "Trading dashboard",
-    b: "Journals trades and checks whether my signals hold up. Runs trades autonomously without me when signals are hit.",
-    s: "In use",
-    ...use,
-    r: 0.8,
-    href: "https://github.com/ashleighchua/trading-dashboard",
-  },
-  {
-    h: "Reddit monitor",
-    b: "Drafts posts for The Lunar Playground so I can review and share them.",
-    s: "In use",
-    ...use,
-    r: -1,
-    href: "https://github.com/ashleighchua/lunar-reddit-monitor",
   },
 ];
 
@@ -350,7 +328,7 @@ export const PIPELINE = [
     b: "Astrocartography lines are plotted for the places that matter to them.",
   },
   { h: "Reading written", b: "The results are interpreted and laid out as a report." },
-  { h: "PDF delivered", b: "It lands in the client’s inbox!" },
+  { h: "PDF delivered", b: "It lands in the client’s inbox." },
 ];
 
 /* ── About ── */
@@ -363,7 +341,6 @@ export const ROLES = [
   "violist (and violinist)",
   "recovering consultant",
   "children's book author",
-  "professional airport sitter",
   "serial side-project starter",
 ];
 
@@ -396,7 +373,7 @@ export const ADVENTURES: Adventure[] = [
   },
   {
     h: "35",
-    b: "flights so far this year, and it isn't over.",
+    b: "flights so far this year. Work shipped from all of them.",
     kind: "pass",
     bg: "var(--color-neutral-100)",
     fg: "var(--color-text)",

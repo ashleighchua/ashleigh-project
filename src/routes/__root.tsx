@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Ashleigh turns vague ideas and tangled processes into products, systems, and tools people can actually use.",
+          "Ashleigh helps turn ideas into real products. Open to freelance, contract and long-term work.",
       },
       { name: "author", content: "Ashleigh Chua" },
       { property: "og:type", content: "website" },

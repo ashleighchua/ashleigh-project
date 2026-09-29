@@ -617,12 +617,18 @@ export function PortfolioPage() {
       </div>
 
       {/* ═════ What I bring to the table ═════ */}
+      <ul className="pf-proof" aria-label="Highlights">
+        <li>Virtual assistant to cofounder in 4 months</li>
+        <li>Client paid 50% over quote</li>
+        <li>A business that runs without me</li>
+      </ul>
+
       <section className="pf-table-sec" id="table">
         <div className="pf-head">
           <h2>What I bring to the table</h2>
           <p>
-            Most people I work with know something should be better but can’t see the path yet. I
-            help find it, build the thing, and leave it running without me.
+            Most people I work with have a good idea and no clear way to make it real. I find the
+            path, build the product, and help it grow from there.
           </p>
         </div>
         <div className="pf-cloth">
@@ -717,7 +723,7 @@ export function PortfolioPage() {
       <section className="pf-receipts" id="work">
         <div className="pf-receipts-head">
           <h2>The receipts</h2>
-          <span>Three things I built, and what each one does in the real world.</span>
+          <span>Three things I built. All three are out in the world, doing their job.</span>
         </div>
 
         {/* SchoolTrips.ai */}
@@ -927,6 +933,16 @@ export function PortfolioPage() {
               calculated, their reading is written, and the finished PDF arrives in their inbox. The
               process runs without me touching each order.
             </p>
+            <dl className="pf-lp-stats">
+              <div>
+                <dt>100+</dt>
+                <dd>reports delivered</dd>
+              </div>
+              <div>
+                <dt>4.9★</dt>
+                <dd>average rating</dd>
+              </div>
+            </dl>
             <a
               href={LINKS.lunar}
               target="_blank"
@@ -1088,8 +1104,8 @@ export function PortfolioPage() {
         <div className="pf-contact-box">
           <h2>Let’s talk.</h2>
           <p>
-            Bring me anything tangled. Especially if it’s circular economy, alternative materials,
-            or anything built to last.
+            Anything with a real problem in it, big or small. Bonus points for sustainability, where
+            good ideas still have to prove they work in practice.
           </p>
           <a href={`mailto:${LINKS.email}`} className="btn pf-contact-cta">
             {LINKS.email} ↗

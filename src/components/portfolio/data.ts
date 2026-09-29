@@ -222,7 +222,7 @@ export const PATH: Chapter[] = [
     span: "1 year",
     h: "Figuring things out",
     at: "On my own",
-    b: "I launched The Lunar Playground, published a kids’ book, and built websites for clients. Some ideas worked; others joined my idea graveyard, where I learned to fail faster and take the useful lesson with me.",
+    b: "I launched The Lunar Playground, published a kids’ book, and built websites for clients. Some ideas worked; others joined my idea graveyard, where I learned to test quickly and keep what’s useful.",
     bg: "var(--color-surface)",
     panel: "var(--color-neutral-100)",
     r: 1.2,
@@ -294,7 +294,7 @@ export const RECEIPTS: {
     role: "Solo product",
     status: "Live, fully automated",
     h: "The Lunar Playground",
-    body: "Relocation astrology and natal readings. Someone places an order, their chart is calculated, their reading is written, and the finished PDF arrives in their inbox.",
+    body: "Astrology as a reflective tool, not a fortune: the answers aren’t really in the stars, they’re in you. People come for natal and relocation readings, and stay for the free tools (birth chart, BaZi, Human Design, numerology and more) and the blog.",
     mine: "I built the whole pipeline, from the order form to the finished PDF. It runs without me touching each order.",
     cta: "Visit the site",
     href: "https://thelunarplayground.com",
@@ -349,7 +349,7 @@ export const PLAY: {
     sbg: "var(--color-bg)",
     sfg: "var(--color-accent-2-800)",
     r: -12,
-    href: "https://github.com/ashleighchua/Career-Compass",
+    href: "https://career-compass-eight-chi.vercel.app/",
   },
   {
     h: "Clarity",
@@ -403,7 +403,7 @@ export const ROLES = [
   "cofounder",
   "product builder",
   "chemical engineer",
-  "violist (and violinist)",
+  "violinist and violist (and pianist)",
   "recovering consultant",
   "children's book author",
   "serial side-project starter",
@@ -434,7 +434,11 @@ export const ADVENTURES: Adventure[] = [
     alt: "Ashleigh and her best friend beside a Camino marker reading Km 100",
     r: 1.5,
   },
-  { h: "35 flights", b: "So far this year. Work shipped from all of them.", r: -1 },
+  {
+    h: "75,625 km flown",
+    b: "Nearly twice around the Earth, and the work kept shipping the whole way.",
+    r: -1,
+  },
   {
     h: "A night at the Great Wall",
     b: "Camped out with 150 students on a school trip.",
@@ -470,6 +474,4 @@ export const LINKS = {
   hannah: "https://byhannahjackson.com",
   lunar: "https://thelunarplayground.com",
   kofi: "https://ko-fi.com/ashleighchua",
-  /** FormSubmit relays each note to the inbox; the first one sent asks the inbox to confirm */
-  notes: "https://formsubmit.co/ajax/ashleighchua@gmail.com",
 };

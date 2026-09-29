@@ -1059,15 +1059,20 @@ function sceneKids(scene: Scene): ReactNode {
   }
 }
 
-/** Moon-C badge: sage tile with an orange crescent (the favicon, drawn bigger above the hero headline) */
+/** The "A" from the wordmark: Fraunces 800, soft and wonky, at the header's optical size */
+const LOGO_A =
+  "M5.62 15.55H10.5L10.5 17.08H5.6ZM6.99 19.76Q6.99 20.1 6.79 20.3Q6.58 20.5 6.15 20.5H3.91Q3.48 20.5 3.28 20.3Q3.07 20.1 3.07 19.76Q3.07 19.53 3.18 19.37Q3.28 19.21 3.51 19.03L3.7 18.91Q3.86 18.8 3.96 18.65Q4.05 18.5 4.22 17.97L6.15 11.88Q6.28 11.49 6.26 11.31Q6.23 11.13 5.94 11Q5.71 10.88 5.6 10.69Q5.48 10.5 5.48 10.24Q5.48 9.9 5.69 9.7Q5.89 9.5 6.32 9.5H11.37Q11.8 9.5 12 9.7Q12.21 9.9 12.21 10.24Q12.21 10.52 12.08 10.71Q11.95 10.9 11.7 11.03Q11.52 11.12 11.51 11.31Q11.49 11.5 11.59 11.83L13.41 17.49Q13.62 18.16 13.76 18.47Q13.9 18.78 14.16 18.92Q14.49 19.11 14.61 19.29Q14.73 19.48 14.73 19.76Q14.73 20.1 14.52 20.3Q14.32 20.5 13.89 20.5H10.17Q9.74 20.5 9.54 20.3Q9.33 20.1 9.33 19.76Q9.33 19.5 9.46 19.32Q9.58 19.15 9.83 19.03L10.13 18.9Q10.32 18.81 10.28 18.62Q10.24 18.42 10.11 18.01L7.9 10.83L8.12 10.85L5.98 17.66Q5.87 18.02 5.79 18.24Q5.72 18.46 5.79 18.6Q5.87 18.75 6.19 18.92L6.5 19.05Q6.72 19.16 6.86 19.33Q6.99 19.49 6.99 19.76Z";
+
+/** "AC" badge: the wordmark's cream A and orange moon-C on a sage tile (the favicon, drawn bigger above the hero headline) */
 export function MoonMark({ size }: { size: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 30 30" className="pf-logo" aria-hidden="true">
       <rect width={30} height={30} rx={9} fill="var(--color-accent-2-800)" />
+      <path d={LOGO_A} fill="var(--color-bg)" />
       <path
-        d={crescentD(16.2, 15, 8, 4.7)}
+        d="M22.76 9.36A5.9 5.9 0 1 0 22.76 20.64A5.9 5.9 0 0 1 22.76 9.36Z"
         fill="var(--color-accent-400)"
-        transform="rotate(-12 15 15)"
+        transform="rotate(-12 21.03 15)"
       />
     </svg>
   );
@@ -1217,7 +1222,7 @@ export function TableSticker({ kind, size }: { kind: StickerKind; size: number }
   );
 }
 
-/* ═════ About: 35 flights as a stamped passport page ═════ */
+/* ═════ About: flights as a stamped passport page ═════ */
 
 const PLANE =
   "M0 -9L1.6 -3L9 1V3L1.6 1L1.2 6L3.5 8V9.5L0 8.5L-3.5 9.5V8L-1.2 6L-1.6 1L-9 3V1L-1.6 -3Z";
@@ -1289,19 +1294,19 @@ export function PassportStamps() {
         <circle r={46} strokeWidth={3} />
         <circle r={39} strokeWidth={1.2} />
         <text
-          y={14}
+          y={8}
           textAnchor="middle"
           fill={A7}
           stroke="none"
-          style={{ fontFamily: HEADING, fontSize: 44 }}
+          style={{ fontFamily: HEADING, fontSize: 21, letterSpacing: "-.02em" }}
         >
-          35
+          75,625
         </text>
-        <text y={-20} textAnchor="middle" fill={A7} stroke="none" style={{ ...ink, fontSize: 8 }}>
-          FLIGHTS
+        <text y={-16} textAnchor="middle" fill={A7} stroke="none" style={{ ...ink, fontSize: 7 }}>
+          32 FLIGHTS
         </text>
-        <text y={30} textAnchor="middle" fill={A7} stroke="none" style={{ ...ink, fontSize: 7 }}>
-          · 2026 ·
+        <text y={22} textAnchor="middle" fill={A7} stroke="none" style={{ ...ink, fontSize: 8 }}>
+          KM FLOWN
         </text>
       </Stamp>
       <path

@@ -1,8 +1,10 @@
-// GrowingStats — "What it's grown into" animated stats strip.
-// Desktop (≥860px container): one scene, a watering can moves pot → pot.
-// Stacked (<860px — phones and narrow tablets): three stacked cards, each plays when scrolled into view.
-// Respects prefers-reduced-motion (shows the finished state).
-import { useCallback, useEffect, useRef, useState } from "react";
+// GrowingStats — "What you water, grows".
+// Top card: two pots and a watering can you pick up and drag over them (or tap, and it
+// waters the next pot for you). Each stem grows while you pour, then its number counts up.
+// Bottom card: the third pot waters itself on a drip line and grows when scrolled into view.
+// Scenes are laid out at a design size and scaled to fit, so phones get the same picture.
+// Respects prefers-reduced-motion (shows everything grown).
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import "./GrowingStats.css";
 
 type Stat = {
@@ -43,429 +45,448 @@ const BUSH = [
   { x: 14, h: 60 },
   { x: -50, h: 44 },
 ];
-const ROW = 560;
-const GAP = 16;
-const CENTERS = [16.667, 50, 83.333];
 
-type Trio = [number, number, number];
-type State = {
-  canX: number;
-  rot: number;
-  canM: Trio;
-  rotM: Trio;
-  pour: number;
-  drip: boolean;
-  grow: Trio;
-  bloom: Trio;
-  show: Trio;
-  val: Trio;
-  q2: boolean;
-  wet: Trio;
-};
-type TrioKey = "canM" | "rotM" | "grow" | "bloom" | "show" | "val" | "wet";
+/** design sizes: the top scene is two 360px columns, the bottom one column */
+const TOP_W = 720;
+const AUTO_W = 360;
+/** only the part above the shelf is shown; plants are placed from the scene's bottom */
+const SCENE_H = 540;
+const SHOW_H = 440;
+const SHELF_Y = 402;
+/** the can resting on the shelf, between the pots */
+const CAN_W = 130;
+const CAN_H = 64;
+/** where the spout's tip is, inside the can's box */
+const SPOUT = { x: 10, y: 0 };
+/** how long it takes to water a pot fully */
+const POUR_S = 1.8;
 
-const initial = (): State => ({
-  canX: -1,
-  rot: 0,
-  canM: [-1, -1, -1],
-  rotM: [0, 0, 0],
-  pour: -1,
-  drip: false,
-  grow: [0, 0, 0],
-  bloom: [0, 0, 0],
-  show: [0, 0, 0],
-  val: [0, 0, 0],
-  q2: false,
-  wet: [0, 0, 0],
-});
-const FINISHED: State = {
-  canX: 3,
-  rot: 0,
-  canM: [1, 1, 1],
-  rotM: [0, 0, 0],
-  pour: -1,
-  drip: false,
-  grow: [1, 2, 1],
-  bloom: [1, 1, 1],
-  show: [1, 1, 1],
-  val: [4, 50, 100],
-  q2: true,
-  wet: [1, 1, 1],
-};
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-/** thrown to stop a sequence that a newer run has replaced */
-const CANCELLED = new Error("cancelled");
+const clamp = (v: number) => Math.max(0, Math.min(1, v));
 
-export function GrowingStats() {
-  const wrapRef = useRef<HTMLElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const col0 = useRef<HTMLDivElement>(null);
-  const col1 = useRef<HTMLDivElement>(null);
-  const col2 = useRef<HTMLDivElement>(null);
-  const colRefs = [col0, col1, col2];
-  const tok = useRef([0, 0, 0]);
-  const [mobile, setMobile] = useState(false);
-  const [st, setSt] = useState(initial);
-  const [reduced, setReduced] = useState(false);
-
-  const patch = (obj: Partial<State> | ((s: State) => Partial<State>)) =>
-    setSt((s) => ({ ...s, ...(typeof obj === "function" ? obj(s) : obj) }));
-  const setAt = (k: TrioKey, i: number, v: number) =>
-    setSt((s) => {
-      const a = s[k].slice() as Trio;
-      a[i] = v;
-      return { ...s, [k]: a };
+/** scales a scene to the width it has; `k` also feeds the label sizes so they stay readable */
+function useFit(design: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [k, setK] = useState(1);
+  const [w, setW] = useState(design);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setW(el.clientWidth);
+      setK(Math.min(1, el.clientWidth / design));
     });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [design]);
+  return { ref, k, sceneW: k < 1 ? design : w };
+}
 
-  const count = (i: number, alive: () => boolean, dur: number) => {
+function useCount(target: number, on: boolean, dur: number) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    if (!on) {
+      setV(0);
+      return;
+    }
+    let raf = 0;
     const t0 = performance.now();
     const f = (now: number) => {
-      if (!alive()) return;
       const p = Math.min(1, (now - t0) / dur);
-      setAt("val", i, Math.round(STATS[i]!.target * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) requestAnimationFrame(f);
+      setV(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(f);
     };
-    requestAnimationFrame(f);
-  };
+    raf = requestAnimationFrame(f);
+    return () => cancelAnimationFrame(raf);
+  }, [target, on, dur]);
+  return v;
+}
 
-  const seq = useCallback(async (i: number, isMobile: boolean, tDesk?: number) => {
-    const key = isMobile ? i : 0;
-    const t = isMobile ? ++tok.current[i]! : tDesk!;
-    const alive = () => t === tok.current[key];
-    const go = async (ms: number) => {
-      await sleep(ms);
-      if (!alive()) throw CANCELLED;
-    };
-    const arrive = () => (isMobile ? setAt("canM", i, 0) : patch({ canX: i }));
-    const tilt = (d: number) => (isMobile ? setAt("rotM", i, d) : patch({ rot: d }));
-    const leave = () => {
-      if (isMobile) setAt("canM", i, 1);
-      else if (i === 2) patch({ canX: 3 });
-    };
-    const run = async () => {
-      if (isMobile) {
-        (["grow", "bloom", "show", "val", "wet", "rotM"] as const).forEach((k) => setAt(k, i, 0));
-        setAt("canM", i, -1);
-        if (i === 1) patch({ q2: false });
-        await go(300);
-      }
-      arrive();
-      await go(850);
-      if (i < 2) {
-        tilt(-30);
-        await go(300);
-        patch({ pour: i });
-        setAt("wet", i, 1);
-        await go(380);
-        if (i === 0) {
-          setAt("grow", 0, 1);
-          await go(1150);
-        } else {
-          setAt("grow", 1, 1);
-          await go(1000);
-          setAt("grow", 1, 2);
-          patch({ q2: true });
-          await go(850);
-        }
-        patch((s) => ({ pour: s.pour === i ? -1 : s.pour }));
-        tilt(0);
-        await go(150);
-        setAt("bloom", i, 1);
-        await go(350);
-        setAt("show", i, 1);
-        count(i, alive, 800);
-        if (isMobile) {
-          await go(300);
-          leave();
-        }
-        await go(500);
-      } else {
-        tilt(-12);
-        await go(350);
-        patch({ drip: true });
-        setAt("wet", 2, 1);
-        await go(500);
-        tilt(0);
-        await go(250);
-        leave();
-        setAt("grow", 2, 1);
-        await go(500);
-        setAt("show", 2, 1);
-        count(2, alive, 1800);
-        await go(2200);
-        patch({ drip: false });
-      }
-    };
-    if (isMobile) {
-      try {
-        await run();
-      } catch {
-        /* replaced by a newer run */
-      }
-    } else await run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+function StatBlock({ m, shown, idle }: { m: Stat; shown: boolean; idle: string }) {
+  const v = useCount(m.target, shown, 800);
+  return (
+    <div className={`gs-stat gs-stat--${m.tone}${shown ? "" : " gs-stat--idle"}`}>
+      <span className="gs-num">{shown ? m.fmt(v) : "?"}</span>
+      <span className="gs-cap">{shown ? m.caption : idle}</span>
+      {shown && <a href={m.href}>See receipt ↓</a>}
+    </div>
+  );
+}
 
-  const runAll = useCallback(async () => {
-    const t = ++tok.current[0]!;
-    setSt(initial());
-    try {
-      await sleep(400);
-      for (let i = 0; i < 3; i++) await seq(i, false, t);
-    } catch {
-      /* replaced by a newer run */
-    }
-  }, [seq]);
-
+export function GrowingStats() {
+  const [reduced, setReduced] = useState(false);
+  const [round, setRound] = useState(0);
   useEffect(() => {
     setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
 
-  // breakpoint by container width
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setMobile(el.clientWidth < 860));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  return (
+    <section className="gs" aria-labelledby="gs-h">
+      <div className="gs-head">
+        <h2 id="gs-h">What you water, grows</h2>
+        {!reduced && (
+          <button type="button" className="gs-replay" onClick={() => setRound((r) => r + 1)}>
+            Start over ↻
+          </button>
+        )}
+      </div>
+      <WaterMe key={`w${round}`} reduced={reduced} />
+      <AutoPot key={`a${round}`} reduced={reduced} />
+    </section>
+  );
+}
 
-  // start on scroll into view (re-arms when layout switches)
+/* ── top card: water them yourself ── */
+
+type Drag = { id: number; sx: number; sy: number; cx: number; cy: number; moved: boolean };
+
+function WaterMe({ reduced }: { reduced: boolean }) {
+  const { ref, k, sceneW } = useFit(TOP_W);
+  const home = useCallback(() => ({ x: sceneW / 2 - CAN_W / 2, y: SHELF_Y - CAN_H }), [sceneW]);
+  const [water, setWater] = useState<[number, number]>([0, 0]);
+  const [can, setCan] = useState(home);
+  const [held, setHeld] = useState(false);
+  const [auto, setAuto] = useState(false);
+  const drag = useRef<Drag | null>(null);
+  const waterRef = useRef(water);
+  waterRef.current = water;
+
   useEffect(() => {
-    tok.current = tok.current.map((t) => t + 1);
-    if (reduced) {
-      setSt(FINISHED);
-      return;
-    }
-    setSt(initial());
-    const started = new Set<number>();
-    const io = new IntersectionObserver(
-      (entries) =>
-        entries.forEach((e) => {
-          if (!e.isIntersecting) return;
-          const i = mobile ? colRefs.findIndex((r) => r.current === e.target) : -1;
-          if (started.has(i)) return;
-          started.add(i);
-          if (i < 0) runAll();
-          else seq(i, true);
-        }),
-      { threshold: 0.45 },
-    );
-    if (mobile) colRefs.forEach((r) => r.current && io.observe(r.current));
-    else if (stageRef.current) io.observe(stageRef.current);
-    return () => {
-      io.disconnect();
-      tok.current = tok.current.map((t) => t + 1);
+    if (reduced) setWater([1, 1]);
+  }, [reduced]);
+
+  // keep the resting can centred when the width changes
+  useEffect(() => {
+    if (!held && !auto) setCan(home());
+  }, [home, held, auto]);
+
+  const tip = { x: can.x + SPOUT.x, y: can.y + SPOUT.y };
+  const potX = [sceneW / 4, (sceneW * 3) / 4];
+  // pouring: the spout is over a pot that still needs water, above its soil
+  const over = potX.findIndex((px) => Math.abs(tip.x - px) < 75 && tip.y < 280);
+  const pouring = (held || auto) && over >= 0 && water[over]! < 1 ? over : -1;
+
+  // grow whichever pot is being poured on
+  useEffect(() => {
+    if (pouring < 0) return;
+    let raf = 0;
+    let last = performance.now();
+    const f = (now: number) => {
+      const dt = (now - last) / 1000;
+      last = now;
+      setWater((w) => {
+        const n: [number, number] = [w[0], w[1]];
+        n[pouring] = clamp(n[pouring]! + dt / POUR_S);
+        return n;
+      });
+      raf = requestAnimationFrame(f);
     };
-  }, [mobile, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
+    raf = requestAnimationFrame(f);
+    return () => cancelAnimationFrame(raf);
+  }, [pouring]);
 
-  const replay = () => {
-    if (reduced) return;
-    if (mobile) [0, 1, 2].forEach((i) => seq(i, true));
-    else runAll();
+  /** tap or keyboard: carry the can to the next dry pot, pour, bring it back */
+  const waterNext = async () => {
+    const i = waterRef.current.findIndex((w) => w < 1);
+    if (i < 0 || auto) return;
+    setAuto(true);
+    setCan({ x: potX[i]! - SPOUT.x + 8, y: 110 });
+    await sleep(700);
+    while (waterRef.current[i]! < 1) await sleep(100);
+    await sleep(250);
+    setCan(home());
+    await sleep(600);
+    setAuto(false);
   };
 
-  const s = st;
-  const soil = (i: number) => (s.wet[i] ? "var(--accent-900)" : "var(--accent-700)");
-  const blooms = Math.floor(s.val[2] / 20);
-  const offLeft = "-190px";
-  const offRight = "calc(100% + 80px)";
-  const cans = mobile
-    ? [0, 1, 2].map((i) => ({
-        top: i * (ROW + GAP) + 30,
-        rot: s.rotM[i]!,
-        left: s.canM[i]! < 0 ? offLeft : s.canM[i]! > 0 ? offRight : "calc(50% + 4px)",
-      }))
-    : [
-        {
-          top: 30,
-          rot: s.rot,
-          left: s.canX < 0 ? offLeft : s.canX > 2 ? offRight : `calc(${CENTERS[s.canX]}% + 4px)`,
-        },
-      ];
-  const shelves = mobile ? [0, 1, 2].map((i) => i * (ROW + GAP) + 402) : [402];
+  const onDown = (e: PointerEvent<HTMLButtonElement>) => {
+    if (auto) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = {
+      id: e.pointerId,
+      sx: e.clientX,
+      sy: e.clientY,
+      cx: can.x,
+      cy: can.y,
+      moved: false,
+    };
+  };
+  const onMove = (e: PointerEvent<HTMLButtonElement>) => {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    const dx = (e.clientX - d.sx) / k;
+    const dy = (e.clientY - d.sy) / k;
+    if (!d.moved && Math.hypot(dx, dy) < 6) return;
+    if (!d.moved) {
+      d.moved = true;
+      setHeld(true);
+    }
+    setCan({
+      x: Math.max(-20, Math.min(sceneW - CAN_W + 20, d.cx + dx)),
+      y: Math.max(20, Math.min(SHELF_Y - CAN_H, d.cy + dy)),
+    });
+  };
+  const onUp = (e: PointerEvent<HTMLButtonElement>) => {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    drag.current = null;
+    if (!d.moved) {
+      waterNext();
+      return;
+    }
+    setHeld(false);
+    setCan(home());
+  };
+
+  const [w0, w1] = water;
+  const done = w0 >= 1 && w1 >= 1;
+  const soil = (w: number) => (w > 0 ? "var(--accent-900)" : "var(--accent-700)");
 
   return (
-    <section
-      ref={wrapRef}
-      className={`gs ${mobile ? "gs--mobile" : ""}`}
-      aria-label="What it's grown into"
-    >
-      <div className="gs-head">
-        <h2>What it’s grown into</h2>
-        <button type="button" className="gs-replay" onClick={replay}>
-          Water again ↻
-        </button>
-      </div>
-      <p className="gs-sub">Three things I planted. Two needed watering. One waters itself.</p>
-
-      <div ref={stageRef} className="gs-stage" style={{ height: mobile ? ROW * 3 + GAP * 2 : 540 }}>
-        {shelves.map((top) => (
-          <div key={top} className="gs-shelf" style={{ top }} />
-        ))}
-
-        <div className="gs-grid">
-          {/* 1 · Sunflower on a ruler: Assistant → Cofounder */}
-          <div ref={col0} className="gs-col">
-            <div className="gs-ruler" />
-            <div className="gs-tick" style={{ bottom: 262 }} />
-            <span className="gs-ticklabel" style={{ bottom: 256 }}>
-              Assistant
-            </span>
-            <div className="gs-tick gs-tick--top" style={{ bottom: 434 }} />
-            <span className="gs-ticklabel gs-ticklabel--top" style={{ bottom: 428 }}>
-              Cofounder
-            </span>
-            <div
-              className="gs-stem"
-              style={{ bottom: 246, height: s.grow[0] ? 190 : 0, transitionDuration: "1.2s" }}
-            />
-            <div
-              className="gs-leaf gs-leaf--l"
-              style={{
-                bottom: 326,
-                transform: `rotate(-22deg) scale(${s.grow[0] ? 1 : 0})`,
-                transitionDelay: ".5s",
-              }}
-            />
-            <div
-              className="gs-leaf gs-leaf--r"
-              style={{
-                bottom: 370,
-                transform: `rotate(22deg) scale(${s.grow[0] ? 1 : 0})`,
-                transitionDelay: ".8s",
-              }}
-            />
-            <div
-              className="gs-sunflower"
-              style={{ transform: `scale(${s.bloom[0]}) rotate(${s.bloom[0] ? 0 : -120}deg)` }}
-            >
-              {Array.from({ length: 12 }, (_, k) => (
-                <span key={k} style={{ transform: `rotate(${k * 30}deg)` }} />
-              ))}
-              <i />
-            </div>
-            <Pot bottom={138} w={130} h={100} soil={soil(0)} />
-            {s.pour === 0 && <Drops />}
-          </div>
-
-          {/* 2 · Tulip past the quote line */}
-          <div ref={col1} className="gs-col">
-            <div className="gs-line" style={{ bottom: 356 }} />
-            <span className="gs-linelabel" style={{ bottom: 362 }}>
-              the quote
-            </span>
-            <div
-              className="gs-line gs-line--accent"
-              style={{ bottom: 416, opacity: s.q2 ? 1 : 0 }}
-            />
-            <span
-              className="gs-linelabel gs-linelabel--accent"
-              style={{ bottom: 422, opacity: s.q2 ? 1 : 0 }}
-            >
-              what she paid
-            </span>
-            <div
-              className="gs-stem"
-              style={{ bottom: 236, height: [0, 120, 180][s.grow[1]], transitionDuration: ".8s" }}
-            />
-            <div
-              className="gs-leaf gs-leaf--l gs-leaf--wide"
-              style={{
-                bottom: 290,
-                transform: `rotate(-30deg) scale(${s.grow[1] ? 1 : 0})`,
-                transitionDelay: ".3s",
-              }}
-            />
-            <div
-              className="gs-leaf gs-leaf--r gs-leaf--wide"
-              style={{
-                bottom: 318,
-                transform: `rotate(30deg) scale(${s.grow[1] ? 1 : 0})`,
-                transitionDelay: ".5s",
-              }}
-            />
-            <div className="gs-tulip" style={{ transform: `scale(${s.bloom[1]})` }}>
-              <span />
-              <span />
-              <span />
-            </div>
-            <Pot bottom={138} w={120} h={90} soil={soil(1)} small />
-            {s.pour === 1 && <Drops />}
-          </div>
-
-          {/* 3 · Self-watering: drip line, daisies pop as the count climbs */}
-          <div ref={col2} className="gs-col">
-            <div className="gs-pipe-h" />
-            <div className="gs-pipe-v" />
-            <span className="gs-nozzle" />
-            <span className="gs-autopilot" style={{ opacity: s.drip || s.show[2] ? 1 : 0 }}>
-              on autopilot
-            </span>
-            {s.drip && <Drips />}
-            {BUSH.map((b, k) => (
-              <div key={k}>
-                <div
-                  className="gs-bushstem"
-                  style={{
-                    left: `calc(50% + ${b.x}px)`,
-                    height: s.grow[2] ? b.h : 0,
-                    transitionDelay: `${k * 0.12}s`,
-                  }}
-                />
-                <div
-                  className="gs-daisy"
-                  style={{
-                    left: `calc(50% + ${b.x}px)`,
-                    bottom: 226 + b.h - 14,
-                    transform: `scale(${blooms > k ? 1.25 : 0})`,
-                  }}
-                >
-                  {[0, 72, 144, 216, 288].map((r) => (
-                    <span key={r} style={{ transform: `rotate(${r}deg)` }} />
-                  ))}
-                  <i />
-                </div>
+    <div className="gs-card">
+      <div ref={ref} className="gs-stage" style={{ height: SHOW_H * k, ["--k" as string]: k }}>
+        <div
+          className="gs-scene"
+          style={{
+            width: k < 1 ? TOP_W : "100%",
+            height: SCENE_H,
+            transform: k < 1 ? `scale(${k})` : undefined,
+          }}
+        >
+          <div className="gs-shelf" style={{ top: SHELF_Y }} />
+          <div className="gs-grid gs-grid--2">
+            {/* 1 · Sunflower up a ruler: Assistant → Cofounder */}
+            <div className="gs-col">
+              <div className="gs-ruler" />
+              <div className="gs-tick" style={{ bottom: 262 }} />
+              <span className="gs-ticklabel" style={{ bottom: 256 }}>
+                Assistant
+              </span>
+              <div className="gs-tick gs-tick--top" style={{ bottom: 434 }} />
+              <span className="gs-ticklabel gs-ticklabel--top" style={{ bottom: 428 }}>
+                Cofounder
+              </span>
+              <div className="gs-stem gs-stem--live" style={{ bottom: 246, height: 190 * w0 }} />
+              <div
+                className="gs-leaf gs-leaf--l"
+                style={{ bottom: 326, transform: `rotate(-22deg) scale(${w0 > 0.4 ? 1 : 0})` }}
+              />
+              <div
+                className="gs-leaf gs-leaf--r"
+                style={{ bottom: 370, transform: `rotate(22deg) scale(${w0 > 0.65 ? 1 : 0})` }}
+              />
+              <div
+                className="gs-sunflower"
+                style={{
+                  transform: `scale(${w0 >= 1 ? 1 : 0}) rotate(${w0 >= 1 ? 0 : -120}deg)`,
+                }}
+              >
+                {Array.from({ length: 12 }, (_, j) => (
+                  <span key={j} style={{ transform: `rotate(${j * 30}deg)` }} />
+                ))}
+                <i />
               </div>
-            ))}
-            <Pot bottom={138} w={110} h={80} soil={soil(2)} smallest />
+              <Pot bottom={138} w={130} h={100} soil={soil(w0)} />
+            </div>
+
+            {/* 2 · Tulip past the quote line */}
+            <div className="gs-col">
+              <div className="gs-line" style={{ bottom: 356 }} />
+              <span className="gs-linelabel" style={{ bottom: 362 }}>
+                the quote
+              </span>
+              <div
+                className="gs-line gs-line--accent"
+                style={{ bottom: 416, opacity: w1 >= 1 ? 1 : 0 }}
+              />
+              <span
+                className="gs-linelabel gs-linelabel--accent"
+                style={{ bottom: 422, opacity: w1 >= 1 ? 1 : 0 }}
+              >
+                what she paid
+              </span>
+              <div className="gs-stem gs-stem--live" style={{ bottom: 236, height: 180 * w1 }} />
+              <div
+                className="gs-leaf gs-leaf--l gs-leaf--wide"
+                style={{ bottom: 290, transform: `rotate(-30deg) scale(${w1 > 0.35 ? 1 : 0})` }}
+              />
+              <div
+                className="gs-leaf gs-leaf--r gs-leaf--wide"
+                style={{ bottom: 318, transform: `rotate(30deg) scale(${w1 > 0.55 ? 1 : 0})` }}
+              />
+              <div className="gs-tulip" style={{ transform: `scale(${w1 >= 1 ? 1 : 0})` }}>
+                <span />
+                <span />
+                <span />
+              </div>
+              <Pot bottom={138} w={120} h={90} soil={soil(w1)} small />
+            </div>
+          </div>
+
+          {pouring >= 0 && (
+            <div
+              className="gs-pour"
+              style={{ left: tip.x, top: tip.y + 8, ["--fall" as string]: `${290 - tip.y}px` }}
+            >
+              {[-8, 3, -2, 9, -6, 6].map((x, j) => (
+                <span key={j} style={{ left: x, animationDelay: `${j * 0.09}s` }} />
+              ))}
+            </div>
+          )}
+
+          {!reduced && (
+            <button
+              type="button"
+              className={`gs-can gs-can--grab${held ? " gs-can--held" : ""}`}
+              aria-label={done ? "Watering can (both pots are watered)" : "Water the next pot"}
+              style={{
+                left: can.x,
+                top: can.y,
+                transform: `rotate(${pouring >= 0 ? -30 : held ? -8 : 0}deg)`,
+              }}
+              onPointerDown={onDown}
+              onPointerMove={onMove}
+              onPointerUp={onUp}
+              onPointerCancel={onUp}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  waterNext();
+                }
+              }}
+            >
+              <span className="gs-can-handle" />
+              <span className="gs-can-spout" />
+              <span className="gs-can-rose" />
+              <span className="gs-can-body" />
+              <span className="gs-can-moon" />
+            </button>
+          )}
+        </div>
+        {!reduced && !done && (
+          <p className="gs-hint" aria-hidden="true">
+            Pick up the watering can and water them
+          </p>
+        )}
+      </div>
+      <div className="gs-stats gs-stats--2">
+        <StatBlock m={STATS[0]!} shown={w0 >= 1} idle="water me to find out" />
+        <StatBlock m={STATS[1]!} shown={w1 >= 1} idle="water me to find out" />
+      </div>
+    </div>
+  );
+}
+
+/* ── bottom card: waters itself ── */
+
+function AutoPot({ reduced }: { reduced: boolean }) {
+  const { ref, k } = useFit(AUTO_W);
+  const [on, setOn] = useState(false);
+  const [grown, setGrown] = useState(false);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    if (reduced) {
+      setOn(true);
+      setGrown(true);
+      setShown(true);
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
+    let alive = true;
+    const io = new IntersectionObserver(
+      async (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        setOn(true);
+        await sleep(900);
+        if (alive) setGrown(true);
+        await sleep(500);
+        if (alive) setShown(true);
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(el);
+    return () => {
+      alive = false;
+      io.disconnect();
+    };
+  }, [reduced, ref]);
+
+  const v = useCount(100, shown && !reduced, 1800);
+  const shownV = reduced ? 100 : v;
+  const blooms = Math.floor(shownV / 20);
+
+  return (
+    <div className="gs-card gs-card--auto">
+      <div ref={ref} className="gs-stage" style={{ height: SHOW_H * k, ["--k" as string]: k }}>
+        <div
+          className="gs-scene"
+          style={{
+            width: AUTO_W,
+            height: SCENE_H,
+            transform: k < 1 ? `scale(${k})` : undefined,
+          }}
+        >
+          <div className="gs-shelf" style={{ top: SHELF_Y }} />
+          <div className="gs-grid gs-grid--1">
+            <div className="gs-col">
+              <div className="gs-pipe-h" />
+              <div className="gs-pipe-v" />
+              <span className="gs-nozzle" />
+              <span className="gs-autopilot" style={{ opacity: on ? 1 : 0 }}>
+                on autopilot
+              </span>
+              {on && !reduced && <Drips />}
+              {BUSH.map((b, j) => (
+                <div key={j}>
+                  <div
+                    className="gs-bushstem"
+                    style={{
+                      left: `calc(50% + ${b.x}px)`,
+                      height: grown ? b.h : 0,
+                      transitionDelay: `${j * 0.12}s`,
+                    }}
+                  />
+                  <div
+                    className="gs-daisy"
+                    style={{
+                      left: `calc(50% + ${b.x}px)`,
+                      bottom: 226 + b.h - 14,
+                      transform: `scale(${blooms > j ? 1.25 : 0})`,
+                    }}
+                  >
+                    {[0, 72, 144, 216, 288].map((r) => (
+                      <span key={r} style={{ transform: `rotate(${r}deg)` }} />
+                    ))}
+                    <i />
+                  </div>
+                </div>
+              ))}
+              <Pot
+                bottom={138}
+                w={110}
+                h={80}
+                soil={on ? "var(--accent-900)" : "var(--accent-700)"}
+                smallest
+              />
+            </div>
           </div>
         </div>
-
-        {STATS.map((m, i) => (
-          <div
-            key={i}
-            className={`gs-stat gs-stat--${m.tone}`}
-            style={{
-              top: mobile ? i * (ROW + GAP) + 432 : 432,
-              left: mobile ? 0 : `${i * 33.333}%`,
-              width: mobile ? "100%" : "33.333%",
-              opacity: s.show[i] ? 1 : 0,
-              transform: `translateY(${s.show[i] ? 0 : 12}px)`,
-            }}
-          >
-            <span className="gs-num">{m.fmt(s.val[i]!)}</span>
-            <span className="gs-cap">{m.caption}</span>
-            <a href={m.href}>See receipt ↓</a>
-          </div>
-        ))}
-
-        {cans.map((c, i) => (
-          <div
-            key={i}
-            className="gs-can"
-            aria-hidden="true"
-            style={{ top: c.top, left: c.left, transform: `rotate(${c.rot}deg)` }}
-          >
-            <span className="gs-can-handle" />
-            <span className="gs-can-spout" />
-            <span className="gs-can-rose" />
-            <span className="gs-can-body" />
-            <span className="gs-can-moon" />
-          </div>
-        ))}
       </div>
-    </section>
+      <div className="gs-stats gs-stats--auto">
+        <div className={`gs-stat gs-stat--sage${shown ? "" : " gs-stat--idle"}`}>
+          <span className="gs-num">{shown ? `${shownV}+` : "…"}</span>
+          <span className="gs-cap">{STATS[2]!.caption}</span>
+          <span className="gs-autonote">
+            This one waters itself. Every order is charted, written and delivered while I get on
+            with other things.
+          </span>
+          <a href={STATS[2]!.href}>See receipt ↓</a>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -497,20 +518,11 @@ function Pot({
     </>
   );
 }
-function Drops() {
-  return (
-    <div className="gs-drops">
-      {[-10, 4, -3, 11, -7, 7].map((x, k) => (
-        <span key={k} style={{ left: x, animationDelay: `${k * 0.09}s` }} />
-      ))}
-    </div>
-  );
-}
 function Drips() {
   return (
     <div className="gs-drips">
-      {[0, 1, 2].map((k) => (
-        <span key={k} style={{ animationDelay: `${k * 0.3}s` }} />
+      {[0, 1, 2].map((j) => (
+        <span key={j} style={{ animationDelay: `${j * 0.3}s` }} />
       ))}
     </div>
   );

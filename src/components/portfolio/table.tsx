@@ -1,7 +1,7 @@
 /*
  * "Before you go": a table seen from the side, with a coffee (opens a Ko-fi popover)
  * and a sheet of stickers. Pick one, add a note if you like, and it gets stuck on the
- * table and emailed to Ashleigh (via FormSubmit). Your own stickers stay on the table
+ * table and emailed to Ashleigh (via /api/sticker, which sends it with Resend). Your own stickers stay on the table
  * in your browser; other visitors don't see them.
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -74,7 +74,6 @@ export function BeforeYouGo() {
     const who = name.trim();
     const honey = (e.currentTarget.elements.namedItem("_honey") as HTMLInputElement | null)?.value;
     if (!kind || status === "sending") return;
-    const label = TABLE_STICKERS.find((t) => t.kind === kind)!.label;
     const done = () => {
       stick(kind, note);
       setThanks(`Stuck! Thanks${who ? `, ${who}` : ""}. It’s on the table.`);
@@ -83,23 +82,15 @@ export function BeforeYouGo() {
       setName("");
       setStatus("idle");
     };
-    // bots fill the hidden field; pretend it worked
-    if (honey) return done();
     setStatus("sending");
     try {
-      const res = await fetch(LINKS.notes, {
+      const res = await fetch("/api/sticker", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          sticker: label,
-          name: who || "Anonymous",
-          message: note || "(no note, just the sticker)",
-          _subject: `${who || "Someone"} left you a “${label}” sticker`,
-          _template: "box",
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, name: who, note, honey }),
       });
-      const data = (await res.json().catch(() => ({}))) as { success?: string | boolean };
-      if (!res.ok || String(data.success) !== "true") throw new Error("not sent");
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean };
+      if (!res.ok || !data.ok) throw new Error("not sent");
       done();
     } catch {
       setStatus("error");

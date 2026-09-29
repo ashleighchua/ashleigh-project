@@ -66,6 +66,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* jump links land below the fixed nav */
+  scroll-padding-top: 76px;
 }
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -189,18 +191,35 @@ body {
 
 /* ═════ Hero ═════ */
 .pf-top {
+  --nav-h: 92px;
   position: relative;
+  padding-top: var(--nav-h);
   background: var(--color-neutral-900);
   color: var(--color-neutral-100);
   border-radius: 0 0 clamp(32px, 4vw, 56px) clamp(32px, 4vw, 56px);
 }
+/* stays at the top: see-through over the hero, a slim dark bar once you scroll */
 .pf-nav {
-  position: relative;
-  z-index: 6;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
   display: flex;
   align-items: center;
   gap: 32px;
   padding: 24px var(--pad-x);
+  transition:
+    padding 0.25s,
+    background-color 0.25s,
+    box-shadow 0.25s;
+}
+.pf-nav-solid {
+  padding-block: 12px;
+  background: color-mix(in srgb, var(--color-neutral-900) 92%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-md);
 }
 .pf .pf-brand {
   display: flex;
@@ -246,7 +265,7 @@ body {
 }
 .pf-menu-panel {
   position: absolute;
-  top: 78px;
+  top: calc(100% + 8px);
   right: var(--pad-x);
   display: flex;
   flex-direction: column;
@@ -279,14 +298,15 @@ body {
 
 .pf-hero {
   position: relative;
-  min-height: max(680px, calc(100svh - 90px));
+  min-height: max(620px, calc(100svh - var(--nav-h)));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 20px;
   text-align: center;
-  padding: 40px 20px 110px;
+  /* the extra nav-height at the bottom centres the text in the whole dark box, nav included */
+  padding: 40px 20px calc(40px + var(--nav-h));
 }
 .pf-hero h1 {
   position: relative;
@@ -320,10 +340,17 @@ body {
     width: 64px;
     height: 64px;
   }
-  /* room above and below the headline for the two sticker clusters */
+  .pf-top {
+    --nav-h: 68px;
+  }
+  .pf-nav {
+    padding-block: 12px;
+  }
+  /* room above and below the headline for the two sticker clusters, all in one screen */
   .pf-hero {
-    padding-top: 210px;
-    padding-bottom: 250px;
+    min-height: calc(100svh - var(--nav-h));
+    padding-top: 130px;
+    padding-bottom: calc(130px + var(--nav-h));
   }
   .pf-avail {
     font-size: 12px !important;
@@ -1231,11 +1258,11 @@ body {
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
-/* the typed word: bigger than the greeting, room kept for two lines so nothing jumps */
+/* the typed word: bigger than the greeting, room kept for three lines so nothing jumps */
 .pf-role {
   display: block;
-  min-height: 2em;
-  font-size: clamp(48px, 6.4vw, 92px);
+  min-height: 3em;
+  font-size: clamp(44px, 5.6vw, 80px);
   line-height: 1;
   letter-spacing: -0.035em;
   color: var(--color-accent);
@@ -1765,6 +1792,10 @@ body {
   top: 120px;
   color: var(--color-accent-2-700);
 }
+/* tilted the other way from "Buy me a coffee", so they don't look stamped out */
+.pf-cue-note > span {
+  transform: rotate(4deg);
+}
 
 .pf-coffee-pop {
   position: absolute;
@@ -2047,7 +2078,7 @@ body {
 }
 @media (max-width: 560px) {
   .pf-role {
-    font-size: 44px;
+    font-size: 40px;
   }
 }
 .pf-mug-handle-edge {

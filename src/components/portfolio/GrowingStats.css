@@ -42,7 +42,7 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 6px;
+  margin-bottom: 18px;
 }
 .gs-head h2 {
   font-family: var(--font-heading);
@@ -67,21 +67,12 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-.gs .gs-sub {
-  font-size: 16px;
-  color: var(--n-800);
-  margin: 0 0 22px;
-  max-width: 560px;
-}
 
 .gs-stage {
   position: relative;
   overflow: hidden;
   border-radius: 36px;
   background: var(--sage-100);
-}
-.gs--mobile .gs-stage {
-  background: transparent;
 }
 .gs-shelf {
   position: absolute;
@@ -99,18 +90,9 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.gs--mobile .gs-grid {
-  grid-template-columns: minmax(0, 1fr);
-  grid-auto-rows: 560px;
-  gap: 16px;
-}
 .gs-col {
   position: relative;
   overflow: hidden;
-}
-.gs--mobile .gs-col {
-  border-radius: 32px;
-  background: var(--sage-100);
 }
 
 /* plants */
@@ -433,18 +415,12 @@
 
 /* stats */
 .gs-stat {
-  position: absolute;
-  z-index: 3;
-  box-sizing: border-box;
-  padding: 0 12px;
-  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  transition:
-    opacity 0.5s,
-    transform 0.5s;
+  text-align: center;
+  transition: opacity 0.5s;
 }
 .gs-num {
   font-family: var(--font-heading);
@@ -535,4 +511,169 @@
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* the scene is laid out at its design width and scaled to fit (see GrowingStats.tsx) */
+.gs-scene {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 540px;
+  transform-origin: 0 0;
+}
+
+/* ── cards ── */
+.gs-card + .gs-card {
+  margin-top: 20px;
+}
+.gs-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.gs-grid--1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+/* labels may run past their column; the stage still clips the edges */
+.gs-grid--2 .gs-col {
+  overflow: visible;
+}
+/* labels stay at least ~10.5px on screen however far the scene is scaled down */
+.gs-ticklabel,
+.gs-linelabel,
+.gs-autopilot {
+  font-size: max(11px, calc(10.5px / var(--k, 1)));
+}
+.gs-stem--live {
+  transition: height 0.15s linear;
+}
+.gs-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 14px;
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-800);
+  pointer-events: none;
+}
+
+/* the can you can pick up */
+.gs-can--grab {
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  transition:
+    left 0.7s cubic-bezier(0.45, 0, 0.25, 1),
+    top 0.7s cubic-bezier(0.45, 0, 0.25, 1),
+    transform 0.3s ease;
+}
+.gs-can--grab:hover {
+  filter: brightness(1.05);
+}
+.gs-can--grab:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 6px;
+  border-radius: 16px;
+}
+.gs-can--held {
+  cursor: grabbing;
+  transition: transform 0.2s ease;
+}
+/* water falls from wherever the spout is, down to the soil */
+.gs-pour {
+  position: absolute;
+  z-index: 4;
+  width: 0;
+  pointer-events: none;
+}
+.gs-pour span {
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 11px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--sage-400);
+  animation: gs-pour 0.55s linear infinite;
+}
+@keyframes gs-pour {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(var(--fall, 170px));
+    opacity: 0.25;
+  }
+}
+
+/* stats under the scenes */
+.gs-stats {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.gs-stats--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.gs-stat--idle .gs-num {
+  color: var(--n-500);
+}
+.gs-stat--idle .gs-cap {
+  color: var(--n-600);
+  font-style: italic;
+}
+
+/* the one that waters itself: scene and words side by side */
+.gs-card--auto {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  gap: 32px;
+  align-items: center;
+}
+.gs-card--auto .gs-stats {
+  margin-top: 0;
+}
+.gs-card--auto .gs-stat {
+  align-items: flex-start;
+  text-align: left;
+}
+.gs-autonote {
+  max-width: 360px;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--n-700);
+}
+@media (max-width: 640px) {
+  .gs-card--auto {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+  }
+  .gs-num {
+    font-size: 30px;
+  }
+  .gs-cap {
+    font-size: 12.5px;
+  }
+  .gs-autonote {
+    font-size: 12.5px;
+  }
+  .gs-stage {
+    border-radius: 24px;
+  }
+}
+/* keep the line labels clear of the tulip, and the autopilot pill inside the card */
+.gs-linelabel {
+  left: 4%;
+}
+.gs-autopilot {
+  left: auto;
+  right: 10px;
 }

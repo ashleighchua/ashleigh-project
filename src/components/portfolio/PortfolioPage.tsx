@@ -225,6 +225,14 @@ export function PortfolioPage() {
   const [vw, setVw] = useState(1400);
   const [bubble, setBubble] = useState<Bubble>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  /** the fixed nav gets a background once the page has scrolled */
+  const [navSolid, setNavSolid] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setNavSolid(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const [hjView, setHjView] = useState<"public" | "admin">("public");
   /** Lunar pipeline teaser: -1 idle, 0..n-1 running step, n done */
   const [lunar, setLunar] = useState(-1);
@@ -599,7 +607,7 @@ export function PortfolioPage() {
     <div className="pf" ref={rootRef} id="top">
       {/* ═════ Hero ═════ */}
       <div className="pf-top">
-        <nav className="pf-nav">
+        <nav className={`pf-nav${navSolid || menuOpen ? " pf-nav-solid" : ""}`}>
           <a href="#top" className="pf-brand">
             <Wordmark />
           </a>
@@ -714,9 +722,9 @@ export function PortfolioPage() {
         <div className="pf-tl-pin">
           <div className="pf-tl-head">
             <div>
-              <span className="pf-kicker">Not the LinkedIn version</span>
+              <span className="pf-kicker">How I got here</span>
               <h2>
-                None of this happened in a <span>straight line.</span>
+                I took the <span>scenic route.</span>
               </h2>
             </div>
             <div className="pf-tl-progress">

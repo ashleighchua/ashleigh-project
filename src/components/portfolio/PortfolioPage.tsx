@@ -101,13 +101,13 @@ export function PortfolioPage() {
   /* Animation state kept out of React */
   const sim = useRef<Sim[]>(
     STK.map((_, i) => {
-      const rot = rnd(-14, 14);
+      const rot = rnd(-22, 22);
       return {
         spot: i,
         sx: 0.5,
         sy: 0.45,
-        jx: rnd(-0.02, 0.02),
-        jy: rnd(-0.02, 0.02),
+        jx: rnd(-0.035, 0.035),
+        jy: rnd(-0.03, 0.03),
         rot,
         trot: rot,
         pop: 0,
@@ -346,8 +346,8 @@ export function PortfolioPage() {
     [s.spot, o.spot] = [o.spot, s.spot];
     s.jx = rnd(-0.03, 0.03);
     s.jy = rnd(-0.03, 0.03);
-    s.trot = rnd(-18, 18);
-    o.trot = rnd(-18, 18);
+    s.trot = rnd(-24, 24);
+    o.trot = rnd(-24, 24);
     o.pop = 0.5;
     const nS = SH.length;
     setLooks((prev) => {

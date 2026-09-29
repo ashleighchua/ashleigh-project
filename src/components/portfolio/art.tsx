@@ -772,141 +772,158 @@ function sceneKids(scene: Scene): ReactNode {
       return (
         <>
           <path
-            d="M70 14H90V37L110 76Q114 86 104 86H56Q46 86 50 76L70 37Z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2.25}
+            d="M70 14 H90 V38 L112 80 Q115 88 106 88 H54 Q45 88 48 80 L70 38 Z"
+            fill={N1}
+            stroke="var(--color-neutral-500)"
+            strokeWidth={2.5}
             strokeLinejoin="round"
           />
           <path
-            d="M59 61H101L108 76Q110 81 104 81H56Q50 81 52 76Z"
-            fill="var(--color-accent-400)"
-            opacity={0.85}
+            d="M60 60 H100 L110 80 Q112 85 106 85 H54 Q48 85 50 80 Z"
+            fill="var(--color-accent-2-400)"
           />
-          <circle cx={76} cy={71} r={2.6} fill="currentColor" opacity={0.35} />
-          <circle cx={88} cy={65} r={2} fill="currentColor" opacity={0.3} />
-          <rect x={68} y={10} width={24} height={5} rx={2.5} fill="currentColor" />
+          <circle cx={74} cy={72} r={4} fill={N1} opacity={0.8} />
+          <circle cx={88} cy={66} r={3} fill={N1} opacity={0.8} />
+          <circle cx={80} cy={50} r={2.5} fill="var(--color-accent-2-400)" />
+          <circle cx={84} cy={40} r={2} fill="var(--color-accent-2-400)" />
+          <rect x={66} y={10} width={28} height={6} rx={3} fill="var(--color-neutral-500)" />
+          <g transform="rotate(14 128 56)">
+            <rect
+              x={120}
+              y={26}
+              width={16}
+              height={60}
+              rx={8}
+              fill={N1}
+              stroke="var(--color-neutral-500)"
+              strokeWidth={2.5}
+            />
+            <rect x={122.5} y={58} width={11} height={26} rx={5.5} fill="var(--color-accent-400)" />
+          </g>
+          <g transform="rotate(-10 30 60)">
+            <rect
+              x={22}
+              y={40}
+              width={14}
+              height={46}
+              rx={7}
+              fill={N1}
+              stroke="var(--color-neutral-500)"
+              strokeWidth={2.5}
+            />
+            <rect x={24.5} y={64} width={9} height={20} rx={4.5} fill="var(--color-accent-2-600)" />
+          </g>
         </>
       );
     case "violin":
       return (
-        <g transform="translate(80 50) rotate(-14) scale(2.2) translate(-12 -13)">
-          <path
-            d="M10 0L14 0C16 0 16 4 18 4C16.25 4 16.25 9 14.5 9C14.25 9 14.25 13 14 13C14.25 13 14.25 17 14.5 17C17 17 17 22 19.5 22C16.25 22 16.25 26 13 26L11 26C7.75 26 7.75 22 4.5 22C7 22 7 17 9.5 17C9.75 17 9.75 13 10 13C9.75 13 9.75 9 9.5 9C7.75 9 7.75 4 6 4C8 4 8 0 10 0Z"
-            fill="var(--color-accent-500)"
-            opacity={0.22}
-          />
-          <path
-            d="M10 0L14 0C16 0 16 4 18 4C16.25 4 16.25 9 14.5 9C14.25 9 14.25 13 14 13C14.25 13 14.25 17 14.5 17C17 17 17 22 19.5 22C16.25 22 16.25 26 13 26L11 26C7.75 26 7.75 22 4.5 22C7 22 7 17 9.5 17C9.75 17 9.75 13 10 13C9.75 13 9.75 9 9.5 9C7.75 9 7.75 4 6 4C8 4 8 0 10 0Z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1}
-            strokeLinejoin="round"
-          />
-          <path
-            d="M9 10q-1.6 2 0 6M15 10q1.6 2 0 6"
-            stroke="currentColor"
-            strokeWidth={0.6}
-            fill="none"
-            strokeLinecap="round"
-          />
-          <rect x={11} y={-9} width={2} height={9} fill="currentColor" />
-          <circle cx={12} cy={-11.2} r={2.2} fill="none" stroke="currentColor" strokeWidth={0.9} />
-          <path d="M9.5 20H14.5L13.5 25H10.5Z" fill="currentColor" opacity={0.85} />
-          {[-1, -0.33, 0.33, 1].map((dx) => (
-            <line
-              key={dx}
-              x1={12 + dx}
-              y1={-7}
-              x2={12 + dx}
-              y2={19}
-              stroke="currentColor"
-              strokeWidth={0.35}
-              opacity={0.45}
+        <>
+          {/* upright violin (neck up, body centred on 0,0), laid on a diagonal */}
+          <g transform="translate(84 52) rotate(-55) scale(.95)">
+            <path
+              d="M0 -30C9 -30 15 -25 15 -18C15 -11 13 -8 12 -6C7 -4 7 4 12 7C16 9 18 13 18 18C18 26 10 30 0 30C-10 30 -18 26 -18 18C-18 13 -16 9 -12 7C-7 4 -7 -4 -12 -6C-13 -8 -15 -11 -15 -18C-15 -25 -9 -30 0 -30Z"
+              fill="var(--color-accent-600)"
+              stroke="var(--color-accent-800)"
+              strokeWidth={1.5}
+              strokeLinejoin="round"
             />
-          ))}
+            <path
+              d="M-7 -4c-2.5 3 2 6 -0.5 10M7 -4c2.5 3 -2 6 0.5 10"
+              stroke={INK}
+              strokeWidth={1.4}
+              fill="none"
+              strokeLinecap="round"
+            />
+            <rect x={-2.6} y={-62} width={5.2} height={60} rx={2} fill={INK} />
+            <rect x={-3.2} y={-72} width={6.4} height={11} rx={2} fill="var(--color-accent-800)" />
+            <circle cx={0} cy={-75} r={4.2} fill="var(--color-accent-800)" />
+            <circle cx={0} cy={-75} r={1.6} fill="var(--color-accent-600)" />
+            <path d="M-4 15H4L2.6 26H-2.6Z" fill={INK} />
+            <rect x={-6.5} y={7} width={13} height={2.6} rx={1} fill="var(--color-accent-100)" />
+            {[-1.5, -0.5, 0.5, 1.5].map((dx) => (
+              <line
+                key={dx}
+                x1={dx}
+                y1={-68}
+                x2={dx * 1.4}
+                y2={16}
+                stroke="var(--color-neutral-300)"
+                strokeWidth={0.5}
+              />
+            ))}
+          </g>
           <line
-            x1={-8}
-            y1={-4}
-            x2={34}
-            y2={30}
-            stroke="currentColor"
-            strokeWidth={0.9}
+            x1={65}
+            y1={92}
+            x2={120}
+            y2={14}
+            stroke="var(--color-neutral-700)"
+            strokeWidth={2.5}
             strokeLinecap="round"
-            opacity={0.75}
           />
-        </g>
+          <line
+            x1={68}
+            y1={94}
+            x2={123}
+            y2={16}
+            stroke="var(--color-accent-100)"
+            strokeWidth={1}
+            strokeLinecap="round"
+            opacity={0.8}
+          />
+          <rect
+            x={59}
+            y={89}
+            width={10}
+            height={6}
+            rx={1.5}
+            fill={INK}
+            transform="rotate(-55 64 92)"
+          />
+        </>
       );
     case "binders":
       return (
         <>
           {(
             [
-              [28, "var(--color-accent-2-500)", true],
-              [52, "none", false],
+              [26, "var(--color-accent-2-600)"],
+              [50, "var(--color-accent-600)"],
+              [74, "var(--color-neutral-700)"],
             ] as const
-          ).map(([x, c, filled]) => (
+          ).map(([x, c]) => (
             <g key={x}>
-              <rect
-                x={x}
-                y={16}
-                width={24}
-                height={70}
-                rx={4}
-                fill={filled ? c : "none"}
-                stroke="currentColor"
-                strokeWidth={1.8}
-                opacity={filled ? 1 : 0.55}
-              />
-              <rect
-                x={x + 5}
-                y={24}
-                width={14}
-                height={16}
-                rx={2}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.4}
-                opacity={0.7}
-              />
+              <rect x={x} y={14} width={22} height={74} rx={4} fill={c} />
+              <rect x={x + 4} y={24} width={14} height={20} rx={2} fill={N1} />
+              <circle cx={x + 11} cy={72} r={4} fill={N1} opacity={0.6} />
             </g>
           ))}
-          <g transform="rotate(6 122 50)">
+          <g transform="rotate(8 124 52)">
             <rect
-              x={100}
-              y={16}
-              width={48}
-              height={64}
-              rx={5}
-              fill="var(--color-surface)"
-              stroke="currentColor"
-              strokeWidth={1.6}
+              x={102}
+              y={18}
+              width={46}
+              height={62}
+              rx={4}
+              fill={N1}
+              stroke="var(--color-neutral-400)"
+              strokeWidth={1.5}
             />
-            {[27, 36, 45].map((y) => (
-              <line
-                key={y}
-                x1={109}
-                y1={y}
-                x2={139}
-                y2={y}
-                stroke="currentColor"
-                strokeWidth={1.6}
-                opacity={0.4}
-                strokeLinecap="round"
-              />
+            {[28, 36, 44].map((y) => (
+              <rect key={y} x={110} y={y} width={30} height={3} rx={1.5} fill={N3} />
             ))}
             <circle
-              cx={124}
+              cx={125}
               cy={64}
               r={10}
               fill="none"
               stroke="var(--color-accent-600)"
-              strokeWidth={2.2}
+              strokeWidth={2.5}
             />
             <path
-              d="M119 64l4 4l7 -8"
+              d="M120 64 l4 4 l7 -8"
               stroke="var(--color-accent-600)"
-              strokeWidth={2.2}
+              strokeWidth={2.5}
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -917,80 +934,71 @@ function sceneKids(scene: Scene): ReactNode {
     case "signpost":
       return (
         <>
-          <rect x={77} y={8} width={6} height={82} rx={3} fill="currentColor" opacity={0.85} />
+          <rect x={76} y={8} width={8} height={82} rx={3} fill="var(--color-accent-700)" />
           {(
             [
-              [84, 16, 58, "LUNAR", "var(--color-accent-2-300)", 1],
-              [28, 40, 46, "BOOK", "var(--color-accent-300)", -1],
-              [84, 64, 46, "WEB", "var(--color-accent-200)", 1],
+              [84, 14, 60, "LUNAR", "var(--color-accent-2-300)", 1],
+              [26, 38, 50, "BOOK", "var(--color-accent-300)", -1],
+              [84, 62, 50, "WEB", "var(--color-accent-200)", 1],
             ] as const
           ).map(([x, y, w, t, c, dir]) => {
             const d =
               dir === 1
-                ? `M${x} ${y}H${x + w}L${x + w + 9} ${y + 8.5}L${x + w} ${y + 17}H${x}Z`
-                : `M${x + w} ${y}H${x}L${x - 9} ${y + 8.5}L${x} ${y + 17}H${x + w}Z`;
+                ? `M${x} ${y}H${x + w}L${x + w + 10} ${y + 9}L${x + w} ${y + 18}H${x}Z`
+                : `M${x + w} ${y}H${x}L${x - 10} ${y + 9}L${x} ${y + 18}H${x + w}Z`;
             return (
               <g key={t}>
-                <path d={d} fill={c} stroke="currentColor" strokeWidth={1} opacity={0.92} />
+                <path d={d} fill={c} />
                 <text
                   x={x + w / 2}
-                  y={y + 9}
+                  y={y + 9.5}
                   textAnchor="middle"
                   dominantBaseline="central"
                   fill={INK}
-                  style={{ fontFamily: HEADING, fontSize: 9.5, letterSpacing: ".02em" }}
+                  style={{ fontFamily: HEADING, fontSize: 10 }}
                 >
                   {t}
                 </text>
               </g>
             );
           })}
-          <ellipse cx={80} cy={91} rx={26} ry={2.5} fill="currentColor" opacity={0.12} />
+          <ellipse cx={80} cy={91} rx={26} ry={3} fill={INK} opacity={0.12} />
         </>
       );
     case "inbox":
       return (
         <>
-          {[0, 1].map((j) => (
+          {[0, 1, 2].map((j) => (
             <g
               key={j}
-              transform={`translate(${34 + j * 7} ${34 - j * 8}) rotate(${(j - 0.5) * 4} 42 26)`}
+              transform={`translate(${36 + j * 8} ${36 - j * 10}) rotate(${(j - 1) * 5} 40 26)`}
             >
               <rect
                 x={0}
                 y={0}
-                width={84}
+                width={80}
                 height={52}
                 rx={6}
-                fill="var(--color-surface)"
-                stroke="currentColor"
-                strokeWidth={1.6}
-                opacity={j === 0 ? 1 : 0.55}
+                fill={N1}
+                stroke="var(--color-neutral-400)"
+                strokeWidth={1.5}
               />
               <path
-                d="M3 4 L42 29 L81 4"
-                stroke="currentColor"
-                strokeWidth={1.6}
+                d="M2 4 L40 30 L78 4"
+                stroke="var(--color-neutral-400)"
+                strokeWidth={1.5}
                 fill="none"
                 strokeLinejoin="round"
-                opacity={j === 0 ? 0.8 : 0.4}
               />
             </g>
           ))}
-          <circle
-            cx={130}
-            cy={20}
-            r={13}
-            fill="none"
-            stroke="var(--color-accent-600)"
-            strokeWidth={2}
-          />
+          <circle cx={128} cy={20} r={12} fill="var(--color-accent-600)" />
           <text
-            x={130}
+            x={128}
             y={20.5}
             textAnchor="middle"
             dominantBaseline="central"
-            fill="currentColor"
+            fill={N1}
             style={{ fontFamily: HEADING, fontSize: 11 }}
           >
             12
@@ -1000,25 +1008,8 @@ function sceneKids(scene: Scene): ReactNode {
     case "coach":
       return (
         <>
-          <rect
-            x={22}
-            y={24}
-            width={118}
-            height={52}
-            rx={12}
-            fill="var(--color-accent-100)"
-            stroke="currentColor"
-            strokeWidth={2}
-          />
-          <line
-            x1={22}
-            y1={60}
-            x2={140}
-            y2={60}
-            stroke="currentColor"
-            strokeWidth={1.5}
-            opacity={0.5}
-          />
+          <rect x={22} y={24} width={118} height={52} rx={12} fill="var(--color-accent)" />
+          <rect x={22} y={60} width={118} height={6} fill="var(--color-accent-700)" />
           {[32, 54, 76, 98].map((x) => (
             <rect
               key={x}
@@ -1027,42 +1018,41 @@ function sceneKids(scene: Scene): ReactNode {
               width={18}
               height={18}
               rx={4}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.6}
-              opacity={0.65}
+              fill="var(--color-accent-100)"
             />
           ))}
-          <rect
-            x={120}
-            y={32}
-            width={14}
-            height={30}
-            rx={3}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.6}
-            opacity={0.65}
+          <rect x={120} y={32} width={14} height={30} rx={3} fill="var(--color-accent-100)" />
+          <circle
+            cx={46}
+            cy={78}
+            r={10}
+            fill={INK}
+            stroke="var(--color-neutral-500)"
+            strokeWidth={3}
           />
-          <circle cx={46} cy={78} r={9} fill="currentColor" opacity={0.85} />
-          <circle cx={46} cy={78} r={4} fill="var(--color-surface)" />
-          <circle cx={116} cy={78} r={9} fill="currentColor" opacity={0.85} />
-          <circle cx={116} cy={78} r={4} fill="var(--color-surface)" />
+          <circle
+            cx={116}
+            cy={78}
+            r={10}
+            fill={INK}
+            stroke="var(--color-neutral-500)"
+            strokeWidth={3}
+          />
+          <rect x={136} y={52} width={6} height={6} rx={2} fill="var(--color-accent-300)" />
           <line
             x1={10}
             y1={91}
             x2={150}
             y2={91}
-            stroke="currentColor"
-            strokeWidth={1.6}
+            stroke="var(--color-neutral-600)"
+            strokeWidth={2}
             strokeDasharray="10 8"
-            opacity={0.3}
           />
           <path
-            d="M40 24V11L57 15.5L40 20"
-            fill="var(--color-accent-300)"
-            stroke="currentColor"
-            strokeWidth={1.3}
+            d="M40 24 V10 L58 15 L40 20"
+            fill="var(--color-accent-2-300)"
+            stroke="var(--color-neutral-300)"
+            strokeWidth={1.5}
             strokeLinejoin="round"
           />
         </>

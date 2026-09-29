@@ -1,18 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import {
-  ArrowDown,
-  Check,
-  Code2,
-  Heart,
-  MapPin,
-  Menu,
-  Plane,
-  Rocket,
-  ShieldCheck,
-  Sparkles,
-  Star,
-  X,
-} from "lucide-react";
+import { ArrowDown, Check, MapPin, Menu, ShieldCheck, Sparkles, Star, X } from "lucide-react";
 import portraitPhoto from "@/assets/portrait.jpg";
 import stHome from "@/assets/st-home.jpg";
 import stProblem from "@/assets/st-problem.jpg";
@@ -408,7 +395,7 @@ export function PortfolioPage() {
     say(MEOWS[pet.meow]!, "talk", 3800);
   };
 
-  const k = mobile ? 0.58 : Math.min(1, vw / 1400 + 0.18);
+  const k = mobile ? Math.min(0.54, vw / 740) : Math.min(1, vw / 1400 + 0.18);
   const ko = mobile ? 0.8 : 1;
   const zoneH = mobile ? 240 : 290;
 
@@ -695,10 +682,6 @@ export function PortfolioPage() {
                 She paid over my quote. <b>Not needing me was worth more than the site.</b>
               </span>
             </div>
-            <blockquote className="pf-quote">
-              <p>“I paid you $750 because $500 wasn’t enough.”</p>
-              <cite>Hannah Jackson, painter</cite>
-            </blockquote>
             <a
               href={LINKS.hannah}
               target="_blank"
@@ -870,95 +853,79 @@ export function PortfolioPage() {
 
       {/* ═════ Right now ═════ */}
       <section className="pf-now" id="now">
-        <div className="pf-now-head">
+        <figure className="pf-postcard" style={{ transform: "rotate(-2deg)" }}>
+          <div>
+            <img src={portraitPhoto} alt="Ashleigh" loading="lazy" />
+          </div>
+          <figcaption>hi, it's me</figcaption>
+        </figure>
+        <div className="pf-now-copy">
           <span className="pf-kicker">Right now</span>
-          <h2>Learning SchoolTrips.ai from the inside.</h2>
+          <h2>Cofounding SchoolTrips.ai, from the ground up.</h2>
           <p>
-            SchoolTrips.ai is for teachers, so I’m spending time on the trips themselves. This year
-            has included 5am coach departures and camping beside the Great Wall with 150 students.
-            Seeing the job up close is the fastest way to learn what the product needs to get right.
+            I lead product and the build, and I go on the trips myself. This year that meant 5am
+            coach departures across China and a night camped beside the Great Wall with 150
+            students. Meanwhile, The Lunar Playground runs itself and I keep building on the side.
           </p>
-        </div>
-        <div className="pf-cards">
-          <figure className="pf-postcard pf-postcard-solo" style={{ transform: "rotate(-2deg)" }}>
-            <div>
-              <img src={portraitPhoto} alt="Ashleigh" loading="lazy" />
-            </div>
-            <figcaption>hi, it's me</figcaption>
-          </figure>
-          <div className="pf-highlights">
-            <span className="pf-kicker">Also this year</span>
-            <ul>
-              {(
-                [
-                  [Rocket, "Co-founded SchoolTrips.ai"],
-                  [Plane, "Went on school trips across China"],
-                  [Code2, "Shipped 8 side projects on the playground"],
-                  [Heart, "Built a client a site and a dashboard"],
-                ] as const
-              ).map(([Icon, t]) => (
-                <li key={t}>
-                  <Icon size={16} strokeWidth={2.5} aria-hidden="true" />
-                  <span>{t}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div className="pf-next">
-          <div className="pf-next-dark">
-            <div className="pf-next-circle" />
-            <span className="pf-kicker">Open to</span>
-            <h3>Work with a real-world problem in it.</h3>
-            <p>
-              I’m open to work that solves a real problem. I’m especially interested in circular
-              economy and alternative materials, where sustainable ideas still need to work in
-              practice.
-            </p>
-            <a
-              href={`mailto:${LINKS.email}?subject=A%20project%20for%20you`}
-              className="btn pf-next-btn"
-            >
-              Pitch me your project ↗
-            </a>
-          </div>
-          <div className="pf-next-light">
-            <span className="pf-kicker">Learning</span>
-            <h3>How school trips actually work</h3>
-            <p>
-              Everything SchoolTrips.ai has to get right, seen from the ground instead of a
-              spreadsheet.
-            </p>
-            <div className="pf-chips">
-              {[
-                "Itineraries",
-                "Risk & permissions",
-                "Parents",
-                "The 5am coach",
-                "Villages with no wifi",
-              ].map((c) => (
-                <span key={c}>{c}</span>
-              ))}
-            </div>
-          </div>
+          <dl className="pf-stats">
+            {(
+              [
+                ["3", "products out in the world"],
+                ["8", "side projects built for fun"],
+                ["150", "students, one night at the Great Wall"],
+              ] as const
+            ).map(([n, t]) => (
+              <div key={t}>
+                <dt>{n}</dt>
+                <dd>{t}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
       {/* ═════ Contact ═════ */}
       <section className="pf-contact" id="contact">
         <div className="pf-contact-box">
-          <div className="pf-contact-c1" />
-          <div className="pf-contact-c2" />
-          <span className="pf-contact-kicker">Got an idea that needs untangling?</span>
-          <h2>Let’s talk.</h2>
-          <div className="pf-contact-row">
-            <a
-              href={`mailto:${LINKS.email}?subject=the%20messy%20thing`}
-              className="btn pf-contact-cta"
-            >
-              Start a conversation ↗
-            </a>
-            <span>No polished brief required.</span>
+          <div className="pf-contact-main">
+            <span className="pf-contact-kicker">Got an idea that needs untangling?</span>
+            <h2>Let’s talk.</h2>
+            <p>
+              I’ll take on anything with a real problem in it. What I’d most love to work on next is
+              sustainability, where good ideas still have to prove they work in practice.
+            </p>
+            <div className="pf-contact-row">
+              <a
+                href={`mailto:${LINKS.email}?subject=the%20messy%20thing`}
+                className="btn pf-contact-cta"
+              >
+                Start a conversation ↗
+              </a>
+              <span>No polished brief required.</span>
+            </div>
+          </div>
+          <div className="pf-contact-next">
+            <span className="pf-contact-kicker">Next, I’d love to work on</span>
+            <ul>
+              {(
+                [
+                  ["Circular economy", "Products and systems that keep materials in use."],
+                  [
+                    "Alternative materials",
+                    "Getting better materials out of the lab and into things people buy.",
+                  ],
+                  [
+                    "Sustainability, in practice",
+                    "Ideas that have to work on the ground, not just on a slide.",
+                  ],
+                ] as const
+              ).map(([h, b]) => (
+                <li key={h}>
+                  <b>{h}</b>
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="pf-foot">
             <a href={`mailto:${LINKS.email}`}>{LINKS.email}</a>

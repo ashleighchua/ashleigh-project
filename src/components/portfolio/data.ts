@@ -33,18 +33,18 @@ export type Sticker = {
 };
 
 export const STK: Sticker[] = [
-  { label: "FIND THE/REAL PROBLEM", obj: "notebook", z: 0, s: 0, c: 0, m: 0.9 },
+  { label: "FIND THE/REAL PROBLEM", obj: "notebook", z: 0, s: 11, c: 0, m: 0.9 },
   { label: "NO ROADMAP?/WE CAN START/ANYWAY", obj: "cup", z: 0, s: 2, c: 3, m: 0.82 },
-  { label: "ASK WHAT'S/MISSING", obj: "compass", z: 0, s: 5, c: 6, m: 0.8 },
+  { label: "ASK WHAT'S/MISSING", obj: "compass", z: 0, s: 9, c: 6, m: 0.8 },
   { label: "MAKE THE MESS/LEGIBLE", obj: "plate", z: 1, s: 4, c: 2, m: 0.9 },
   { label: "12 SHEETS,/ONE WORKING/SYSTEM", obj: "notes", z: 1, s: 1, c: 5, m: 0.85 },
   { label: "TURN SOMETHING/VAGUE INTO/A PLAN", obj: "jar", z: 1, s: 6, c: 1, m: 0.8 },
-  { label: "MAKE IT/USEFUL", obj: "laptop", z: 2, s: 0, c: 4, m: 0.9 },
+  { label: "MAKE IT/USEFUL", obj: "laptop", z: 2, s: 8, c: 4, m: 0.9 },
   { label: "BUILT TO/GO LIVE", obj: "parcel", z: 2, s: 7, c: 0, m: 0.85 },
   { label: "READY FOR/REAL PEOPLE", obj: "phone", z: 2, s: 3, c: 3, m: 0.82 },
-  { label: "EASY TO/RUN", obj: "plant", z: 3, s: 4, c: 6, m: 0.9 },
-  { label: "PLAYBOOKS/PEOPLE CAN/PICK UP", obj: "card", z: 3, s: 1, c: 2, m: 0.85 },
-  { label: "HANDOVER,/DONE PROPERLY", obj: "keys", z: 3, s: 2, c: 4, m: 0.8 },
+  { label: "EASY TO/RUN", obj: "plant", z: 3, s: 10, c: 6, m: 0.9 },
+  { label: "PLAYBOOKS/PEOPLE CAN/PICK UP", obj: "card", z: 3, s: 5, c: 2, m: 0.85 },
+  { label: "HANDOVER,/DONE PROPERLY", obj: "keys", z: 3, s: 0, c: 4, m: 0.8 },
 ];
 
 /** Sticker shapes; a click cycles to a different one */
@@ -57,6 +57,10 @@ export const SH = [
   "stamp",
   "scallop",
   "tape",
+  "arch",
+  "burst",
+  "flower",
+  "blob",
 ] as const;
 export type Shape = (typeof SH)[number];
 
@@ -114,32 +118,33 @@ export const COL: [string, string][] = [
 
 /** Float spots as fractions of the hero rect — desktop / mobile */
 export const DSP: [number, number][] = [
-  [0.08, 0.28],
-  [0.1, 0.72],
-  [0.27, 0.12],
-  [0.28, 0.88],
-  [0.72, 0.12],
-  [0.71, 0.88],
-  [0.92, 0.3],
-  [0.9, 0.72],
-  [0.18, 0.5],
-  [0.82, 0.5],
-  [0.49, 0.07],
-  [0.5, 0.94],
+  [0.08, 0.14],
+  [0.08, 0.86],
+  [0.25, 0.1],
+  [0.25, 0.9],
+  [0.75, 0.1],
+  [0.75, 0.9],
+  [0.92, 0.14],
+  [0.92, 0.86],
+  [0.42, 0.9],
+  [0.58, 0.1],
+  [0.42, 0.08],
+  [0.58, 0.92],
 ];
+/** Mobile: a 3×2 grid above the headline and another below it */
 export const MSP: [number, number][] = [
-  [0.22, 0.12],
-  [0.76, 0.12],
-  [0.24, 0.3],
-  [0.76, 0.3],
-  [0.24, 0.72],
-  [0.76, 0.72],
-  [0.26, 0.9],
-  [0.74, 0.9],
-  [0.5, 0.04],
+  [0.17, 0.07],
+  [0.5, 0.06],
+  [0.83, 0.07],
+  [0.17, 0.2],
+  [0.5, 0.21],
+  [0.83, 0.2],
+  [0.17, 0.79],
   [0.5, 0.8],
-  [0.1, 0.5],
-  [0.9, 0.5],
+  [0.83, 0.79],
+  [0.17, 0.93],
+  [0.5, 0.94],
+  [0.83, 0.93],
 ];
 
 export const MEOWS = [

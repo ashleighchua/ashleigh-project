@@ -26,6 +26,35 @@ const scallopD = (cx: number, cy: number, R: number, amp: number, n: number) => 
   return d + "Z";
 };
 
+const burstD = (cx: number, cy: number, R: number, r: number, n: number) => {
+  let d = "";
+  for (let i = 0; i < n * 2; i++) {
+    const a = (i / (n * 2)) * Math.PI * 2 - Math.PI / 2;
+    const rad = i % 2 ? r : R;
+    d +=
+      (i ? "L" : "M") +
+      (cx + rad * Math.cos(a)).toFixed(1) +
+      " " +
+      (cy + rad * Math.sin(a)).toFixed(1);
+  }
+  return d + "Z";
+};
+
+/** Organic pebble: an ellipse with a couple of slow wobbles in its radius */
+const blobD = (cx: number, cy: number, rx: number, ry: number) => {
+  let d = "";
+  for (let i = 0; i <= 120; i++) {
+    const a = (i / 120) * Math.PI * 2;
+    const k = 1 + 0.07 * Math.cos(3 * a + 0.6) + 0.04 * Math.sin(2 * a);
+    d +=
+      (i ? "L" : "M") +
+      (cx + rx * k * Math.cos(a)).toFixed(1) +
+      " " +
+      (cy + ry * k * Math.sin(a)).toFixed(1);
+  }
+  return d + "Z";
+};
+
 const roundRect = (x: number, y: number, w: number, h: number, r: number) =>
   `M${x + r} ${y}H${x + w - r}Q${x + w} ${y} ${x + w} ${y + r}V${y + h - r}Q${x + w} ${y + h} ${x + w - r} ${y + h}H${x + r}Q${x} ${y + h} ${x} ${y + h - r}V${y + r}Q${x} ${y} ${x + r} ${y}Z`;
 
@@ -78,6 +107,10 @@ const SIZE: Record<(typeof SH)[number], [number, number]> = {
   tape: [250, 84],
   circle: [156, 156],
   scallop: [172, 172],
+  arch: [150, 178],
+  burst: [178, 178],
+  flower: [176, 176],
+  blob: [214, 150],
 };
 
 export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }) {
@@ -245,6 +278,84 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
           w={w - 44 * z}
           h={h - 44 * z}
           base={24 * z}
+          fill={fg}
+        />
+      </>
+    );
+  } else if (shape === "arch") {
+    const R = w / 2;
+    body = (
+      <>
+        <path d={`M0 ${h}V${R}A${R} ${R} 0 0 1 ${w} ${R}V${h}Z`} fill={bg} style={fillStyle} />
+        <path
+          d={`M${14 * z} ${h - 12 * z}V${R}A${R - 14 * z} ${R - 14 * z} 0 0 1 ${w - 14 * z} ${R}V${h - 12 * z}`}
+          fill="none"
+          stroke={fg}
+          strokeWidth={1.5 * z}
+          opacity={0.35}
+        />
+        <Label
+          lines={lines}
+          cx={w / 2}
+          cy={h * 0.6}
+          w={w - 36 * z}
+          h={h * 0.5}
+          base={24 * z}
+          fill={fg}
+        />
+      </>
+    );
+  } else if (shape === "burst") {
+    const C = w / 2;
+    body = (
+      <>
+        <path d={burstD(C, C, C - 2, C - 20 * z, 18)} fill={bg} style={fillStyle} />
+        <Label lines={lines} cx={C} cy={C} w={w * 0.6} h={h * 0.5} base={24 * z} fill={fg} />
+      </>
+    );
+  } else if (shape === "flower") {
+    const C = w / 2;
+    const petal = C * 0.42;
+    body = (
+      <>
+        {Array.from({ length: 6 }, (_, j) => {
+          const a = (j / 6) * Math.PI * 2;
+          return (
+            <circle
+              key={j}
+              cx={C + (C - petal - 2) * Math.cos(a)}
+              cy={C + (C - petal - 2) * Math.sin(a)}
+              r={petal}
+              fill={bg}
+              style={fillStyle}
+            />
+          );
+        })}
+        <circle cx={C} cy={C} r={C * 0.62} fill={bg} style={fillStyle} />
+        <circle
+          cx={C}
+          cy={C}
+          r={C * 0.56}
+          fill="none"
+          stroke={fg}
+          strokeWidth={1.5 * z}
+          strokeDasharray={`${3 * z} ${4 * z}`}
+          opacity={0.4}
+        />
+        <Label lines={lines} cx={C} cy={C} w={C * 0.95} h={C * 0.8} base={22 * z} fill={fg} />
+      </>
+    );
+  } else if (shape === "blob") {
+    body = (
+      <>
+        <path d={blobD(w / 2, h / 2, w / 2 - 8 * z, h / 2 - 8 * z)} fill={bg} style={fillStyle} />
+        <Label
+          lines={lines}
+          cx={w / 2}
+          cy={h / 2}
+          w={w * 0.66}
+          h={h * 0.56}
+          base={26 * z}
           fill={fg}
         />
       </>

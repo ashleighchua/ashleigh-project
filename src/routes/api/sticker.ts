@@ -19,7 +19,7 @@ export const Route = createFileRoute("/api/sticker")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const key = process.env["RESEND_API_KEY"];
+        const key = process.env["RESEND_API_KEY"] ?? process.env["RESEND_API_KEY_PORTFOLIO"];
         if (!key) return json({ ok: false, error: "email not set up" }, 503);
 
         let body: { kind?: unknown; name?: unknown; note?: unknown; honey?: unknown };

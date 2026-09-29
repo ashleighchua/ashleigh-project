@@ -748,10 +748,9 @@ body {
   padding: clamp(56px, 8vw, 110px) var(--pad-x);
 }
 .pf-play-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: 40px 56px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(28px, 3.5vw, 44px);
 }
 .pf-play-head {
   display: flex;
@@ -767,13 +766,20 @@ body {
   letter-spacing: -0.03em;
 }
 .pf-play-head p {
+  max-width: 620px;
   font-size: 17px;
   color: var(--color-neutral-800);
 }
 .pf-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+/* 9 tiles: 3×3 on desktop, a single column on phones (no lonely last row in between) */
+@media (max-width: 860px) {
+  .pf-tiles {
+    grid-template-columns: 1fr;
+  }
 }
 .pf .pf-tile {
   background: var(--color-bg);

@@ -317,11 +317,12 @@ export function PortfolioPage() {
         // read every size/position first, then write: no forced re-layout per sticker
         const reads = STK.map((_, i) => {
           const slot = slotEls.current[i];
-          const kid = faceS.current[i]?.firstElementChild as HTMLElement | null;
+          // the sticker is an <svg>, which has no offsetWidth; its width/height attributes are its size
+          const kid = faceS.current[i]?.firstElementChild as SVGSVGElement | null;
           return {
             sr: slot?.getBoundingClientRect(),
-            kw: kid ? kid.offsetWidth : 0,
-            kh: kid ? kid.offsetHeight : 0,
+            kw: kid ? kid.width.baseVal.value : 0,
+            kh: kid ? kid.height.baseVal.value : 0,
           };
         });
 

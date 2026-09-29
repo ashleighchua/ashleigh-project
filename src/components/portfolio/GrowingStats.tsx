@@ -257,13 +257,23 @@ function WaterMe({ reduced }: { reduced: boolean }) {
           <div className="gs-grid gs-grid--2">
             {/* 1 · Sunflower up a ruler: Assistant → Cofounder */}
             <div className="gs-col">
-              <div className="gs-ruler" />
-              <div className="gs-tick" style={{ bottom: 262 }} />
-              <span className="gs-ticklabel" style={{ bottom: 256 }}>
+              {/* the ruler shows up once watering starts; Cofounder as the flower gets there */}
+              <div className="gs-ruler gs-fade" style={{ opacity: w0 > 0 ? 1 : 0 }} />
+              <div className="gs-tick gs-fade" style={{ bottom: 262, opacity: w0 > 0 ? 1 : 0 }} />
+              <span
+                className="gs-ticklabel gs-fade"
+                style={{ bottom: 256, opacity: w0 > 0 ? 1 : 0 }}
+              >
                 Assistant
               </span>
-              <div className="gs-tick gs-tick--top" style={{ bottom: 434 }} />
-              <span className="gs-ticklabel gs-ticklabel--top" style={{ bottom: 428 }}>
+              <div
+                className="gs-tick gs-tick--top gs-fade"
+                style={{ bottom: 434, opacity: w0 > 0.9 ? 1 : 0 }}
+              />
+              <span
+                className="gs-ticklabel gs-ticklabel--top gs-fade"
+                style={{ bottom: 428, opacity: w0 > 0.9 ? 1 : 0 }}
+              >
                 Cofounder
               </span>
               <div className="gs-stem gs-stem--live" style={{ bottom: 246, height: 190 * w0 }} />
@@ -291,8 +301,9 @@ function WaterMe({ reduced }: { reduced: boolean }) {
 
             {/* 2 · Tulip past the quote line */}
             <div className="gs-col">
-              <div className="gs-line" style={{ bottom: 356 }} />
-              <span className="gs-linelabel" style={{ bottom: 362 }}>
+              {/* the quote line shows up once watering starts; what she paid when it blooms */}
+              <div className="gs-line" style={{ bottom: 356, opacity: w1 > 0 ? 1 : 0 }} />
+              <span className="gs-linelabel" style={{ bottom: 362, opacity: w1 > 0 ? 1 : 0 }}>
                 the quote
               </span>
               <div

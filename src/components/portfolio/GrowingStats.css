@@ -696,3 +696,6 @@
   top: auto;
   bottom: 402px;
 }
+.gs-fade {
+  transition: opacity 0.5s;
+}

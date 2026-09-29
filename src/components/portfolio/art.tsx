@@ -1222,7 +1222,7 @@ export function TableSticker({ kind, size }: { kind: StickerKind; size: number }
   );
 }
 
-/* ═════ About: flights as a stamped passport page ═════ */
+/* ═════ About: work shipped from everywhere, as a stamped passport page ═════ */
 
 const PLANE =
   "M0 -9L1.6 -3L9 1V3L1.6 1L1.2 6L3.5 8V9.5L0 8.5L-3.5 9.5V8L-1.2 6L-1.6 1L-9 3V1L-1.6 -3Z";
@@ -1298,15 +1298,15 @@ export function PassportStamps() {
           textAnchor="middle"
           fill={A7}
           stroke="none"
-          style={{ fontFamily: HEADING, fontSize: 21, letterSpacing: "-.02em" }}
+          style={{ fontFamily: HEADING, fontSize: 17, letterSpacing: ".02em" }}
         >
-          75,625
+          SHIPPED
         </text>
         <text y={-16} textAnchor="middle" fill={A7} stroke="none" style={{ ...ink, fontSize: 7 }}>
-          32 FLIGHTS
+          WORK
         </text>
         <text y={22} textAnchor="middle" fill={A7} stroke="none" style={{ ...ink, fontSize: 8 }}>
-          KM FLOWN
+          · 2026 ·
         </text>
       </Stamp>
       <path

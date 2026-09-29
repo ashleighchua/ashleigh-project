@@ -435,8 +435,8 @@ export const ADVENTURES: Adventure[] = [
     r: 1.5,
   },
   {
-    h: "75,625 km flown",
-    b: "Nearly twice around the Earth, and the work kept shipping the whole way.",
+    h: "10 countries, one laptop",
+    b: "Wherever I was this year, the work kept shipping.",
     r: -1,
   },
   {

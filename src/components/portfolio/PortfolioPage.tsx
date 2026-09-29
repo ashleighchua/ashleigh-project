@@ -1015,14 +1015,6 @@ export function PortfolioPage() {
             <a href={`mailto:${LINKS.email}`} className="btn pf-contact-cta">
               Email me ↗
             </a>
-            <a
-              href={LINKS.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn pf-contact-alt"
-            >
-              Find me on LinkedIn ↗
-            </a>
           </div>
           <div className="pf-foot">
             <a href={LINKS.linkedin} target="_blank" rel="noopener noreferrer">

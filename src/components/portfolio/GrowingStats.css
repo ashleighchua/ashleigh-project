@@ -677,3 +677,22 @@
   left: auto;
   right: 10px;
 }
+
+/* the ruler and its labels sit on the left of the sunflower */
+.gs-ruler {
+  margin-left: -58px;
+}
+.gs-tick {
+  margin-left: -64px;
+}
+.gs-ticklabel {
+  left: auto;
+  right: calc(50% + 70px);
+  margin-left: 0;
+  text-align: right;
+}
+/* the autopilot pill sits clear above the pipe (its top is 150px down), whatever its size */
+.gs-autopilot {
+  top: auto;
+  bottom: 402px;
+}

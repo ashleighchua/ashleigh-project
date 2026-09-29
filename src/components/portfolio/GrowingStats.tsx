@@ -365,7 +365,7 @@ function WaterMe({ reduced }: { reduced: boolean }) {
         </div>
         {!reduced && !done && (
           <p className="gs-hint" aria-hidden="true">
-            Pick up the watering can and water them
+            Pick up the watering can and water each pot
           </p>
         )}
       </div>

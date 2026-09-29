@@ -1428,26 +1428,15 @@ body {
   flex-wrap: wrap;
   gap: 12px;
 }
-.pf .pf-contact-cta,
-.pf .pf-contact-alt {
+.pf .pf-contact-cta {
   padding: 18px 30px;
   font-size: clamp(15px, 1.6vw, 18px);
-}
-.pf .pf-contact-cta {
   background: var(--color-neutral-900);
   color: var(--color-neutral-100);
 }
 .pf .pf-contact-cta:hover {
   background: var(--color-neutral-800);
   color: var(--color-neutral-100);
-}
-.pf .pf-contact-alt {
-  border-color: color-mix(in srgb, var(--color-neutral-900) 35%, transparent);
-  color: var(--color-neutral-900);
-}
-.pf .pf-contact-alt:hover {
-  background: color-mix(in srgb, var(--color-neutral-900) 8%, transparent);
-  color: var(--color-neutral-900);
 }
 .pf-foot {
   align-self: stretch;

@@ -91,7 +91,7 @@ export const DECOR: { obj: ObjKey; z: number }[] = [
 export const ZONES: [title: string, body: string, dot: string][] = [
   [
     "Finding the real problem",
-    "I start with what’s stuck. Sometimes it’s a decision nobody has made. Sometimes it’s a process everyone quietly works around.",
+    "I ask the questions that get to the real problem, so we build the right thing, not just the first idea.",
     "var(--color-accent)",
   ],
   [
@@ -106,7 +106,7 @@ export const ZONES: [title: string, body: string, dot: string][] = [
   ],
   [
     "Built for the long run",
-    "Whatever I build is clear enough for other people to run, so the work keeps moving without bottlenecking on me.",
+    "Whatever I build is simple enough for anyone on your team to use, tech-savvy or not.",
     "var(--color-accent-2-800)",
   ],
 ];
@@ -188,7 +188,7 @@ export const PATH: Chapter[] = [
     span: "4 years",
     h: "Chemical engineering",
     at: "University",
-    b: "Engineering school taught me to notice where a system gets stuck, and I still look for the bottleneck holding everything else up.",
+    b: "Engineering school taught me to think in systems: how the parts connect, and how to work through a problem step by step.",
     bg: "var(--color-surface)",
     panel: "var(--color-accent-100)",
     r: -1,
@@ -233,7 +233,7 @@ export const PATH: Chapter[] = [
     span: "A few months",
     h: "Virtual assistant",
     at: "Beyond Classrooms",
-    b: "I cold-emailed a stack of companies and joined Beyond Classrooms as a virtual assistant. I kept spotting things that could work better and fixing them, and before long I was building SchoolTrips.ai.",
+    b: "I cold-emailed a stack of companies and joined Beyond Classrooms as a virtual assistant. I said yes to whatever needed doing, and before long I was building SchoolTrips.ai.",
     bg: "var(--color-accent-2-200)",
     panel: "var(--color-accent-2-100)",
     muted: "var(--color-accent-2-900)",
@@ -244,7 +244,7 @@ export const PATH: Chapter[] = [
     span: "Now",
     h: "Cofounder",
     at: "SchoolTrips.ai",
-    b: "The more I built, the more I owned. Eventually the title caught up. I’m now a cofounder at SchoolTrips.ai.",
+    b: "The more I built, the more I owned. Now I’m a cofounder at SchoolTrips.ai.",
     bg: "var(--color-neutral-900)",
     panel: "var(--color-neutral-800)",
     fg: "var(--color-neutral-100)",
@@ -253,69 +253,51 @@ export const PATH: Chapter[] = [
   },
 ];
 
-/* ── Playground ── */
+/* ── The receipts: every card has the same parts, in the same order ── */
 
-const live = { bg: "var(--color-accent-2-200)", fg: "var(--color-accent-2-800)" };
-const use = { bg: "var(--color-accent-200)", fg: "var(--color-accent-800)" };
-const wip = { bg: "var(--color-neutral-200)", fg: "var(--color-neutral-800)" };
-
-export const PLAY: {
+export const RECEIPTS: {
+  id: "schooltrips" | "hannah" | "lunar";
+  n: string;
+  role: string;
+  status: string;
   h: string;
-  b: string;
-  s: string;
-  bg: string;
-  fg: string;
-  r: number;
-  /** no link = private project, shown as a tile you can't click */
-  href?: string;
+  body: string;
+  mine: string;
+  cta: string;
+  href: string;
 }[] = [
   {
-    h: "100 Things to Do Before Dinner",
-    b: "A children's book I wrote and published. Now on Amazon.",
-    s: "Published",
-    bg: "var(--color-accent)",
-    fg: "var(--color-neutral-900)",
-    r: 1.4,
-    href: "https://www.amazon.sg/dp/B0GNJP8PK1",
+    id: "schooltrips",
+    n: "01",
+    role: "Cofounder",
+    status: "In beta",
+    h: "SchoolTrips.ai",
+    body: "Teachers are tired of the admin that comes with every trip. SchoolTrips.ai takes it off their plate, and it gets smarter every time a trip is run and reviewed.",
+    mine: "I lead product and build it. I also go on the ground on real school trips to learn about the entire process from planning a trip to seeing it through.",
+    cta: "Try the beta",
+    href: "https://demo.schooltrips.ai",
   },
   {
-    h: "Career Compass",
-    b: "Turns career history into evidence, then scores it against the role you want.",
-    s: "In progress",
-    ...wip,
-    r: -1,
-    href: "https://github.com/ashleighchua/Career-Compass",
+    id: "hannah",
+    n: "02",
+    role: "Client build",
+    status: "Live",
+    h: "Hannah Jackson",
+    body: "Hannah asked for a website. I built her a dashboard too, so she can update her work, prices, and offers herself whenever she needs to, without touching code.",
+    mine: "I designed and built the site and her dashboard. Not needing me was worth more to her than the site.",
+    cta: "See her site",
+    href: "https://byhannahjackson.com",
   },
   {
-    h: "Clarity",
-    b: "Turns a chaotic spec into readable documentation. I built it for a technical writer application at Squirro. They thought I might suit product better.",
-    s: "Live",
-    ...live,
-    r: 1,
-    href: "https://clarity-henna.vercel.app",
-  },
-  {
-    h: "Celestial",
-    b: "Brings together astrology, personality frameworks, and other ways people try to understand themselves. It ends with an AI reading that pulls it into one profile.",
-    s: "Live",
-    ...live,
-    r: 0.5,
-    href: "https://astrology-app-hazel.vercel.app",
-  },
-  {
-    h: "Bangkok expat newsletter",
-    b: "A Python pipeline that scrapes events across Bangkok, extracts them into a clean format and scores them, so the newsletter only features the good ones.",
-    s: "Behind the scenes",
-    ...wip,
-    r: -1.2,
-  },
-  {
-    h: "Mandarin Survival Kit",
-    b: "Real-world lessons, spaced-repetition flashcards and pronunciation drills. Built because every app kept teaching me to order coffee I don't drink.",
-    s: "Live",
-    ...live,
-    r: 1.2,
-    href: "https://mandarin-survival-kit.vercel.app",
+    id: "lunar",
+    n: "03",
+    role: "Solo product",
+    status: "Live, fully automated",
+    h: "The Lunar Playground",
+    body: "Relocation astrology and natal readings. Someone places an order, their chart is calculated, their reading is written, and the finished PDF arrives in their inbox.",
+    mine: "I built the whole pipeline, from the order form to the finished PDF. It runs without me touching each order.",
+    cta: "Visit the site",
+    href: "https://thelunarplayground.com",
   },
 ];
 
@@ -331,9 +313,92 @@ export const PIPELINE = [
   { h: "PDF delivered", b: "It lands in the client’s inbox." },
 ];
 
+/* ── Playground ── */
+
+export const PLAY: {
+  h: string;
+  b: string;
+  /** status sticker */
+  s: string;
+  bg: string;
+  fg: string;
+  sbg: string;
+  sfg: string;
+  /** sticker tilt, degrees */
+  r: number;
+  /** no link = private project, shown as a tile you can't click */
+  href?: string;
+}[] = [
+  {
+    h: "100 Things to Do Before Dinner",
+    b: "A children’s book I wrote and published. On Amazon ↗",
+    s: "Published",
+    bg: "var(--color-accent)",
+    fg: "var(--color-bg)",
+    sbg: "var(--color-bg)",
+    sfg: "var(--color-accent-800)",
+    r: 10,
+    href: "https://www.amazon.sg/dp/B0GNJP8PK1",
+  },
+  {
+    h: "Career Compass",
+    b: "Scores your career history against the role you want ↗",
+    s: "In progress",
+    bg: "var(--color-accent-2)",
+    fg: "var(--color-bg)",
+    sbg: "var(--color-bg)",
+    sfg: "var(--color-accent-2-800)",
+    r: -12,
+    href: "https://github.com/ashleighchua/Career-Compass",
+  },
+  {
+    h: "Clarity",
+    b: "Chaotic spec in, readable docs out. Squirro said I might suit product better ↗",
+    s: "Live",
+    bg: "var(--color-surface)",
+    fg: "var(--color-text)",
+    sbg: "var(--color-accent-2-200)",
+    sfg: "var(--color-accent-2-800)",
+    r: -4,
+    href: "https://clarity-henna.vercel.app",
+  },
+  {
+    h: "Celestial",
+    b: "Astrology and personality frameworks, pulled into one AI reading ↗",
+    s: "Live",
+    bg: "var(--color-neutral-900)",
+    fg: "var(--color-bg)",
+    sbg: "var(--color-accent-2-200)",
+    sfg: "var(--color-accent-2-800)",
+    r: -8,
+    href: "https://astrology-app-hazel.vercel.app",
+  },
+  {
+    h: "Mandarin Survival Kit",
+    b: "Real-world lessons, flashcards and pronunciation drills. No coffee ordering ↗",
+    s: "Live",
+    bg: "var(--color-accent-2-200)",
+    fg: "var(--color-accent-2-900)",
+    sbg: "var(--color-bg)",
+    sfg: "var(--color-accent-2-800)",
+    r: 6,
+    href: "https://mandarin-survival-kit.vercel.app",
+  },
+  {
+    h: "Bangkok expat newsletter",
+    b: "A Python pipeline that scrapes, cleans and scores city events, so only the good ones make it in.",
+    s: "Behind the scenes",
+    bg: "var(--color-accent-200)",
+    fg: "var(--color-accent-900)",
+    sbg: "var(--color-bg)",
+    sfg: "var(--color-accent-800)",
+    r: -10,
+  },
+];
+
 /* ── About ── */
 
-/** Cycles in "Hi, I'm Ashleigh. I'm a ___." */
+/** Cycles in "I'm a ___." */
 export const ROLES = [
   "cofounder",
   "product builder",
@@ -345,48 +410,56 @@ export const ROLES = [
 ];
 
 export type Adventure = {
-  /** big line on the card */
   h: string;
   b: string;
-  /** photo key in PortfolioPage; none = type-only card */
-  photo?: "wall";
-  kind?: "pass";
-  bg: string;
-  fg: string;
+  /** photo key in PortfolioPage; none = the big-number card */
+  photo?: "monastery" | "spain" | "wall";
+  alt?: string;
+  /** polaroid tilt, degrees */
   r: number;
 };
 
 export const ADVENTURES: Adventure[] = [
   {
     h: "A week in a monastery",
-    b: "Yes, really. Seven whole days.",
-    bg: "var(--color-accent-2-300)",
-    fg: "var(--color-accent-2-900)",
-    r: -2.5,
+    b: "A mindfulness retreat. I lived and ate with the monks.",
+    photo: "monastery",
+    alt: "Evening exercise in a field below misty hills at the monastery",
+    r: -2,
   },
   {
     h: "120km across Spain",
     b: "On foot, with my best friend.",
-    bg: "var(--color-accent-300)",
-    fg: "var(--color-accent-900)",
-    r: 1.8,
+    photo: "spain",
+    alt: "Ashleigh and her best friend beside a Camino marker reading Km 100",
+    r: 1.5,
   },
-  {
-    h: "35",
-    b: "flights so far this year. Work shipped from all of them.",
-    kind: "pass",
-    bg: "var(--color-neutral-100)",
-    fg: "var(--color-text)",
-    r: -1.2,
-  },
+  { h: "35 flights", b: "So far this year. Work shipped from all of them.", r: -1 },
   {
     h: "A night at the Great Wall",
     b: "Camped out with 150 students on a school trip.",
     photo: "wall",
-    bg: "var(--color-neutral-100)",
-    fg: "var(--color-text)",
-    r: 2.2,
+    alt: "Tents lit up at night by the Great Wall",
+    r: 2,
   },
+];
+
+/* ── Before you go ── */
+
+/** Keep in step with the coffee price set on Ko-fi */
+export const COFFEE_PRICE = 5;
+export const COFFEE_COUNTS = [1, 3, 5];
+
+export type StickerKind = "hi" | "hire" | "coffee" | "love" | "build" | "moon";
+
+/** Stickers a visitor can leave on the table */
+export const TABLE_STICKERS: { kind: StickerKind; label: string }[] = [
+  { kind: "hi", label: "Hi!" },
+  { kind: "hire", label: "Hire her" },
+  { kind: "coffee", label: "Coffee soon?" },
+  { kind: "love", label: "Love this" },
+  { kind: "build", label: "Let’s build" },
+  { kind: "moon", label: "Moon" },
 ];
 
 export const LINKS = {
@@ -396,4 +469,7 @@ export const LINKS = {
   planner: "https://demo.schooltrips.ai",
   hannah: "https://byhannahjackson.com",
   lunar: "https://thelunarplayground.com",
+  kofi: "https://ko-fi.com/ashleighchua",
+  /** FormSubmit relays each note to the inbox; the first one sent asks the inbox to confirm */
+  notes: "https://formsubmit.co/ajax/ashleighchua@gmail.com",
 };

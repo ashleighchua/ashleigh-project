@@ -1,23 +1,25 @@
 import { memo, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import {
-  ArrowDown,
-  Check,
-  MapPin,
-  Menu,
-  Plane,
-  ShieldCheck,
-  Sparkles,
-  Star,
-  X,
-} from "lucide-react";
-import portraitPhoto from "@/assets/portrait.jpg";
+import { ArrowDown, Check, MapPin, Menu, X } from "lucide-react";
+import portraitPhoto from "@/assets/portrait-birthday.jpg";
 import greatWallTents from "@/assets/great-wall-tents.jpg";
+import monasteryPhoto from "@/assets/monastery.jpg";
+import spainPhoto from "@/assets/spain-camino.jpg";
 import stHome from "@/assets/st-home.jpg";
 import stProblem from "@/assets/st-problem.jpg";
 import hjPublic from "@/assets/hj-public.jpg";
 import hjAdmin from "@/assets/hj-admin.jpg";
-import { Logo, LunarPipeline, SceneArt, StickerFace, TableObject, type Look } from "./art";
+import {
+  LunarPipeline,
+  MoonMark,
+  PassportStamps,
+  SceneArt,
+  StickerFace,
+  TableObject,
+  type Look,
+} from "./art";
 import { CatSvg, type CatRefs } from "./cat";
+import { GrowingStats } from "./GrowingStats";
+import { BeforeYouGo } from "./table";
 import {
   COL,
   DSP,
@@ -30,6 +32,7 @@ import {
   PIPELINE,
   PLAY,
   SH,
+  RECEIPTS,
   STK,
   ZONES,
   ROLES,
@@ -93,26 +96,60 @@ const Sticker = memo(function Sticker({ i, k, ko, refs, onPoke, onHover }: Stick
   );
 });
 
-/** "I'm a ___" slot. Every word is laid out invisibly in the same cell so the line never jumps. */
+/** "Ashleigh Chua" with a crescent moon standing in for the C */
+function Wordmark() {
+  return (
+    <span className="pf-wordmark" role="img" aria-label="Ashleigh Chua">
+      Ashleigh <span className="pf-moon" />
+      hua
+    </span>
+  );
+}
+
+/** "I'm a ___" pill: types each word out, holds it, backspaces, then types the next */
 function RotatingRole() {
   const [i, setI] = useState(0);
+  const [n, setN] = useState(ROLES[0]!.length + 1);
+  const [erasing, setErasing] = useState(false);
+  const [still, setStill] = useState(true);
+  const word = `${ROLES[i]}.`;
   useEffect(() => {
-    const id = window.setInterval(() => setI((n) => (n + 1) % ROLES.length), 2200);
-    return () => window.clearInterval(id);
+    setStill(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
+  useEffect(() => {
+    if (still) return;
+    let wait: number;
+    let next: () => void;
+    if (!erasing && n < word.length) {
+      wait = 70 + Math.random() * 60;
+      next = () => setN(n + 1);
+    } else if (!erasing) {
+      wait = 1400;
+      next = () => setErasing(true);
+    } else if (n > 0) {
+      wait = 32;
+      next = () => setN(n - 1);
+    } else {
+      wait = 250;
+      next = () => {
+        setErasing(false);
+        setI((i + 1) % ROLES.length);
+      };
+    }
+    const id = window.setTimeout(next, wait);
+    return () => window.clearTimeout(id);
+  }, [still, erasing, n, i, word.length]);
   return (
     <span className="pf-role" aria-hidden="true">
-      {ROLES.map((r) => (
-        <span key={r} className="pf-role-size">
-          {r}.
-        </span>
-      ))}
-      <span key={i} className="pf-role-word">
-        {ROLES[i]}.
+      <span className="pf-role-word">
+        {word.slice(0, n)}
+        {!still && <span className="pf-caret" />}
       </span>
     </span>
   );
 }
+
+const PHOTOS = { monastery: monasteryPhoto, spain: spainPhoto, wall: greatWallTents };
 
 /* ── Config (the "props" from the design reference) ── */
 const SHOW_CAT = true;
@@ -564,8 +601,7 @@ export function PortfolioPage() {
       <div className="pf-top">
         <nav className="pf-nav">
           <a href="#top" className="pf-brand">
-            <Logo size={34} />
-            <span>Ashleigh Chua</span>
+            <Wordmark />
           </a>
           <div className="pf-links">
             {navLinks.map(([label, href]) => (
@@ -599,10 +635,10 @@ export function PortfolioPage() {
         <header className="pf-hero" ref={heroRef}>
           <div className="pf-hero-text" ref={heroTextRef}>
             <div className="pf-hero-logo">
-              <Logo size={88} />
+              <MoonMark size={76} />
             </div>
             <h1>
-              I help turn ideas into <span>real&nbsp;products</span>
+              I turn ideas into <span>real&nbsp;products</span>
             </h1>
             <p>Start with one project. Stay for as long as it makes sense.</p>
             <p className="pf-avail">
@@ -617,12 +653,6 @@ export function PortfolioPage() {
       </div>
 
       {/* ═════ What I bring to the table ═════ */}
-      <ul className="pf-proof" aria-label="Highlights">
-        <li>Virtual assistant to cofounder in 4 months</li>
-        <li>Client paid 50% over quote</li>
-        <li>A business that runs without me</li>
-      </ul>
-
       <section className="pf-table-sec" id="table">
         <div className="pf-head">
           <h2>What I bring to the table</h2>
@@ -676,6 +706,9 @@ export function PortfolioPage() {
         </div>
       </section>
 
+      {/* ═════ Proof: water the pots, the numbers grow ═════ */}
+      <GrowingStats />
+
       {/* ═════ Timeline ═════ */}
       <section className="pf-tl" ref={tlRef} id="path">
         <div className="pf-tl-pin">
@@ -719,374 +752,235 @@ export function PortfolioPage() {
         </div>
       </section>
 
-      {/* ═════ The receipts ═════ */}
+      {/* ═════ The receipts: same parts, same order, in all three ═════ */}
       <section className="pf-receipts" id="work">
         <div className="pf-receipts-head">
           <h2>The receipts</h2>
-          <span>Three things I built. All three are out in the world, doing their job.</span>
+          <p>Three things I built. All three are out in the world, doing their job.</p>
         </div>
-
-        {/* SchoolTrips.ai */}
-        <article className="pf-st">
-          <div className="pf-st-glow" />
-          <div className="pf-st-copy">
-            <div className="pf-pills">
-              <span
-                className="pf-pill"
-                style={{ background: "var(--color-accent)", color: "var(--color-neutral-900)" }}
+        {RECEIPTS.map((r) => (
+          <article key={r.id} id={r.id} className={`pf-rcard pf-rcard-${r.id}`}>
+            <div className="pf-rcard-copy">
+              <div className="pf-pills">
+                <span className="pf-pill pf-pill-role">
+                  {r.n} · {r.role}
+                </span>
+                <span className="pf-pill pf-pill-status">● {r.status}</span>
+              </div>
+              <h3>{r.h}</h3>
+              <p>{r.body}</p>
+              <p className="pf-rcard-mine">
+                <b>My part:</b> {r.mine}
+              </p>
+              <a
+                href={r.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary pf-btn-lg"
               >
-                01 · Cofounder
-              </span>
-              <span
-                className="pf-pill"
-                style={{
-                  background: "var(--color-accent-2-300)",
-                  color: "var(--color-accent-2-900)",
-                }}
-              >
-                ● In beta
-              </span>
+                {r.cta} ↗
+              </a>
             </div>
-            <h3>SchoolTrips.ai</h3>
-            <p>
-              Teachers are tired of the admin that comes with every trip. SchoolTrips.ai takes it
-              off their plate, and it gets smarter every time a trip is run and reviewed.
-            </p>
-            <ul className="pf-st-feats">
-              {(
-                [
-                  [
-                    Sparkles,
-                    "Gets smarter every trip",
-                    "Real reviews and completed trips feed the recommendations, so it compounds instead of guessing.",
-                  ],
-                  [Star, "Educator reviews", "Notes from teachers who have actually run it."],
-                  [
-                    ShieldCheck,
-                    "The boring bits, handled",
-                    "Safeguarding forms and risk assessments, done without the admin slog.",
-                  ],
-                ] as const
-              ).map(([Icon, h, b]) => (
-                <li key={h}>
-                  <span>
-                    <Icon size={18} strokeWidth={2.75} aria-hidden="true" />
-                  </span>
-                  <div>
-                    <b>{h}</b> {b}
+            {r.id === "schooltrips" ? (
+              <a
+                href={LINKS.planner}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pf-st-shots"
+                aria-label="Open the SchoolTrips.ai beta"
+              >
+                <figure className="pf-snap pf-snap-a">
+                  <span className="pf-tape" />
+                  <img
+                    src={stHome}
+                    alt="SchoolTrips.ai home: school trip planning, without the overwhelm"
+                    loading="lazy"
+                  />
+                </figure>
+                <figure className="pf-snap pf-snap-b">
+                  <span className="pf-tape pf-tape-sage" />
+                  <img
+                    src={stProblem}
+                    alt="SchoolTrips.ai: AI guidance, educator reviews, proven itineraries, risk templates"
+                    loading="lazy"
+                  />
+                </figure>
+              </a>
+            ) : r.id === "hannah" ? (
+              <div className="pf-hj-view">
+                <div className="pf-toggle" role="group" aria-label="Switch view">
+                  <button
+                    type="button"
+                    aria-pressed={hjView === "public"}
+                    onClick={() => setHjView("public")}
+                  >
+                    What collectors see
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={hjView === "admin"}
+                    onClick={() => setHjView("admin")}
+                  >
+                    What Hannah manages
+                  </button>
+                </div>
+                <div className="pf-browser">
+                  <div className="pf-browser-bar">
+                    <span />
+                    <span />
+                    <span />
+                    <em>
+                      {hjView === "public"
+                        ? "byhannahjackson.com"
+                        : "byhannahjackson.com · her dashboard"}
+                    </em>
                   </div>
-                </li>
-              ))}
-            </ul>
-            <p className="pf-st-mine">
-              <b>My part:</b> I lead product and build it. I also go on the ground on real school
-              trips to learn about the entire process from planning a trip to seeing it through.
-            </p>
-            <a
-              href={LINKS.planner}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary pf-btn-lg"
-            >
-              Try the beta ↗
-            </a>
-          </div>
-          <a
-            href={LINKS.planner}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="pf-st-shots"
-            aria-label="Open the SchoolTrips.ai beta"
-          >
-            <figure className="pf-snap pf-snap-a">
-              <span className="pf-tape" />
-              <img
-                src={stHome}
-                alt="SchoolTrips.ai home: school trip planning, without the overwhelm"
-                loading="lazy"
-              />
-            </figure>
-            <figure className="pf-snap pf-snap-b">
-              <span className="pf-tape pf-tape-sage" />
-              <img
-                src={stProblem}
-                alt="SchoolTrips.ai: AI guidance, educator reviews, proven itineraries, risk templates"
-                loading="lazy"
-              />
-            </figure>
-          </a>
-        </article>
-
-        {/* Hannah Jackson */}
-        <article className="pf-hj">
-          <div className="pf-hj-copy">
-            <div className="pf-pills">
-              <span
-                className="pf-pill"
-                style={{ background: "var(--color-accent-200)", color: "var(--color-accent-800)" }}
-              >
-                02 · Client build
-              </span>
-              <span
-                className="pf-pill"
-                style={{
-                  background: "var(--color-accent-2-200)",
-                  color: "var(--color-accent-2-800)",
-                }}
-              >
-                ● Live
-              </span>
-            </div>
-            <h3>Hannah Jackson</h3>
-            <p>
-              Hannah asked for a website. I built her a dashboard too, so she can update her work,
-              prices, and offers herself whenever she needs to, without touching code.
-            </p>
-            <div className="pf-hj-stat">
-              <span>+50%</span>
-              <span>
-                She paid over my quote. <b>Not needing me was worth more than the site.</b>
-              </span>
-            </div>
-            <a
-              href={LINKS.hannah}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-ghost pf-hj-link"
-            >
-              See her site ↗
-            </a>
-          </div>
-          <div className="pf-hj-view">
-            <div className="pf-toggle" role="group" aria-label="Switch view">
-              <button
-                type="button"
-                aria-pressed={hjView === "public"}
-                onClick={() => setHjView("public")}
-              >
-                What collectors see
-              </button>
-              <button
-                type="button"
-                aria-pressed={hjView === "admin"}
-                onClick={() => setHjView("admin")}
-              >
-                What Hannah manages
-              </button>
-            </div>
-            <div className="pf-browser">
-              <div className="pf-browser-bar">
-                <span />
-                <span />
-                <span />
-                <em>
+                  <img
+                    src={hjView === "public" ? hjPublic : hjAdmin}
+                    alt={
+                      hjView === "public"
+                        ? "Hannah Jackson's site: her original paintings with sizes and prices"
+                        : "Hannah's dashboard: her paintings list with prices and offer status, editable"
+                    }
+                  />
+                </div>
+                <p className="pf-hj-cap">
                   {hjView === "public"
-                    ? "byhannahjackson.com"
-                    : "byhannahjackson.com · her dashboard"}
-                </em>
+                    ? "Her originals, sizes, prices and offer status."
+                    : "The same paintings. She adds, prices and publishes them herself."}
+                </p>
               </div>
-              <img
-                src={hjView === "public" ? hjPublic : hjAdmin}
-                alt={
-                  hjView === "public"
-                    ? "Hannah Jackson's site: her original paintings with sizes and prices"
-                    : "Hannah's dashboard: her paintings list with prices and offer status, editable"
-                }
-              />
-            </div>
-            <p className="pf-hj-cap">
-              {hjView === "public"
-                ? "Her originals, sizes, prices and offer status."
-                : "The same paintings. She adds, prices and publishes them herself."}
-            </p>
-          </div>
-        </article>
-
-        {/* The Lunar Playground */}
-        <article className="pf-lp">
-          <div className="pf-lp-c1" />
-          <div className="pf-lp-c2" />
-          <div className="pf-lp-copy">
-            <div className="pf-pills">
-              <span
-                className="pf-pill"
-                style={{
-                  background: "var(--color-accent-2-100)",
-                  color: "var(--color-accent-2-800)",
-                }}
-              >
-                03 · Solo product
-              </span>
-              <span
-                className="pf-pill"
-                style={{
-                  background: "var(--color-accent-2-700)",
-                  color: "var(--color-accent-2-100)",
-                }}
-              >
-                ● Live, fully automated
-              </span>
-            </div>
-            <h3>The Lunar Playground</h3>
-            <p>
-              Relocation astrology and natal readings. Someone places an order, their chart is
-              calculated, their reading is written, and the finished PDF arrives in their inbox. The
-              process runs without me touching each order.
-            </p>
-            <dl className="pf-lp-stats">
-              <div>
-                <dt>100+</dt>
-                <dd>reports delivered</dd>
+            ) : (
+              <div className="pf-pipe" data-step={lunar}>
+                <div className="pf-pipe-head">
+                  <span>Every order, start to finish</span>
+                  <button
+                    type="button"
+                    className="btn pf-pipe-run"
+                    onClick={runOrder}
+                    disabled={lunar >= 0 && lunar < PIPELINE.length}
+                  >
+                    {lunar < 0
+                      ? "Run a test order ▸"
+                      : lunar < PIPELINE.length
+                        ? "Running…"
+                        : "Run it again ↺"}
+                  </button>
+                </div>
+                <LunarPipeline step={lunar} />
+                <ol className="pf-pipe-steps">
+                  {PIPELINE.map((st, j) => {
+                    const state = lunar > j ? "done" : lunar === j ? "active" : "idle";
+                    return (
+                      <li key={st.h} className={state}>
+                        <span className="pf-pipe-dot">
+                          {state === "done" ? <Check size={14} strokeWidth={3} /> : j + 1}
+                        </span>
+                        <div>
+                          <b>{st.h}</b>
+                          <span>{st.b}</span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+                <p className="pf-pipe-foot" aria-live="polite">
+                  {lunar >= PIPELINE.length
+                    ? "Four steps. Fully handled."
+                    : "A replay of what happens with every real order."}
+                </p>
               </div>
-              <div>
-                <dt>4.9★</dt>
-                <dd>average rating</dd>
-              </div>
-            </dl>
-            <a
-              href={LINKS.lunar}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-secondary pf-lp-link"
-            >
-              Visit the site ↗
-            </a>
-          </div>
-          <div className="pf-pipe" data-step={lunar}>
-            <div className="pf-pipe-head">
-              <span>Every order, start to finish</span>
-              <button
-                type="button"
-                className="btn pf-pipe-run"
-                onClick={runOrder}
-                disabled={lunar >= 0 && lunar < PIPELINE.length}
-              >
-                {lunar < 0
-                  ? "Run a test order ▸"
-                  : lunar < PIPELINE.length
-                    ? "Running…"
-                    : "Run it again ↺"}
-              </button>
-            </div>
-            <LunarPipeline step={lunar} />
-            <ol className="pf-pipe-steps">
-              {PIPELINE.map((st, j) => {
-                const state = lunar > j ? "done" : lunar === j ? "active" : "idle";
-                return (
-                  <li key={st.h} className={state}>
-                    <span className="pf-pipe-dot">
-                      {state === "done" ? <Check size={14} strokeWidth={3} /> : j + 1}
-                    </span>
-                    <div>
-                      <b>{st.h}</b>
-                      <span>{st.b}</span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-            <p className="pf-pipe-foot" aria-live="polite">
-              {lunar >= PIPELINE.length
-                ? "Four steps. Fully handled."
-                : "A replay of what happens with every real order."}
-            </p>
-          </div>
-        </article>
+            )}
+          </article>
+        ))}
       </section>
 
       {/* ═════ Playground ═════ */}
       <section className="pf-play" id="play">
-        <div className="pf-play-grid">
-          <div className="pf-play-head">
-            <span className="pf-kicker">Nobody asked for these</span>
-            <h2>The playground.</h2>
-            <p>
-              Side projects, useful experiments, and ideas I wanted to see working. Some are live.
-              Some are still happily being tinkered with.
-            </p>
-          </div>
-          <div className="pf-tiles">
-            {PLAY.map((t) => {
-              const inner = (
-                <>
-                  <div className="pf-tile-top">
-                    <span style={{ background: t.bg, color: t.fg }}>{t.s}</span>
-                    {t.href && <span className="pf-tile-arrow">↗</span>}
-                  </div>
-                  <span className="pf-tile-h">{t.h}</span>
-                  <span className="pf-tile-b">{t.b}</span>
-                </>
-              );
-              const style = { "--tilt": `${t.r}deg` } as CSSProperties;
-              return t.href ? (
-                <a
-                  key={t.h}
-                  href={t.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pf-tile"
-                  style={style}
+        <div className="pf-play-head">
+          <span className="pf-kicker pf-kicker-soft">Nobody asked for these</span>
+          <h2>The playground.</h2>
+          <p>
+            Side projects, useful experiments, and ideas I wanted to see working. Some are live.
+            Some are still happily being tinkered with.
+          </p>
+        </div>
+        <div className="pf-tiles">
+          {PLAY.map((t) => {
+            const inner = (
+              <>
+                <span
+                  className="pf-tile-stk"
+                  style={{ background: t.sbg, color: t.sfg, "--r": `${t.r}deg` } as CSSProperties}
                 >
-                  {inner}
-                </a>
-              ) : (
-                <div key={t.h} className="pf-tile pf-tile-static" style={style}>
-                  {inner}
-                </div>
-              );
-            })}
-          </div>
+                  {t.s}
+                </span>
+                <span className="pf-tile-h">{t.h}</span>
+                <span className="pf-tile-b">{t.b}</span>
+              </>
+            );
+            const style = { background: t.bg, color: t.fg };
+            return t.href ? (
+              <a
+                key={t.h}
+                href={t.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pf-tile"
+                style={style}
+              >
+                {inner}
+              </a>
+            ) : (
+              <div key={t.h} className="pf-tile pf-tile-static" style={style}>
+                {inner}
+              </div>
+            );
+          })}
         </div>
       </section>
 
       {/* ═════ About ═════ */}
       <section className="pf-now" id="now">
-        <div className="pf-about-intro">
-          <span className="pf-kicker">About me</span>
-          <h2 aria-label={`Hi, I'm Ashleigh. I'm a ${ROLES.join(", ")}.`}>
-            <span aria-hidden="true">Hi, I’m Ashleigh.</span>
-            <span aria-hidden="true">I’m a</span>
-            <RotatingRole />
-          </h2>
-        </div>
-        <div className="pf-about-me">
-          <div className="pf-thats-me" aria-hidden="true">
-            <span>that’s me!</span>
-            <svg viewBox="0 0 120 70" className="pf-arrow">
-              <path d="M6 14 C 40 4, 78 18, 104 50" />
-              <path d="M88 46 L 105 52 L 104 34" />
-            </svg>
+        <div className="pf-about-top">
+          <div className="pf-about-copy">
+            <span className="pf-kicker pf-kicker-soft">About me</span>
+            <h2 className="pf-iam">
+              <span className="sr-only">Hi, I’m Ashleigh and I’m a {ROLES.join(", ")}.</span>
+              <span aria-hidden="true">Hi, I’m Ashleigh and I’m a</span>
+              <RotatingRole />
+            </h2>
           </div>
-          <figure className="pf-postcard pf-me">
-            <span className="pf-tape" />
+          <figure className="pf-polaroid pf-me">
             <div>
-              <img src={portraitPhoto} alt="Ashleigh" loading="lazy" />
+              <img
+                src={portraitPhoto}
+                alt="Ashleigh smiling behind a birthday cake"
+                loading="lazy"
+              />
             </div>
+            <figcaption>that’s me!</figcaption>
           </figure>
         </div>
         <div className="pf-trips">
-          <span className="pf-kicker">This year, so far</span>
-          <div className="pf-trips-row">
+          <div className="pf-trips-head">
+            <h3>This year, so far</h3>
+            <span aria-hidden="true">scroll →</span>
+          </div>
+          <div className="pf-strip" role="region" aria-label="This year, so far" tabIndex={0}>
             {ADVENTURES.map((a) => (
               <figure
                 key={a.h}
-                className={`pf-trip${a.kind === "pass" ? " pf-trip-pass" : ""}${a.photo ? " pf-trip-photo" : ""}`}
-                style={{ background: a.bg, color: a.fg, transform: `rotate(${a.r}deg)` }}
+                className="pf-polaroid pf-snapcard"
+                style={{ "--r": `${a.r}deg` } as CSSProperties}
               >
-                {a.kind === "pass" && (
-                  <div className="pf-trip-planes" aria-hidden="true">
-                    {Array.from({ length: Number(a.h) }, (_, j) => (
-                      <Plane key={j} size={14} strokeWidth={2.25} />
-                    ))}
+                {a.photo ? (
+                  <div className="pf-snap-img">
+                    <img src={PHOTOS[a.photo]} alt={a.alt} loading="lazy" />
                   </div>
-                )}
-                {a.photo === "wall" && (
-                  <div className="pf-trip-img">
-                    <img
-                      src={greatWallTents}
-                      alt="Tents lit up at night by the Great Wall"
-                      loading="lazy"
-                    />
+                ) : (
+                  <div className="pf-snap-img pf-snap-pass" aria-hidden="true">
+                    <PassportStamps />
                   </div>
                 )}
                 <figcaption>
@@ -1099,6 +993,8 @@ export function PortfolioPage() {
         </div>
       </section>
 
+      <BeforeYouGo />
+
       {/* ═════ Contact ═════ */}
       <section className="pf-contact" id="contact">
         <div className="pf-contact-box">
@@ -1107,9 +1003,19 @@ export function PortfolioPage() {
             Anything with a real problem in it, big or small. Bonus points for sustainability, where
             good ideas still have to prove they work in practice.
           </p>
-          <a href={`mailto:${LINKS.email}`} className="btn pf-contact-cta">
-            {LINKS.email} ↗
-          </a>
+          <div className="pf-contact-ctas">
+            <a href={`mailto:${LINKS.email}`} className="btn pf-contact-cta">
+              Email me ↗
+            </a>
+            <a
+              href={LINKS.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn pf-contact-alt"
+            >
+              Find me on LinkedIn ↗
+            </a>
+          </div>
           <div className="pf-foot">
             <a href={LINKS.linkedin} target="_blank" rel="noopener noreferrer">
               LinkedIn
@@ -1117,7 +1023,9 @@ export function PortfolioPage() {
             <a href={LINKS.github} target="_blank" rel="noopener noreferrer">
               GitHub
             </a>
-            <span className="pf-foot-c">© 2026 Ashleigh Chua</span>
+            <span className="pf-foot-c">
+              <Wordmark /> © 2026
+            </span>
           </div>
         </div>
       </section>

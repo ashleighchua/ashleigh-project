@@ -1,0 +1,538 @@
+/* GrowingStats. Its short token names are mapped onto the page's --color-* tokens here,
+   plus the few shades the page doesn't have yet. */
+.gs {
+  --bg: var(--color-bg);
+  --surface: var(--color-surface);
+  --text: var(--color-text);
+  --accent: var(--color-accent);
+  --accent-200: var(--color-accent-200);
+  --accent-300: var(--color-accent-300);
+  --accent-400: var(--color-accent-400);
+  --accent-500: var(--color-accent-500);
+  --accent-600: var(--color-accent-600);
+  --accent-700: var(--color-accent-700);
+  --accent-800: var(--color-accent-800);
+  --accent-900: var(--color-accent-900);
+  --sage: var(--color-accent-2);
+  --sage-100: #eef5e2;
+  --sage-200: var(--color-accent-2-200);
+  --sage-400: #a9b98c;
+  --sage-500: #8f9f73;
+  --sage-600: #6f7f55;
+  --sage-700: var(--color-accent-2-700);
+  --sage-800: var(--color-accent-2-800);
+  --n-100: var(--color-neutral-100);
+  --n-300: var(--color-neutral-300);
+  --n-500: #a1978a;
+  --n-600: var(--color-neutral-600);
+  --n-700: var(--color-neutral-700);
+  --n-800: var(--color-neutral-800);
+}
+
+.gs {
+  font-family: var(--font-body);
+  color: var(--text);
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 40px);
+}
+.gs-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.gs-head h2 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.gs-replay {
+  all: unset;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: var(--accent-800);
+}
+.gs-replay:hover {
+  background: var(--accent-200, #ffe1d0);
+}
+.gs-replay:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.gs .gs-sub {
+  font-size: 16px;
+  color: var(--n-800);
+  margin: 0 0 22px;
+  max-width: 560px;
+}
+
+.gs-stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 36px;
+  background: var(--sage-100);
+}
+.gs--mobile .gs-stage {
+  background: transparent;
+}
+.gs-shelf {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  height: 18px;
+  background: var(--surface);
+  border-radius: 999px;
+  z-index: 1;
+}
+
+.gs-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.gs--mobile .gs-grid {
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: 560px;
+  gap: 16px;
+}
+.gs-col {
+  position: relative;
+  overflow: hidden;
+}
+.gs--mobile .gs-col {
+  border-radius: 32px;
+  background: var(--sage-100);
+}
+
+/* plants */
+.gs-stem {
+  position: absolute;
+  left: 50%;
+  width: 8px;
+  margin-left: -4px;
+  background: var(--sage-600);
+  border-radius: 4px;
+  transition: height 1s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.gs-leaf {
+  position: absolute;
+  left: 50%;
+  width: 38px;
+  height: 16px;
+  background: var(--sage-500);
+  border-radius: 50%;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.gs-leaf--l {
+  margin-left: -40px;
+  transform-origin: 100% 50%;
+}
+.gs-leaf--r {
+  margin-left: 2px;
+  transform-origin: 0 50%;
+}
+.gs-leaf--wide {
+  width: 44px;
+  height: 15px;
+}
+.gs-leaf--wide.gs-leaf--l {
+  margin-left: -46px;
+}
+
+.gs-sunflower {
+  position: absolute;
+  left: 50%;
+  bottom: 391px;
+  width: 90px;
+  height: 90px;
+  margin-left: -45px;
+  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.gs-sunflower span {
+  position: absolute;
+  left: 36px;
+  top: 5px;
+  width: 18px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-400);
+  transform-origin: 9px 40px;
+}
+.gs-sunflower i {
+  position: absolute;
+  left: 26px;
+  top: 26px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--accent-800);
+  box-shadow: inset 0 0 0 6px var(--accent-700);
+}
+
+.gs-tulip {
+  position: absolute;
+  left: 50%;
+  bottom: 406px;
+  width: 56px;
+  height: 60px;
+  margin-left: -28px;
+  transform-origin: 50% 100%;
+  transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.gs-tulip span {
+  position: absolute;
+  top: 10px;
+  width: 26px;
+  height: 46px;
+  border-radius: 50% 50% 45% 45%;
+  background: var(--accent-500);
+}
+.gs-tulip span:nth-child(1) {
+  left: 2px;
+  transform: rotate(-16deg);
+}
+.gs-tulip span:nth-child(2) {
+  right: 2px;
+  transform: rotate(16deg);
+}
+.gs-tulip span:nth-child(3) {
+  left: 14px;
+  top: 2px;
+  width: 28px;
+  height: 54px;
+  border-radius: 50% 50% 42% 42%;
+  background: var(--accent);
+}
+
+.gs-bushstem {
+  position: absolute;
+  bottom: 226px;
+  width: 5px;
+  background: var(--sage-600);
+  border-radius: 3px;
+  transition: height 0.9s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.gs-daisy {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  margin-left: -12px;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.gs-daisy span {
+  position: absolute;
+  left: 10px;
+  top: 1px;
+  width: 10px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-300);
+  transform-origin: 5px 14px;
+}
+.gs-daisy i {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-700);
+}
+
+/* pots */
+.gs-pot {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%);
+  background: var(--accent);
+  z-index: 2;
+}
+.gs-rim {
+  position: absolute;
+  left: 50%;
+  height: 22px;
+  transform: translateX(-50%);
+  border-radius: 10px;
+  background: var(--accent-600);
+  z-index: 2;
+}
+.gs-soil {
+  position: absolute;
+  left: 50%;
+  height: 12px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  transition: background 1s;
+  z-index: 2;
+}
+
+/* story props */
+.gs-ruler {
+  position: absolute;
+  left: 50%;
+  margin-left: 52px;
+  bottom: 262px;
+  width: 6px;
+  height: 174px;
+  border-radius: 3px;
+  background: var(--n-300);
+}
+.gs-tick {
+  position: absolute;
+  left: 50%;
+  margin-left: 46px;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--n-600);
+}
+.gs-tick--top {
+  background: var(--accent-700);
+}
+.gs-ticklabel {
+  position: absolute;
+  left: 50%;
+  margin-left: 70px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--n-700);
+}
+.gs-ticklabel--top {
+  color: var(--accent-700);
+}
+.gs-line {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  border-top: 2px dashed var(--n-500);
+  transition: opacity 0.5s;
+}
+.gs-line--accent {
+  border-top-color: var(--accent);
+}
+.gs-linelabel {
+  position: absolute;
+  left: 14%;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--n-700);
+  transition: opacity 0.5s;
+}
+.gs-linelabel--accent {
+  color: var(--accent-700);
+}
+.gs-pipe-h {
+  position: absolute;
+  left: calc(50% + 34px);
+  right: 0;
+  top: 150px;
+  height: 8px;
+  border-radius: 4px 0 0 4px;
+  background: var(--sage-700);
+}
+.gs-pipe-v {
+  position: absolute;
+  left: calc(50% + 34px);
+  top: 150px;
+  width: 8px;
+  height: 118px;
+  border-radius: 4px;
+  background: var(--sage-700);
+}
+.gs-nozzle {
+  position: absolute;
+  left: calc(50% + 31px);
+  top: 262px;
+  width: 14px;
+  height: 10px;
+  border-radius: 3px 3px 6px 6px;
+  background: var(--sage-800);
+}
+.gs-autopilot {
+  position: absolute;
+  left: calc(50% + 52px);
+  top: 120px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--sage-200);
+  color: var(--sage-800);
+  white-space: nowrap;
+  transition: opacity 0.4s;
+}
+
+/* water */
+.gs-drops {
+  position: absolute;
+  left: 50%;
+  top: 104px;
+  width: 0;
+}
+.gs-drops span {
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 11px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--sage-400);
+  animation: gs-drop 0.55s linear infinite;
+}
+.gs-drips {
+  position: absolute;
+  left: calc(50% + 38px);
+  top: 272px;
+  width: 0;
+}
+.gs-drips span {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  width: 6px;
+  height: 9px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--sage-400);
+  animation: gs-drip 0.9s ease-in infinite;
+}
+@keyframes gs-drop {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(178px);
+    opacity: 0.25;
+  }
+}
+@keyframes gs-drip {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(26px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* stats */
+.gs-stat {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  padding: 0 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition:
+    opacity 0.5s,
+    transform 0.5s;
+}
+.gs-num {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1;
+  color: var(--accent-700);
+}
+.gs-stat--sage .gs-num {
+  color: var(--sage-700);
+}
+.gs-cap {
+  font-size: 14px;
+  max-width: 220px;
+}
+.gs-stat a {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-700);
+}
+
+/* watering can */
+.gs-can {
+  position: absolute;
+  width: 130px;
+  height: 64px;
+  transform-origin: 100% 100%;
+  transition:
+    left 0.8s cubic-bezier(0.45, 0, 0.25, 1),
+    transform 0.35s ease;
+  z-index: 5;
+  pointer-events: none;
+}
+.gs-can span {
+  position: absolute;
+}
+.gs-can-handle {
+  right: 14px;
+  bottom: 50px;
+  width: 56px;
+  height: 36px;
+  border: 10px solid var(--sage-700);
+  border-bottom: none;
+  border-radius: 30px 30px 0 0;
+  box-sizing: content-box;
+}
+.gs-can-spout {
+  left: 4px;
+  top: 22px;
+  width: 50px;
+  height: 11px;
+  background: var(--sage-700);
+  border-radius: 6px;
+  transform-origin: 100% 50%;
+  transform: rotate(30deg);
+}
+.gs-can-rose {
+  left: 1px;
+  top: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--sage-800);
+}
+.gs-can-body {
+  right: 0;
+  bottom: 0;
+  width: 90px;
+  height: 64px;
+  background: var(--sage);
+  border-radius: 14px 14px 22px 22px;
+}
+/* the moon-C from the logo, printed on the can */
+.gs-can-moon {
+  right: 30px;
+  bottom: 16px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  box-shadow: inset 9px 0 0 0 var(--accent-300);
+  transform: rotate(-12deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs *,
+  .gs *::before,
+  .gs *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

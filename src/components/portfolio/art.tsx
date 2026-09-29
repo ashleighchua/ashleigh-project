@@ -3,7 +3,7 @@
  * they turn into, and the little scenes on the timeline cards.
  */
 import type { ReactNode } from "react";
-import { COL, OBJ, SH, STK, type ObjKey, type Scene } from "./data";
+import { COL, OBJ, SH, STK, type ObjKey, type Scene, type StickerKind } from "./data";
 
 export type Look = { c: number; s: number };
 
@@ -14,6 +14,13 @@ const INK = "var(--color-neutral-900)";
 
 const ringD = (c: number, r: number) =>
   `M ${c - r} ${c} a ${r} ${r} 0 1 1 ${2 * r} 0 a ${r} ${r} 0 1 1 ${-2 * r} 0`;
+
+/** A "C"-shaped crescent: a circle of radius r with the same circle, moved d to the right, cut out */
+const crescentD = (cx: number, cy: number, r: number, d: number) => {
+  const x = cx + d / 2;
+  const h = Math.sqrt(r * r - (d * d) / 4);
+  return `M${x} ${cy - h}A${r} ${r} 0 1 0 ${x} ${cy + h}A${r} ${r} 0 0 1 ${x} ${cy - h}Z`;
+};
 
 const scallopD = (cx: number, cy: number, R: number, amp: number, n: number) => {
   let d = "";
@@ -150,16 +157,12 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
             {ring}
           </textPath>
         </text>
-        <text
-          x={C}
-          y={C}
-          textAnchor="middle"
-          dominantBaseline="central"
+        <path
+          d={crescentD(C + 3 * z, C, 14 * z, 8 * z)}
           fill={fg}
-          style={{ fontFamily: HEADING, fontSize: 38 * z }}
-        >
-          {"✳︎"}
-        </text>
+          transform={`rotate(-12 ${C} ${C})`}
+          style={fillStyle}
+        />
       </>
     );
   } else if (shape === "ticket") {
@@ -180,16 +183,12 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
           strokeDasharray={`${5 * z} ${5 * z}`}
           opacity={0.45}
         />
-        <text
-          x={sx / 2}
-          y={h / 2}
-          textAnchor="middle"
-          dominantBaseline="central"
+        <path
+          d={crescentD(sx / 2 + 2 * z, h / 2, 11 * z, 6.5 * z)}
           fill={fg}
-          style={{ fontFamily: HEADING, fontSize: 30 * z }}
-        >
-          {"✳︎"}
-        </text>
+          transform={`rotate(-12 ${sx / 2} ${h / 2})`}
+          style={fillStyle}
+        />
         <Label
           lines={lines}
           cx={sx + (w - sx) / 2}
@@ -1060,31 +1059,16 @@ function sceneKids(scene: Scene): ReactNode {
   }
 }
 
-/** "ac" monogram tile: the brand mark in the nav and above the hero headline */
-export function Logo({ size }: { size: number }) {
+/** Moon-C badge: sage tile with an orange crescent (the favicon, drawn bigger above the hero headline) */
+export function MoonMark({ size }: { size: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" className="pf-logo" aria-hidden="true">
-      <rect x={3} y={3} width={94} height={94} rx={28} fill="var(--color-accent)" />
-      <text
-        x={48}
-        y={52}
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="var(--color-neutral-100)"
-        style={{ fontFamily: HEADING, fontSize: 54, letterSpacing: "-0.05em" }}
-      >
-        ac
-      </text>
-      <text
-        x={78}
-        y={24}
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="var(--color-accent-200)"
-        style={{ fontFamily: HEADING, fontSize: 20 }}
-      >
-        {"✳︎"}
-      </text>
+    <svg width={size} height={size} viewBox="0 0 30 30" className="pf-logo" aria-hidden="true">
+      <rect width={30} height={30} rx={9} fill="var(--color-accent-2-800)" />
+      <path
+        d={crescentD(16.2, 15, 8, 4.7)}
+        fill="var(--color-accent-400)"
+        transform="rotate(-12 15 15)"
+      />
     </svg>
   );
 }
@@ -1093,6 +1077,242 @@ export function SceneArt({ scene }: { scene: Scene }) {
   return (
     <svg viewBox="0 0 160 96" className="pf-scene-svg" aria-hidden="true">
       {sceneKids(scene)}
+    </svg>
+  );
+}
+
+/* ═════ Before you go: stickers a visitor can leave on the table ═════ */
+
+const HEART = "M50 90C18 68 4 48 14 28C24 10 44 14 50 30C56 14 76 10 86 28C96 48 82 68 50 90Z";
+
+function StickerWords({
+  lines,
+  y,
+  size,
+  fill,
+}: {
+  lines: string[];
+  y: number;
+  size: number;
+  fill: string;
+}) {
+  const top = y - ((lines.length - 1) * size * 0.95) / 2;
+  return (
+    <text
+      textAnchor="middle"
+      fill={fill}
+      style={{ fontFamily: HEADING, fontSize: size, letterSpacing: ".02em" }}
+    >
+      {lines.map((l, k) => (
+        <tspan key={l} x={50} y={top + k * size * 0.95} dominantBaseline="central">
+          {l}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
+export function TableSticker({ kind, size }: { kind: StickerKind; size: number }) {
+  // a white die-cut edge round every shape, like a real sticker
+  const cut = {
+    stroke: N1,
+    strokeWidth: 5,
+    paintOrder: "stroke" as const,
+    strokeLinejoin: "round" as const,
+  };
+  let body: ReactNode;
+  switch (kind) {
+    case "hi":
+      body = (
+        <>
+          <circle cx={50} cy={50} r={44} fill="var(--color-accent)" {...cut} />
+          <StickerWords lines={["HI!"]} y={52} size={30} fill={N1} />
+        </>
+      );
+      break;
+    case "hire":
+      body = (
+        <>
+          <path d={burstD(50, 50, 47, 38, 14)} fill="var(--color-accent-2)" {...cut} />
+          <StickerWords lines={["HIRE", "HER"]} y={51} size={17} fill="var(--color-accent-2-900)" />
+        </>
+      );
+      break;
+    case "coffee":
+      body = (
+        <>
+          <rect
+            x={6}
+            y={22}
+            width={88}
+            height={56}
+            rx={14}
+            fill="var(--color-accent-2-200)"
+            {...cut}
+          />
+          <rect
+            x={13}
+            y={29}
+            width={74}
+            height={42}
+            rx={9}
+            fill="none"
+            stroke="var(--color-accent-2-600)"
+            strokeWidth={1.5}
+            strokeDasharray="4 3"
+          />
+          <StickerWords
+            lines={["COFFEE", "SOON?"]}
+            y={50}
+            size={14}
+            fill="var(--color-accent-2-800)"
+          />
+        </>
+      );
+      break;
+    case "love":
+      body = (
+        <>
+          <path d={HEART} fill="var(--color-accent-300)" {...cut} />
+          <StickerWords lines={["LOVE", "THIS"]} y={46} size={15} fill="var(--color-accent-800)" />
+        </>
+      );
+      break;
+    case "build":
+      body = (
+        <>
+          <path d={scallopD(50, 50, 40, 5, 12)} fill="var(--color-accent-200)" {...cut} />
+          <StickerWords
+            lines={["LET’S", "BUILD"]}
+            y={51}
+            size={15}
+            fill="var(--color-accent-700)"
+          />
+        </>
+      );
+      break;
+    case "moon":
+      body = (
+        <>
+          <circle cx={50} cy={50} r={44} fill="var(--color-neutral-900)" {...cut} />
+          <path
+            d={crescentD(54, 50, 26, 15)}
+            fill="var(--color-accent-400)"
+            transform="rotate(-12 50 50)"
+          />
+        </>
+      );
+      break;
+  }
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="-4 -4 108 108"
+      className="pf-tsticker"
+      aria-hidden="true"
+    >
+      {body}
+    </svg>
+  );
+}
+
+/* ═════ About: 35 flights as a stamped passport page ═════ */
+
+const PLANE =
+  "M0 -9L1.6 -3L9 1V3L1.6 1L1.2 6L3.5 8V9.5L0 8.5L-3.5 9.5V8L-1.2 6L-1.6 1L-9 3V1L-1.6 -3Z";
+
+function Stamp({
+  x,
+  y,
+  r,
+  color,
+  children,
+}: {
+  x: number;
+  y: number;
+  r: number;
+  color: string;
+  children: ReactNode;
+}) {
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${r})`} fill="none" stroke={color} opacity={0.88}>
+      {children}
+    </g>
+  );
+}
+
+export function PassportStamps() {
+  const ink = { fontFamily: HEADING, letterSpacing: ".08em" };
+  const A7 = "var(--color-accent-700)";
+  const S7 = "var(--color-accent-2-700)";
+  const N8 = "var(--color-neutral-800)";
+  const A5 = "var(--color-accent-500)";
+  return (
+    <svg viewBox="0 0 200 200" className="pf-passport" aria-hidden="true">
+      <rect width={200} height={200} fill="var(--color-accent-100)" />
+      {Array.from({ length: 9 }, (_, j) => (
+        <path
+          key={j}
+          d={`M-10 ${22 * j + 8} Q50 ${22 * j - 4} 100 ${22 * j + 8} T210 ${22 * j + 8}`}
+          fill="none"
+          stroke="var(--color-accent-200)"
+          strokeWidth={1}
+        />
+      ))}
+      <Stamp x={46} y={44} r={-14} color={A5}>
+        <rect x={-30} y={-17} width={60} height={34} rx={4} strokeWidth={2} />
+        <text y={2} textAnchor="middle" fill={A5} stroke="none" style={{ ...ink, fontSize: 15 }}>
+          MAD
+        </text>
+        <text y={12} textAnchor="middle" fill={A5} stroke="none" style={{ ...ink, fontSize: 6 }}>
+          ARRIVED
+        </text>
+      </Stamp>
+      <Stamp x={152} y={48} r={10} color={S7}>
+        <ellipse rx={34} ry={22} strokeWidth={2} />
+        <ellipse rx={29} ry={17} strokeWidth={1} />
+        <text y={4} textAnchor="middle" fill={S7} stroke="none" style={{ ...ink, fontSize: 14 }}>
+          BKK
+        </text>
+      </Stamp>
+      <Stamp x={146} y={156} r={-8} color={N8}>
+        <rect x={-32} y={-18} width={64} height={36} rx={2} strokeWidth={2} strokeDasharray="5 3" />
+        <text y={1} textAnchor="middle" fill={N8} stroke="none" style={{ ...ink, fontSize: 13 }}>
+          PEK
+        </text>
+        <text y={12} textAnchor="middle" fill={N8} stroke="none" style={{ ...ink, fontSize: 6 }}>
+          DEPARTED
+        </text>
+      </Stamp>
+      <Stamp x={78} y={120} r={-10} color={A7}>
+        <circle r={46} strokeWidth={3} />
+        <circle r={39} strokeWidth={1.2} />
+        <text
+          y={14}
+          textAnchor="middle"
+          fill={A7}
+          stroke="none"
+          style={{ fontFamily: HEADING, fontSize: 44 }}
+        >
+          35
+        </text>
+        <text y={-20} textAnchor="middle" fill={A7} stroke="none" style={{ ...ink, fontSize: 8 }}>
+          FLIGHTS
+        </text>
+        <text y={30} textAnchor="middle" fill={A7} stroke="none" style={{ ...ink, fontSize: 7 }}>
+          · 2026 ·
+        </text>
+      </Stamp>
+      <path
+        d="M18 182 Q60 150 104 176"
+        fill="none"
+        stroke={N8}
+        strokeWidth={1.5}
+        strokeDasharray="3 4"
+        strokeLinecap="round"
+      />
+      <path d={PLANE} fill={N8} transform="translate(112 170) rotate(70) scale(1.1)" />
     </svg>
   );
 }

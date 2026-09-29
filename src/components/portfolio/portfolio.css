@@ -296,6 +296,15 @@ body {
     width: 64px;
     height: 64px;
   }
+  /* room above and below the headline for the two sticker clusters */
+  .pf-hero {
+    padding-top: 210px;
+    padding-bottom: 250px;
+  }
+  .pf-avail {
+    font-size: 12px !important;
+    text-align: left;
+  }
 }
 .pf-avail {
   display: inline-flex;

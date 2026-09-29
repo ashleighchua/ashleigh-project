@@ -83,6 +83,27 @@ const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
 type Box = { cx: number; cy: number; hw: number; hh: number };
 
+/** Bounds of what's actually drawn in the hero text: the lines of text, not their (wider) boxes */
+function inkBox(root: HTMLElement) {
+  const b = { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity };
+  const add = (r: DOMRect) => {
+    if (!r.width || !r.height) return;
+    b.left = Math.min(b.left, r.left);
+    b.right = Math.max(b.right, r.right);
+    b.top = Math.min(b.top, r.top);
+    b.bottom = Math.max(b.bottom, r.bottom);
+  };
+  const range = document.createRange();
+  for (const child of Array.from(root.children)) {
+    if (child.textContent?.trim()) {
+      range.selectNodeContents(child);
+      for (const r of Array.from(range.getClientRects())) add(r);
+      if (child.classList.contains("pf-avail")) add(child.getBoundingClientRect());
+    } else add(child.getBoundingClientRect());
+  }
+  return b.left === Infinity ? root.getBoundingClientRect() : b;
+}
+
 type Sim = {
   spot: number;
   sx: number;
@@ -208,7 +229,7 @@ export function PortfolioPage() {
         let E: Box | null = null;
         const tEl = heroTextRef.current;
         if (tEl) {
-          const a1 = tEl.getBoundingClientRect();
+          const a1 = inkBox(tEl);
           const l = a1.left - rr.left - 16;
           const rt = a1.right - rr.left + 16;
           const tp = a1.top - rr.top - 16;
@@ -430,7 +451,7 @@ export function PortfolioPage() {
     say(MEOWS[pet.meow]!, "talk", 3800);
   };
 
-  const k = mobile ? Math.min(0.54, vw / 740) : Math.min(1, vw / 1500 + 0.1);
+  const k = mobile ? Math.min(0.62, vw / 630) : Math.min(1.18, vw / 1180);
   const ko = mobile ? 0.8 : 1;
   const zoneH = mobile ? 240 : 290;
 

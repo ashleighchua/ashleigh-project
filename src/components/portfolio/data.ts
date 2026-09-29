@@ -122,25 +122,25 @@ export const COL: [string, string][] = [
 
 /** Sticker spots as fractions of the hero rect, one per sticker: two clusters beside the headline */
 export const DSP: [number, number][] = [
-  [0.12, 0.3],
-  [0.87, 0.28],
-  [0.2, 0.44],
-  [0.8, 0.42],
-  [0.1, 0.6],
-  [0.89, 0.58],
-  [0.19, 0.75],
-  [0.81, 0.75],
-];
-/** Mobile: a cluster above the headline and one below */
-export const MSP: [number, number][] = [
-  [0.2, 0.08],
-  [0.78, 0.07],
-  [0.45, 0.14],
-  [0.84, 0.18],
+  [0.13, 0.14],
+  [0.87, 0.15],
+  [0.16, 0.38],
+  [0.85, 0.39],
+  [0.12, 0.62],
+  [0.88, 0.62],
   [0.16, 0.86],
-  [0.8, 0.85],
-  [0.44, 0.93],
-  [0.72, 0.95],
+  [0.84, 0.86],
+];
+/** Mobile: two rows above the headline and two below */
+export const MSP: [number, number][] = [
+  [0.26, 0.08],
+  [0.74, 0.07],
+  [0.3, 0.2],
+  [0.72, 0.21],
+  [0.27, 0.8],
+  [0.74, 0.79],
+  [0.3, 0.93],
+  [0.72, 0.93],
 ];
 
 export const MEOWS = [

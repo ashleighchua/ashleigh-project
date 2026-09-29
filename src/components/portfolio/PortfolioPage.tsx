@@ -929,25 +929,28 @@ export function PortfolioPage() {
 
       {/* ═════ About ═════ */}
       <section className="pf-now" id="now">
-        <div className="pf-now-top">
-          <figure className="pf-postcard" style={{ transform: "rotate(-2deg)" }}>
+        <div className="pf-about-intro">
+          <span className="pf-kicker">About me</span>
+          <h2 aria-label={`Hi, I'm Ashleigh. I'm a ${ROLES.join(", ")}.`}>
+            <span aria-hidden="true">Hi, I’m Ashleigh.</span>
+            <span aria-hidden="true">I’m a</span>
+            <RotatingRole />
+          </h2>
+        </div>
+        <div className="pf-about-me">
+          <div className="pf-thats-me" aria-hidden="true">
+            <span>that’s me!</span>
+            <svg viewBox="0 0 120 70" className="pf-arrow">
+              <path d="M6 14 C 40 4, 78 18, 104 50" />
+              <path d="M88 46 L 105 52 L 104 34" />
+            </svg>
+          </div>
+          <figure className="pf-postcard pf-me">
+            <span className="pf-tape" />
             <div>
               <img src={portraitPhoto} alt="Ashleigh" loading="lazy" />
             </div>
-            <figcaption>hi, it's me</figcaption>
           </figure>
-          <div className="pf-now-copy">
-            <span className="pf-kicker">About me</span>
-            <h2 aria-label={`Hi, I'm Ashleigh. I'm a ${ROLES.join(", ")}.`}>
-              <span aria-hidden="true">Hi, I’m Ashleigh.</span>
-              <span aria-hidden="true">I’m a</span>
-              <RotatingRole />
-            </h2>
-            <p>
-              Right now I’m cofounding SchoolTrips.ai, and saying yes to most adventures along the
-              way.
-            </p>
-          </div>
         </div>
         <div className="pf-trips">
           <span className="pf-kicker">This year, so far</span>

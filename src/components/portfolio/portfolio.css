@@ -786,72 +786,170 @@ body {
 
 /* ═════ Right now ═════ */
 .pf-now {
-  padding: clamp(64px, 9vw, 120px) var(--pad-x);
+  padding: clamp(64px, 9vw, 120px) 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(48px, 6vw, 80px);
+}
+.pf-now-top {
+  padding: 0 var(--pad-x);
   display: grid;
-  grid-template-columns: minmax(220px, 300px) 1fr;
+  grid-template-columns: minmax(200px, 280px) 1fr;
   gap: clamp(32px, 5vw, 72px);
   align-items: center;
 }
 .pf-now-copy {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-width: 720px;
+  gap: 18px;
+  min-width: 0;
+  container-type: inline-size;
 }
 .pf-now-copy h2 {
-  font-size: clamp(38px, 5vw, 64px);
-  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(40px, 5.6vw, 76px);
+  line-height: 1.02;
   letter-spacing: -0.03em;
-  text-wrap: balance;
+}
+.pf-role {
+  display: grid;
+  color: var(--color-accent-700);
+  overflow: hidden;
+  /* longest word is ~12.7em wide: shrink so it fits the column on one line, but never below 24px */
+  font-size: max(min(1em, 7.6cqi), 24px);
+}
+.pf-role > span {
+  grid-area: 1 / 1;
+}
+.pf-role-size {
+  visibility: hidden;
+}
+.pf-role-word {
+  animation: pf-role-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+@keyframes pf-role-in {
+  from {
+    transform: translateY(70%);
+    opacity: 0;
+  }
 }
 .pf-now-copy p {
-  font-size: clamp(15px, 1.4vw, 18px);
-  line-height: 1.6;
-  max-width: 620px;
+  font-size: clamp(16px, 1.5vw, 19px);
+  line-height: 1.55;
+  max-width: 560px;
   color: var(--color-neutral-800);
   text-wrap: pretty;
 }
-.pf-stats {
+.pf-trips {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.pf-trips > .pf-kicker {
+  padding: 0 var(--pad-x);
+}
+.pf-trips-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin: 10px 0 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+  padding: 14px var(--pad-x) 20px;
 }
-.pf-stats > div {
-  padding: 16px 18px;
-  border-radius: 24px;
-  background: var(--color-surface);
+.pf-trip {
+  margin: 0;
+  min-height: clamp(260px, 26vw, 340px);
+  border-radius: 28px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.25s;
 }
-.pf-stats dt {
+.pf-trip:hover {
+  transform: rotate(0deg) translateY(-4px) !important;
+}
+.pf-trip figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 10px 8px;
+}
+.pf-trip b {
   font-family: var(--font-heading);
-  font-size: clamp(34px, 3.6vw, 48px);
-  line-height: 1;
+  font-weight: 400;
+  font-size: clamp(24px, 2.4vw, 32px);
+  line-height: 1.02;
+}
+.pf-trip figcaption span {
+  font-size: 14px;
+  line-height: 1.4;
+  opacity: 0.85;
+}
+.pf-trip-img {
+  flex: 1;
+  border-radius: 20px;
+  overflow: hidden;
+  min-height: 150px;
+}
+.pf-trip-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pf-trip-photo b {
+  font-size: clamp(20px, 1.8vw, 24px);
+}
+.pf-trip-pass {
+  justify-content: space-between;
+  border: 2px dashed var(--color-neutral-300);
+}
+.pf-trip-pass::before {
+  content: "BOARDING PASS · SEAT 35A";
+  padding: 10px 10px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   color: var(--color-accent-700);
 }
-.pf-stats dd {
-  margin: 6px 0 0;
-  font-size: 14px;
-  line-height: 1.35;
-  color: var(--color-neutral-800);
+.pf-trip-planes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 18px 10px 0;
+  color: var(--color-accent-500);
+}
+.pf-trip-pass b {
+  font-size: clamp(88px, 9vw, 128px);
+  line-height: 0.9;
+  color: var(--color-accent-700);
 }
 @media (max-width: 760px) {
-  .pf-now {
+  .pf-now-top {
     grid-template-columns: 1fr;
   }
-  .pf-now .pf-postcard {
-    width: min(240px, 70%);
+  .pf-now-top .pf-postcard {
+    width: min(230px, 66%);
     margin-inline: auto;
   }
-  .pf-stats {
-    grid-template-columns: 1fr;
-  }
-  .pf-stats > div {
+  .pf-trips-row {
     display: flex;
-    align-items: baseline;
-    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
   }
-  .pf-stats dd {
-    margin: 0;
+  .pf-trips-row::-webkit-scrollbar {
+    display: none;
+  }
+  .pf-trip {
+    flex: 0 0 72%;
+    scroll-snap-align: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pf-role-word {
+    animation: none;
   }
 }
 .pf-postcard {

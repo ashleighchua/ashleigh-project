@@ -341,6 +341,65 @@ export const PIPELINE = [
   { h: "PDF delivered", b: "It lands in the client’s inbox!" },
 ];
 
+/* ── About ── */
+
+/** Cycles in "Hi, I'm Ashleigh. I'm a ___." */
+export const ROLES = [
+  "cofounder",
+  "product builder",
+  "chemical engineer",
+  "violist (and violinist)",
+  "recovering consultant",
+  "children's book author",
+  "professional airport sitter",
+  "serial side-project starter",
+];
+
+export type Adventure = {
+  /** big line on the card */
+  h: string;
+  b: string;
+  /** photo key in PortfolioPage; none = type-only card */
+  photo?: "wall";
+  kind?: "pass";
+  bg: string;
+  fg: string;
+  r: number;
+};
+
+export const ADVENTURES: Adventure[] = [
+  {
+    h: "A week in a monastery",
+    b: "Yes, really. Seven whole days.",
+    bg: "var(--color-accent-2-300)",
+    fg: "var(--color-accent-2-900)",
+    r: -2.5,
+  },
+  {
+    h: "120km across Spain",
+    b: "On foot, with my best friend.",
+    bg: "var(--color-accent-300)",
+    fg: "var(--color-accent-900)",
+    r: 1.8,
+  },
+  {
+    h: "35",
+    b: "flights so far this year, and it isn't over.",
+    kind: "pass",
+    bg: "var(--color-neutral-100)",
+    fg: "var(--color-text)",
+    r: -1.2,
+  },
+  {
+    h: "A night at the Great Wall",
+    b: "Camped out with 150 students on a school trip.",
+    photo: "wall",
+    bg: "var(--color-neutral-100)",
+    fg: "var(--color-text)",
+    r: 2.2,
+  },
+];
+
 export const LINKS = {
   email: "ashleighchua@gmail.com",
   linkedin: "https://www.linkedin.com/in/ashleigh-chua120/",

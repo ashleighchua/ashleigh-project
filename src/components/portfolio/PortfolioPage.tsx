@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { ArrowDown, Check, MapPin, Menu, ShieldCheck, Sparkles, Star, X } from "lucide-react";
+import {
+  ArrowDown,
+  Check,
+  MapPin,
+  Menu,
+  Plane,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  X,
+} from "lucide-react";
 import portraitPhoto from "@/assets/portrait.jpg";
+import greatWallTents from "@/assets/great-wall-tents.jpg";
 import stHome from "@/assets/st-home.jpg";
 import stProblem from "@/assets/st-problem.jpg";
 import hjPublic from "@/assets/hj-public.jpg";
@@ -21,8 +32,31 @@ import {
   SH,
   STK,
   ZONES,
+  ROLES,
+  ADVENTURES,
 } from "./data";
 import "./portfolio.css";
+
+/** "I'm a ___" slot. Every word is laid out invisibly in the same cell so the line never jumps. */
+function RotatingRole() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setI((n) => (n + 1) % ROLES.length), 2200);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <span className="pf-role" aria-hidden="true">
+      {ROLES.map((r) => (
+        <span key={r} className="pf-role-size">
+          {r}.
+        </span>
+      ))}
+      <span key={i} className="pf-role-word">
+        {ROLES[i]}.
+      </span>
+    </span>
+  );
+}
 
 /* ── Config (the "props" from the design reference) ── */
 const SHOW_CAT = true;
@@ -898,36 +932,60 @@ export function PortfolioPage() {
         </div>
       </section>
 
-      {/* ═════ Right now ═════ */}
+      {/* ═════ About ═════ */}
       <section className="pf-now" id="now">
-        <figure className="pf-postcard" style={{ transform: "rotate(-2deg)" }}>
-          <div>
-            <img src={portraitPhoto} alt="Ashleigh" loading="lazy" />
+        <div className="pf-now-top">
+          <figure className="pf-postcard" style={{ transform: "rotate(-2deg)" }}>
+            <div>
+              <img src={portraitPhoto} alt="Ashleigh" loading="lazy" />
+            </div>
+            <figcaption>hi, it's me</figcaption>
+          </figure>
+          <div className="pf-now-copy">
+            <span className="pf-kicker">About me</span>
+            <h2 aria-label={`Hi, I'm Ashleigh. I'm a ${ROLES.join(", ")}.`}>
+              <span aria-hidden="true">Hi, I’m Ashleigh.</span>
+              <span aria-hidden="true">I’m a</span>
+              <RotatingRole />
+            </h2>
+            <p>
+              Right now I’m cofounding SchoolTrips.ai, and saying yes to most adventures along the
+              way.
+            </p>
           </div>
-          <figcaption>hi, it's me</figcaption>
-        </figure>
-        <div className="pf-now-copy">
-          <span className="pf-kicker">Right now</span>
-          <h2>Cofounding SchoolTrips.ai, from the ground up.</h2>
-          <p>
-            I lead product and the build, and I go on the trips myself. This year that meant 5am
-            coach departures across China and a night camped beside the Great Wall with 150
-            students. Meanwhile, The Lunar Playground runs itself and I keep building on the side.
-          </p>
-          <dl className="pf-stats">
-            {(
-              [
-                ["3", "products out in the world"],
-                ["8", "side projects built for fun"],
-                ["150", "students, one night at the Great Wall"],
-              ] as const
-            ).map(([n, t]) => (
-              <div key={t}>
-                <dt>{n}</dt>
-                <dd>{t}</dd>
-              </div>
+        </div>
+        <div className="pf-trips">
+          <span className="pf-kicker">This year, so far</span>
+          <div className="pf-trips-row">
+            {ADVENTURES.map((a) => (
+              <figure
+                key={a.h}
+                className={`pf-trip${a.kind === "pass" ? " pf-trip-pass" : ""}${a.photo ? " pf-trip-photo" : ""}`}
+                style={{ background: a.bg, color: a.fg, transform: `rotate(${a.r}deg)` }}
+              >
+                {a.kind === "pass" && (
+                  <div className="pf-trip-planes" aria-hidden="true">
+                    {Array.from({ length: Number(a.h) }, (_, j) => (
+                      <Plane key={j} size={14} strokeWidth={2.25} />
+                    ))}
+                  </div>
+                )}
+                {a.photo === "wall" && (
+                  <div className="pf-trip-img">
+                    <img
+                      src={greatWallTents}
+                      alt="Tents lit up at night by the Great Wall"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                <figcaption>
+                  <b>{a.h}</b>
+                  <span>{a.b}</span>
+                </figcaption>
+              </figure>
             ))}
-          </dl>
+          </div>
         </div>
       </section>
 

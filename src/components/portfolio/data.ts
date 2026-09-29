@@ -283,7 +283,7 @@ export const PLAY = [
   },
   {
     h: "Fruition Passport",
-    b: "Tells you what fruit is actually in season, wherever you are.",
+    b: "Tells you what fruit is actually in season, in whichever part of the world you choose.",
     s: "Live",
     ...live,
     r: -1.2,
@@ -296,11 +296,11 @@ export const PLAY = [
     bg: "var(--color-neutral-900)",
     fg: "var(--color-neutral-100)",
     r: 1.2,
-    href: "https://mandarin-survival-kit.vercel.app",
+    href: "https://github.com/liamaspeling/mandarin",
   },
   {
     h: "Remote job tracker",
-    b: "Checks listings daily and sends me a clean shortlist.",
+    b: "Checks listings daily for specific filters and sends me a clean shortlist.",
     s: "In use",
     ...use,
     r: -0.5,
@@ -308,7 +308,7 @@ export const PLAY = [
   },
   {
     h: "Trading dashboard",
-    b: "Journals trades and checks whether my signals hold up.",
+    b: "Journals trades and checks whether my signals hold up. Runs trades autonomously without me when signals are hit.",
     s: "In use",
     ...use,
     r: 0.8,
@@ -316,7 +316,7 @@ export const PLAY = [
   },
   {
     h: "Reddit monitor",
-    b: "Drafts replies for The Lunar Playground. I approve every one.",
+    b: "Drafts posts for The Lunar Playground and posts on my behalf.",
     s: "In use",
     ...use,
     r: -1,
@@ -328,7 +328,10 @@ export const PLAY = [
 
 export const PIPELINE = [
   { h: "Order in", b: "A relocation reading, with the client's birth details attached." },
-  { h: "Chart calculated", b: "Astrocartography lines are plotted for the places that matter to them." },
+  {
+    h: "Chart calculated",
+    b: "Astrocartography lines are plotted for the places that matter to them.",
+  },
   { h: "Reading written", b: "The results are interpreted and laid out as a report." },
   { h: "PDF delivered", b: "It lands in the client’s inbox!" },
 ];

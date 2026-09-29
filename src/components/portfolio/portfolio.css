@@ -812,8 +812,8 @@ body {
 }
 .pf-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-  gap: 24px;
+  grid-template-columns: minmax(200px, 260px) 1fr;
+  gap: 28px;
   align-items: start;
 }
 .pf-postcard {
@@ -841,6 +841,43 @@ body {
   font-family: var(--font-heading);
   font-size: 18px;
   color: var(--color-text);
+}
+.pf-highlights {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: clamp(24px, 3vw, 36px);
+  border-radius: 32px;
+  background: var(--color-surface);
+}
+.pf-highlights ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pf-highlights li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: clamp(15px, 1.3vw, 17px);
+  color: var(--color-text);
+}
+.pf-highlights li svg {
+  flex: none;
+  color: var(--color-accent-700);
+}
+@media (max-width: 640px) {
+  .pf-cards {
+    grid-template-columns: 1fr;
+  }
+  .pf-postcard-solo {
+    max-width: 220px;
+    margin-inline: auto;
+  }
 }
 .pf-next {
   display: grid;
@@ -1347,39 +1384,124 @@ body {
   height: auto;
   border-radius: 16px;
   background: var(--color-neutral-800);
+  overflow: visible;
 }
-.pf-pipe-map line {
+.lp-track {
   stroke: var(--color-neutral-700);
-  stroke-width: 1;
+  stroke-width: 3;
+  stroke-linecap: round;
 }
-.pf-pipe-map path {
+.lp-progress {
+  fill: var(--color-accent-300);
+  transition: width 0.6s ease;
+}
+.lp-badge {
+  fill: var(--color-neutral-800);
+  stroke: var(--color-neutral-600);
+  stroke-width: 1.5;
+  transition:
+    fill 0.3s,
+    stroke 0.3s;
+}
+.lp-station[data-state="active"] .lp-badge {
+  fill: var(--color-neutral-900);
+  stroke: var(--color-accent);
+  animation: pf-pulse 1s ease-in-out infinite;
+}
+.lp-station[data-state="done"] .lp-badge {
+  fill: var(--color-accent-2-500);
+  stroke: var(--color-accent-2-500);
+}
+.lp-card {
+  fill: var(--color-neutral-800);
+  stroke: var(--color-neutral-500);
+  stroke-width: 1.6;
+  transition:
+    fill 0.3s,
+    stroke 0.3s;
+}
+.lp-fold {
   fill: none;
-  stroke-width: 2.5;
+  stroke: var(--color-neutral-500);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.lp-line {
+  stroke: var(--color-neutral-500);
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke 0.3s;
+}
+.lp-write {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.5s ease;
+}
+.lp-ring {
+  fill: none;
+  stroke: var(--color-neutral-600);
+  stroke-width: 1.6;
+  transition: stroke 0.3s;
+}
+.lp-dot {
+  fill: var(--color-neutral-500);
+  transition: fill 0.3s;
+}
+.lp-spoke {
+  stroke: var(--color-neutral-600);
+  stroke-width: 1.6;
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  transition: stroke-dashoffset 1s ease;
+  transition: stroke-dashoffset 0.4s ease;
 }
-.pf-pipe-map .l1 {
+.lp-pdf-text {
+  fill: var(--color-neutral-500);
+  opacity: 0;
+  transition:
+    opacity 0.3s,
+    fill 0.3s;
+}
+.lp-check {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.lp-check-bg {
+  fill: var(--color-accent-2-500);
+}
+.lp-check-mark {
+  stroke: var(--color-accent-2-900);
+}
+.lp-station[data-state="active"] .lp-card,
+.lp-station[data-state="done"] .lp-card {
   stroke: var(--color-accent-300);
 }
-.pf-pipe-map .l2 {
-  stroke: var(--color-accent-2-300);
-  transition-delay: 0.2s;
+.lp-station[data-state="active"] .lp-line,
+.lp-station[data-state="done"] .lp-line,
+.lp-station[data-state="active"] .lp-dot,
+.lp-station[data-state="done"] .lp-dot {
+  stroke: var(--color-accent-100);
+  fill: var(--color-accent-100);
 }
-.pf-pipe-map .l3 {
-  stroke: var(--color-accent-400);
-  transition-delay: 0.4s;
+.lp-station[data-state="active"] .lp-ring,
+.lp-station[data-state="done"] .lp-ring {
+  stroke: var(--color-accent-300);
 }
-.pf-pipe-map .pin {
-  fill: var(--color-neutral-100);
-  opacity: 0;
-  transition: opacity 0.4s 0.8s;
-}
-.pf-pipe-map.on path {
+.lp-station[data-state="active"] .lp-spoke,
+.lp-station[data-state="done"] .lp-spoke {
+  stroke: var(--color-accent-100);
   stroke-dashoffset: 0;
 }
-.pf-pipe-map.on .pin {
+.lp-station[data-state="active"] .lp-write,
+.lp-station[data-state="done"] .lp-write {
+  stroke-dashoffset: 0;
+}
+.lp-station[data-state="active"] .lp-pdf-text,
+.lp-station[data-state="done"] .lp-pdf-text {
+  opacity: 1;
+  fill: var(--color-accent-100);
+}
+.lp-station[data-state="done"] .lp-check {
   opacity: 1;
 }
 .pf-pipe-steps {
@@ -1460,9 +1582,6 @@ body {
 }
 
 /* Right now */
-.pf-cards {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
-}
 .pf-chips {
   display: flex;
   flex-wrap: wrap;

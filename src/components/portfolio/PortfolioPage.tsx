@@ -1,14 +1,24 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { ArrowDown, Check, MapPin, Menu, ShieldCheck, Sparkles, Star, X } from "lucide-react";
+import {
+  ArrowDown,
+  Check,
+  Code2,
+  Heart,
+  MapPin,
+  Menu,
+  Plane,
+  Rocket,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  X,
+} from "lucide-react";
 import portraitPhoto from "@/assets/portrait.jpg";
-import greatWallGroup from "@/assets/great-wall-group.jpg";
-import greatWallTents from "@/assets/great-wall-tents.jpg";
-import greatWallBridge from "@/assets/great-wall-bridge.jpg";
 import stHome from "@/assets/st-home.jpg";
 import stProblem from "@/assets/st-problem.jpg";
 import hjPublic from "@/assets/hj-public.jpg";
 import hjAdmin from "@/assets/hj-admin.jpg";
-import { SceneArt, StickerFace, TableObject, type Look } from "./art";
+import { LunarPipeline, SceneArt, StickerFace, TableObject, type Look } from "./art";
 import { CatSvg, type CatRefs } from "./cat";
 import {
   COL,
@@ -475,8 +485,8 @@ export function PortfolioPage() {
         <div className="pf-head">
           <h2>What I bring to the table</h2>
           <p>
-            I help when the work is tangled, unclear, or stuck. By the end, people know what
-            they're doing and have something they can run with.
+            I help when the work is tangled, unclear, or stuck. By the end, people know what they're
+            doing and have something they can run with.
           </p>
         </div>
         <div className="pf-cloth">
@@ -585,19 +595,23 @@ export function PortfolioPage() {
             </div>
             <h3>SchoolTrips.ai</h3>
             <p>
-              An AI trip planner underneath, a teacher network on top. Teachers can find trips,
-              learn from people who have run them, and get the details that never make it into a
-              brochure.
+              Less a trip planner, more an ecosystem for teachers. Every trip that gets run and
+              reviewed feeds back in, so the recommendations get sharper the more the platform is
+              used, while it quietly absorbs the admin slog teachers are sick of doing.
             </p>
             <ul className="pf-st-feats">
               {(
                 [
-                  [Sparkles, "AI guidance", "A useful first draft of the whole trip in minutes."],
-                  [Star, "Educator reviews", "Notes from teachers who have already run it."],
+                  [
+                    Sparkles,
+                    "Gets smarter every trip",
+                    "Real reviews and completed trips feed the recommendations, so it compounds instead of guessing.",
+                  ],
+                  [Star, "Educator reviews", "Notes from teachers who have actually run it."],
                   [
                     ShieldCheck,
-                    "Risk templates",
-                    "Safeguarding and risk assessments, ready to work from.",
+                    "The boring bits, handled",
+                    "Safeguarding forms and risk assessments, done without the admin slog.",
                   ],
                 ] as const
               ).map(([Icon, h, b]) => (
@@ -767,8 +781,8 @@ export function PortfolioPage() {
             <h3>The Lunar Playground</h3>
             <p>
               Relocation astrology and natal readings. Someone places an order, their chart is
-              calculated, their reading is written, and the finished PDF arrives in their inbox.
-              The process runs without me touching each order.
+              calculated, their reading is written, and the finished PDF arrives in their inbox. The
+              process runs without me touching each order.
             </p>
             <a
               href={LINKS.lunar}
@@ -795,30 +809,7 @@ export function PortfolioPage() {
                     : "Run it again ↺"}
               </button>
             </div>
-            <svg
-              viewBox="0 0 300 120"
-              className={`pf-pipe-map${lunar >= 1 ? " on" : ""}`}
-              aria-hidden="true"
-            >
-              {[30, 60, 90].map((y) => (
-                <line key={y} x1={0} x2={300} y1={y} y2={y} />
-              ))}
-              {[50, 100, 150, 200, 250].map((x) => (
-                <line key={x} y1={0} y2={120} x1={x} x2={x} />
-              ))}
-              <path
-                className="l1"
-                d="M0 70 C 60 20, 110 110, 170 60 S 260 30, 300 50"
-                pathLength={1}
-              />
-              <path
-                className="l2"
-                d="M0 30 C 70 80, 130 20, 190 80 S 270 100, 300 90"
-                pathLength={1}
-              />
-              <path className="l3" d="M40 0 C 60 40, 90 80, 120 120" pathLength={1} />
-              <circle cx={172} cy={60} r={5} className="pin" />
-            </svg>
+            <LunarPipeline step={lunar} />
             <ol className="pf-pipe-steps">
               {PIPELINE.map((st, j) => {
                 const state = lunar > j ? "done" : lunar === j ? "active" : "idle";
@@ -885,48 +876,34 @@ export function PortfolioPage() {
           <p>
             SchoolTrips.ai is for teachers, so I’m spending time on the trips themselves. This year
             has included 5am coach departures and camping beside the Great Wall with 150 students.
-            Seeing the job up close is the fastest way to learn what the product needs to get
-            right.
+            Seeing the job up close is the fastest way to learn what the product needs to get right.
           </p>
         </div>
         <div className="pf-cards">
-          {(
-            [
-              [portraitPhoto, "Ashleigh", "hi, it's me", -2, 0],
-              [
-                greatWallGroup,
-                "Ashleigh with the group on the Great Wall",
-                "the crew, on the Wall",
-                1.5,
-                36,
-              ],
-              [
-                greatWallTents,
-                "Tents lit up at night under the trees",
-                "150 tents by the Wall",
-                -1,
-                0,
-              ],
-              [
-                greatWallBridge,
-                "A glass bridge over a lake below the Great Wall",
-                "the Wall is under that water",
-                2,
-                28,
-              ],
-            ] as const
-          ).map(([src, alt, cap, r, mt]) => (
-            <figure
-              key={cap}
-              className="pf-postcard"
-              style={{ transform: `rotate(${r}deg)`, marginTop: mt }}
-            >
-              <div>
-                <img src={src} alt={alt} loading="lazy" />
-              </div>
-              <figcaption>{cap}</figcaption>
-            </figure>
-          ))}
+          <figure className="pf-postcard pf-postcard-solo" style={{ transform: "rotate(-2deg)" }}>
+            <div>
+              <img src={portraitPhoto} alt="Ashleigh" loading="lazy" />
+            </div>
+            <figcaption>hi, it's me</figcaption>
+          </figure>
+          <div className="pf-highlights">
+            <span className="pf-kicker">Also this year</span>
+            <ul>
+              {(
+                [
+                  [Rocket, "Co-founded SchoolTrips.ai"],
+                  [Plane, "Went on school trips across China"],
+                  [Code2, "Shipped 8 side projects on the playground"],
+                  [Heart, "Built a client a site and a dashboard"],
+                ] as const
+              ).map(([Icon, t]) => (
+                <li key={t}>
+                  <Icon size={16} strokeWidth={2.5} aria-hidden="true" />
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
         <div className="pf-next">
           <div className="pf-next-dark">

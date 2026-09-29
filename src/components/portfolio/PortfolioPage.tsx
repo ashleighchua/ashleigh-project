@@ -46,6 +46,40 @@ const back = (t: number) => {
 };
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
+type Box = { cx: number; cy: number; hw: number; hh: number };
+
+/** Random, loosely spaced sticker spots anywhere in the hero except over the headline */
+function scatter(
+  W: number,
+  H: number,
+  head: Box,
+  r: number,
+  n: number,
+  fallback: [number, number][],
+) {
+  const pts: [number, number][] = [];
+  let minD = r * 1.9;
+  let fails = 0;
+  for (let tries = 0; pts.length < n && tries < 6000; tries++) {
+    const x = rnd(r * 0.7, W - r * 0.7);
+    const y = rnd(r * 0.6, H - r * 0.6);
+    const overHead =
+      Math.abs(x - head.cx) < head.hw + r * 0.8 && Math.abs(y - head.cy) < head.hh + r * 0.6;
+    const crowded = pts.some(([px, py]) => Math.hypot(px - x, py - y) < minD);
+    if (overHead || crowded) {
+      if (++fails > 150) {
+        minD *= 0.9;
+        fails = 0;
+      }
+      continue;
+    }
+    pts.push([x, y]);
+  }
+  const spots = pts.map(([x, y]): [number, number] => [x / W, y / H]);
+  while (spots.length < n) spots.push(fallback[spots.length]!);
+  return spots;
+}
+
 type Sim = {
   spot: number;
   sx: number;
@@ -131,6 +165,7 @@ export function PortfolioPage() {
   const reduceRef = useRef(false);
   const bubbleTimer = useRef<number | undefined>(undefined);
   const petting = useRef({ clicks: 0, last: -99, meow: -1 });
+  const scatterRef = useRef<{ key: string; spots: [number, number][] } | null>(null);
 
   useEffect(() => {
     reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -167,9 +202,9 @@ export function PortfolioPage() {
         const H = hr.height;
         const scroll = -rr.top;
         const drift = reduce ? 0 : DRIFT;
-        const spots = mobileRef.current ? MSP : DSP;
+        const fallback = mobileRef.current ? MSP : DSP;
 
-        let E: { cx: number; cy: number; hw: number; hh: number } | null = null;
+        let E: Box | null = null;
         const tEl = titleRef.current;
         if (tEl) {
           const a1 = tEl.getBoundingClientRect();
@@ -180,6 +215,18 @@ export function PortfolioPage() {
           const bt = Math.max(a1.bottom, b1.bottom) - rr.top + 16;
           E = { cx: (l + rt) / 2, cy: (tp + bt) / 2, hw: (rt - l) / 2, hh: (bt - tp) / 2 };
         }
+
+        // re-scatter only when the layout meaningfully changes, not on every mobile URL-bar resize
+        const layoutKey = `${mobileRef.current}-${Math.round(W / 60)}`;
+        if (E && scatterRef.current?.key !== layoutKey) {
+          const r = mobileRef.current ? 50 : 88 * Math.min(1, W / 1400 + 0.18);
+          const head = { ...E, cx: E.cx - hx, cy: E.cy - hy };
+          scatterRef.current = {
+            key: layoutKey,
+            spots: scatter(W, H, head, r, STK.length, fallback),
+          };
+        }
+        const spots = scatterRef.current?.spots ?? fallback;
 
         STK.forEach((_, i) => {
           const el = postEls.current[i];
@@ -887,48 +934,15 @@ export function PortfolioPage() {
       {/* ═════ Contact ═════ */}
       <section className="pf-contact" id="contact">
         <div className="pf-contact-box">
-          <div className="pf-contact-main">
-            <span className="pf-contact-kicker">Got an idea that needs untangling?</span>
-            <h2>Let’s talk.</h2>
-            <p>
-              I’ll take on anything with a real problem in it. What I’d most love to work on next is
-              sustainability, where good ideas still have to prove they work in practice.
-            </p>
-            <div className="pf-contact-row">
-              <a
-                href={`mailto:${LINKS.email}?subject=the%20messy%20thing`}
-                className="btn pf-contact-cta"
-              >
-                Start a conversation ↗
-              </a>
-              <span>No polished brief required.</span>
-            </div>
-          </div>
-          <div className="pf-contact-next">
-            <span className="pf-contact-kicker">Next, I’d love to work on</span>
-            <ul>
-              {(
-                [
-                  ["Circular economy", "Products and systems that keep materials in use."],
-                  [
-                    "Alternative materials",
-                    "Getting better materials out of the lab and into things people buy.",
-                  ],
-                  [
-                    "Sustainability, in practice",
-                    "Ideas that have to work on the ground, not just on a slide.",
-                  ],
-                ] as const
-              ).map(([h, b]) => (
-                <li key={h}>
-                  <b>{h}</b>
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <h2>Let’s talk.</h2>
+          <p>
+            Bring me anything tangled. Especially if it’s circular economy, alternative materials,
+            or anything built to last.
+          </p>
+          <a href={`mailto:${LINKS.email}`} className="btn pf-contact-cta">
+            {LINKS.email} ↗
+          </a>
           <div className="pf-foot">
-            <a href={`mailto:${LINKS.email}`}>{LINKS.email}</a>
             <a href={LINKS.linkedin} target="_blank" rel="noopener noreferrer">
               LinkedIn
             </a>

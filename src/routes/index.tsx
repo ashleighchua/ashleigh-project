@@ -5,7 +5,7 @@ import { PortfolioPage } from "@/components/portfolio/PortfolioPage";
 const SITE = "https://ashleigh-project.vercel.app";
 const TITLE = "Ashleigh Chua · I turn ideas into real products";
 const DESCRIPTION =
-  "Cofounder of SchoolTrips.ai. I find the real problem, build the thing, and help it grow. Open to freelance, contract and long-term work.";
+  "Cofounder of SchoolTrips.ai. I find the real problem, build the product, and stick around to grow it with you.";
 
 export const Route = createFileRoute("/")({
   head: () => ({

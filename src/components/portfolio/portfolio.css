@@ -852,14 +852,10 @@ body {
   text-wrap: pretty;
 }
 /* The reviews roll past on their own. The list is rendered twice, so when the
-   animation has moved exactly one copy along it is back where it started and the
-   loop is invisible. */
+   paginated, one at a time. */
 .pf-rev-head {
   display: flex;
-  flex-wrap: wrap;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 10px 24px;
 }
 .pf-rev-head h4 {
   margin: 0;
@@ -868,91 +864,35 @@ body {
   font-weight: 400;
   color: var(--rc-fg);
 }
-.pf-rev-stats {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.pf-rev-paged {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 16px;
 }
-.pf-rev-stats li {
-  padding: 5px 13px;
-  border-radius: 999px;
-  background: var(--rc-chip);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--rc-muted);
-  white-space: nowrap;
-}
-.pf-rev-stats b {
-  font-family: var(--font-heading);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--rc-fg);
-}
-.pf-rev-star {
-  margin-left: 3px;
-  font-size: 13px;
-  font-style: normal;
-  color: var(--rc-num);
-}
-.pf-rev-marquee {
-  overflow: hidden;
-  /* fade the two ends, so cards arrive and leave rather than being cut off */
-  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-}
-.pf-rev-list {
+.pf-rev-card {
   margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  width: max-content;
-  animation: pf-rev-roll 70s linear infinite;
-}
-/* half the width, less half a gap, is exactly one copy of the list */
-@keyframes pf-rev-roll {
-  to {
-    transform: translateX(calc(-50% - 6px));
-  }
-}
-.pf-rev-marquee:hover .pf-rev-list,
-.pf-rev-marquee:focus-within .pf-rev-list {
-  animation-play-state: paused;
-}
-.pf-rev-list li {
-  flex: 0 0 clamp(250px, 26vw, 330px);
-  /* a floor, so the shortest review is not a stub next to the longest */
-  min-height: 160px;
-  display: flex;
-  padding: 20px 22px;
-  border-radius: 24px;
-  background: var(--rc-chip);
-  box-sizing: border-box;
-}
-.pf-rev-list figure {
-  margin: 0;
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 20px 22px;
+  border-radius: 24px;
+  background: var(--rc-chip);
+  min-height: 140px;
 }
-.pf-rev-list blockquote {
+.pf-rev-card blockquote {
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
   color: var(--rc-muted);
   text-wrap: pretty;
 }
-.pf-rev-list blockquote::before {
+.pf-rev-card blockquote::before {
   content: "\201C";
 }
-.pf-rev-list blockquote::after {
+.pf-rev-card blockquote::after {
   content: "\201D";
 }
-.pf-rev-list figcaption {
+.pf-rev-card figcaption {
   margin-top: auto;
   padding-top: 2px;
   font-size: 12px;
@@ -960,21 +900,47 @@ body {
   letter-spacing: 0.02em;
   color: var(--rc-fg);
 }
-.pf-rev-list figcaption span {
+.pf-rev-card figcaption span {
   font-weight: 500;
   color: var(--rc-muted);
 }
-.pf-rev-list figcaption span::before {
+.pf-rev-card figcaption span::before {
   content: "\00b7\00a0";
 }
-/* nothing moving on its own: the strip becomes one you scroll yourself */
-@media (prefers-reduced-motion: reduce) {
-  .pf-rev-marquee {
-    overflow-x: auto;
-  }
-  .pf-rev-list {
-    animation: none;
-  }
+.pf-rev-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pf-rev-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  font-size: 18px;
+  color: var(--rc-muted);
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.pf-rev-btn:hover {
+  color: var(--rc-fg);
+}
+.pf-rev-dots {
+  display: flex;
+  gap: 6px;
+}
+.pf-rev-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: none;
+  background: var(--rc-chip);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s;
+}
+.pf-rev-dot--on {
+  background: var(--rc-muted);
 }
 
 /* SchoolTrips */

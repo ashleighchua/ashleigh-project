@@ -14,7 +14,6 @@ import {
   DSP,
   HISS,
   LINKS,
-  LUNAR_STATS,
   LUNAR_REVIEWS,
   MEOWS,
   MSP,
@@ -255,6 +254,7 @@ export function PortfolioPage() {
   const [hjView, setHjView] = useState<"public" | "admin">("public");
   /** Lunar pipeline teaser: -1 idle, 0..n-1 running step, n done */
   const [lunar, setLunar] = useState(-1);
+  const [reviewIdx, setReviewIdx] = useState(0);
   const lunarTimers = useRef<number[]>([]);
 
   /* DOM refs written to directly by the rAF loop */
@@ -973,36 +973,43 @@ export function PortfolioPage() {
               <div className="pf-rev">
                 <div className="pf-rev-head">
                   <h4>What buyers said</h4>
-                  <ul className="pf-rev-stats">
-                    {LUNAR_STATS.map(([figure, label, star]) => (
-                      <li key={label}>
-                        <b>{figure}</b>
-                        {star && (
-                          <i className="pf-rev-star" aria-hidden="true">
-                            ★
-                          </i>
-                        )}{" "}
-                        {label}
-                      </li>
-                    ))}
-                  </ul>
                 </div>
-                {/* a strip that rolls on its own; the second copy is what makes the
-                    loop seamless, so it is hidden from screen readers */}
-                <div className="pf-rev-marquee">
-                  <ul className="pf-rev-list" aria-label="What buyers said">
-                    {[...LUNAR_REVIEWS, ...LUNAR_REVIEWS].map((v, i) => (
-                      <li key={i} aria-hidden={i >= LUNAR_REVIEWS.length || undefined}>
-                        <figure>
-                          <Stars n={v.stars} />
-                          <blockquote>{v.quote}</blockquote>
-                          <figcaption>
-                            {v.by} <span>{v.where}</span>
-                          </figcaption>
-                        </figure>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="pf-rev-paged">
+                  <figure className="pf-rev-card">
+                    <Stars n={LUNAR_REVIEWS[reviewIdx]!.stars} />
+                    <blockquote>{LUNAR_REVIEWS[reviewIdx]!.quote}</blockquote>
+                    <figcaption>
+                      {LUNAR_REVIEWS[reviewIdx]!.by} <span>{LUNAR_REVIEWS[reviewIdx]!.where}</span>
+                    </figcaption>
+                  </figure>
+                  <div className="pf-rev-nav">
+                    <button
+                      className="pf-rev-btn"
+                      aria-label="Previous review"
+                      onClick={() =>
+                        setReviewIdx((i) => (i - 1 + LUNAR_REVIEWS.length) % LUNAR_REVIEWS.length)
+                      }
+                    >
+                      ←
+                    </button>
+                    <span className="pf-rev-dots">
+                      {LUNAR_REVIEWS.map((_, i) => (
+                        <button
+                          key={i}
+                          className={`pf-rev-dot${i === reviewIdx ? " pf-rev-dot--on" : ""}`}
+                          aria-label={`Review ${i + 1}`}
+                          onClick={() => setReviewIdx(i)}
+                        />
+                      ))}
+                    </span>
+                    <button
+                      className="pf-rev-btn"
+                      aria-label="Next review"
+                      onClick={() => setReviewIdx((i) => (i + 1) % LUNAR_REVIEWS.length)}
+                    >
+                      →
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

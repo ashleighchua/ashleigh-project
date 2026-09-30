@@ -676,7 +676,6 @@ export function Kitchen() {
                 <i className="pf-k-mullion pf-k-mullion--h" />
               </span>
               <span className="pf-k-sill" aria-hidden="true" />
-              <Plants layout="tall" />
               <span className="pf-k-tiles" aria-hidden="true" />
               <span className="pf-k-carcass" aria-hidden="true" />
               <span className="pf-k-counter" aria-hidden="true" />

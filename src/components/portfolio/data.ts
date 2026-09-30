@@ -133,16 +133,17 @@ export const DSP: [number, number][] = [
   [0.16, 0.86],
   [0.84, 0.86],
 ];
-/** Mobile: two rows above the headline and two below */
+/** Mobile: one staggered row across the top, one across the bottom, so they read as
+ *  scattered rather than stacked in two clumps. Per-sticker jitter varies it further. */
 export const MSP: [number, number][] = [
-  [0.26, 0.08],
-  [0.74, 0.07],
-  [0.3, 0.2],
-  [0.72, 0.21],
-  [0.27, 0.8],
-  [0.74, 0.79],
-  [0.3, 0.93],
-  [0.72, 0.93],
+  [0.07, 0.15],
+  [0.36, 0.045],
+  [0.65, 0.155],
+  [0.93, 0.05],
+  [0.07, 0.85],
+  [0.36, 0.955],
+  [0.65, 0.845],
+  [0.93, 0.95],
 ];
 
 export const MEOWS = [
@@ -283,7 +284,7 @@ export const RECEIPTS: {
     role: "Client build",
     status: "Live",
     h: "Hannah Jackson",
-    body: "Hannah asked for a website. I built her a dashboard too, so she can update her work, prices, and offers herself whenever she needs to, without touching code.",
+    body: "Hannah asked for a website. I built her a dashboard too, so she can add paintings, change prices and mark work as sold whenever she likes, without touching code.",
     mine: "I designed and built the site and her dashboard. Not needing me was worth more to her than the site.",
     cta: "See her site",
     href: "https://byhannahjackson.com",
@@ -353,7 +354,7 @@ export const PLAY: {
   },
   {
     h: "Clarity",
-    b: "Chaotic spec in, readable docs out. Squirro said I might suit product better ↗",
+    b: "Chaotic spec in, readable docs out. Built after a technical writing interview where they told me I'd suit product better ↗",
     s: "Live",
     bg: "var(--color-surface)",
     fg: "var(--color-text)",
@@ -409,35 +410,32 @@ export const ROLES = [
   "serial side-project starter",
 ];
 
-export type Adventure = {
+/* ── The kitchen: postcards held on the fridge door ── */
+
+export type Postcard = {
   h: string;
   b: string;
-  /** photo key in PortfolioPage; none = the big-number card */
+  /** photo key, resolved in table.tsx; no photo = the written side of a postcard */
   photo?: "monastery" | "spain" | "wall";
   alt?: string;
-  /** polaroid tilt, degrees */
+  /** how crooked it hangs, in degrees */
   r: number;
 };
 
-export const ADVENTURES: Adventure[] = [
+export const POSTCARDS: Postcard[] = [
   {
     h: "A week in a monastery",
     b: "A mindfulness retreat. I lived and ate with the monks.",
     photo: "monastery",
     alt: "Evening exercise in a field below misty hills at the monastery",
-    r: -2,
+    r: -3.5,
   },
   {
     h: "120km across Spain",
     b: "On foot, with my best friend.",
     photo: "spain",
     alt: "Ashleigh and her best friend beside a Camino marker reading Km 100",
-    r: 1.5,
-  },
-  {
-    h: "10 countries, one laptop",
-    b: "Wherever I was this year, the work kept shipping.",
-    r: -1,
+    r: 2.5,
   },
   {
     h: "A night at the Great Wall",
@@ -445,6 +443,11 @@ export const ADVENTURES: Adventure[] = [
     photo: "wall",
     alt: "Tents lit up at night by the Great Wall",
     r: 2,
+  },
+  {
+    h: "10 countries, one laptop",
+    b: "Wherever I was this year, the work kept shipping.",
+    r: -2.5,
   },
 ];
 

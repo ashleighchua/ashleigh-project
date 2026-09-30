@@ -1,22 +1,11 @@
 import { memo, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { ArrowDown, Check, MapPin, Menu, X } from "lucide-react";
 import portraitPhoto from "@/assets/portrait-birthday.jpg";
-import greatWallTents from "@/assets/great-wall-tents.jpg";
-import monasteryPhoto from "@/assets/monastery.jpg";
-import spainPhoto from "@/assets/spain-camino.jpg";
 import stHome from "@/assets/st-home.jpg";
 import stProblem from "@/assets/st-problem.jpg";
 import hjPublic from "@/assets/hj-public.jpg";
 import hjAdmin from "@/assets/hj-admin.jpg";
-import {
-  LunarPipeline,
-  MoonMark,
-  PassportStamps,
-  SceneArt,
-  StickerFace,
-  TableObject,
-  type Look,
-} from "./art";
+import { LunarPipeline, MoonMark, SceneArt, StickerFace, TableObject, type Look } from "./art";
 import { CatSvg, type CatRefs } from "./cat";
 import { GrowingStats } from "./GrowingStats";
 import { BeforeYouGo } from "./table";
@@ -36,7 +25,6 @@ import {
   STK,
   ZONES,
   ROLES,
-  ADVENTURES,
   DECOR,
 } from "./data";
 import "./portfolio.css";
@@ -106,6 +94,9 @@ function Wordmark() {
   );
 }
 
+/** the longest role sets the height of the typed line, so it fits exactly and never resizes */
+const LONGEST_ROLE = `${ROLES.reduce((a, b) => (b.length > a.length ? b : a))}.`;
+
 /** "I'm a ___" pill: types each word out, holds it, backspaces, then types the next */
 function RotatingRole() {
   const [i, setI] = useState(0);
@@ -141,6 +132,7 @@ function RotatingRole() {
   }, [still, erasing, n, i, word.length]);
   return (
     <span className="pf-role" aria-hidden="true">
+      <span className="pf-role-sizer">{LONGEST_ROLE}</span>
       <span className="pf-role-word">
         {word.slice(0, n)}
         {!still && <span className="pf-caret" />}
@@ -148,8 +140,6 @@ function RotatingRole() {
     </span>
   );
 }
-
-const PHOTOS = { monastery: monasteryPhoto, spain: spainPhoto, wall: greatWallTents };
 
 /* ── Config (the "props" from the design reference) ── */
 const SHOW_CAT = true;
@@ -174,6 +164,20 @@ const back = (t: number) => {
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
 type Box = { cx: number; cy: number; hw: number; hh: number };
+/** Positions relative to the page root, plus the viewport height the loop should
+ *  treat as fixed. Re-measured on layout changes only. */
+type Layout = {
+  hx: number;
+  hy: number;
+  W: number;
+  H: number;
+  /** each sticker's landing spot relative to the root: centre, plus its top edge */
+  slots: { tx: number; ty: number; top: number }[];
+  /** timeline: its offset down the page and how far the track has to travel */
+  tlTop: number;
+  tlDist: number;
+  vh: number;
+};
 
 /** Bounds of what's actually drawn in the hero text: the lines of text, not their (wider) boxes */
 function inkBox(root: HTMLElement) {
@@ -253,6 +257,10 @@ export function PortfolioPage() {
   const [stickerRefs] = useState(() => ({ post: postEls, faceS, faceO, reshuffle }));
   /** Headline keep-clear box, relative to the hero; measured on layout changes, not every frame */
   const headBox = useRef<Box | null>(null);
+  /** Everything else the loop needs that only moves when the layout does. Measuring it
+   *  per frame meant a dozen forced reflows per frame, which is what made scrolling
+   *  stutter on a phone. */
+  const layout = useRef<Layout | null>(null);
   const landed = useRef<boolean[]>([]);
   const catEl = useRef<HTMLDivElement>(null);
   const catFlip = useRef<HTMLDivElement>(null);
@@ -294,13 +302,21 @@ export function PortfolioPage() {
 
   useEffect(() => {
     reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let lastW = 0;
+    let tlH = -1;
     const onResize = () => {
-      const m = window.innerWidth < MOBILE_BP;
+      const w = window.innerWidth;
+      // A phone fires resize when its URL bar collapses mid-scroll. That changes the
+      // height only, and reacting to it would re-measure the page under the reader's
+      // thumb, so only a real width change counts as a new layout.
+      if (w === lastW) return;
+      lastW = w;
+      const m = w < MOBILE_BP;
       mobileRef.current = m;
       setMobile(m);
-      setVw(window.innerWidth);
+      setVw(w);
+      measure();
     };
-    onResize();
     window.addEventListener("resize", onResize);
 
     const measureHead = () => {
@@ -320,16 +336,64 @@ export function PortfolioPage() {
         hh: (bt - tp) / 2,
       };
     };
-    measureHead();
-    document.fonts?.ready.then(measureHead);
-    const ro = new ResizeObserver(measureHead);
+    /** everything the loop would otherwise read from the DOM on every frame */
+    const measure = () => {
+      measureHead();
+      const root = rootRef.current;
+      const hero = heroRef.current;
+      const tl = tlRef.current;
+      const track = trackRef.current;
+      if (!root || !hero) return;
+      const rr = root.getBoundingClientRect();
+      const hr = hero.getBoundingClientRect();
+      layout.current = {
+        hx: hr.left - rr.left,
+        hy: hr.top - rr.top,
+        W: hr.width,
+        H: hr.height,
+        slots: STK.map((_, i) => {
+          const el = slotEls.current[i];
+          if (!el) return { tx: 0, ty: 0, top: 0 };
+          const sr = el.getBoundingClientRect();
+          return {
+            tx: sr.left - rr.left + sr.width / 2,
+            ty: sr.top - rr.top + sr.height / 2,
+            top: sr.top - rr.top,
+          };
+        }),
+        tlTop: tl ? tl.getBoundingClientRect().top - rr.top : 0,
+        tlDist: track ? Math.max(0, track.scrollWidth - window.innerWidth) : 0,
+        // held steady on purpose: see onResize
+        vh: window.innerHeight,
+      };
+      if (tl && layout.current.tlDist !== tlH) {
+        tl.style.height = `calc(${layout.current.tlDist}px + 100svh)`;
+        tlH = layout.current.tlDist;
+        // the timeline just changed height, so everything below it moved
+        const rr2 = root.getBoundingClientRect();
+        layout.current.tlTop = tl.getBoundingClientRect().top - rr2.top;
+        layout.current.slots = STK.map((_, i) => {
+          const el = slotEls.current[i];
+          if (!el) return { tx: 0, ty: 0, top: 0 };
+          const sr = el.getBoundingClientRect();
+          return {
+            tx: sr.left - rr2.left + sr.width / 2,
+            ty: sr.top - rr2.top + sr.height / 2,
+            top: sr.top - rr2.top,
+          };
+        });
+      }
+    };
+    onResize();
+    document.fonts?.ready.then(measure);
+    const ro = new ResizeObserver(measure);
     if (heroTextRef.current) ro.observe(heroTextRef.current);
     if (heroRef.current) ro.observe(heroRef.current);
+    if (rootRef.current) ro.observe(rootRef.current);
 
     t0.current = performance.now();
     let last = t0.current;
     let raf = 0;
-    let tlH = 0;
 
     const tick = (now: number) => {
       const t = (now - t0.current) / 1000;
@@ -337,18 +401,13 @@ export function PortfolioPage() {
       last = now;
       const reduce = reduceRef.current;
       const root = rootRef.current;
-      const hero = heroRef.current;
-      const vh = window.innerHeight;
-      const hr = hero?.getBoundingClientRect();
+      const L = layout.current;
+      // one forced layout per frame, at the top, before anything is written back
+      const scroll = root ? -root.getBoundingClientRect().top : 0;
 
       /* stickers: float in hero → morph into table objects on scroll */
-      if (root && hero && hr && hr.width > 0) {
-        const rr = root.getBoundingClientRect();
-        const hx = hr.left - rr.left;
-        const hy = hr.top - rr.top;
-        const W = hr.width;
-        const H = hr.height;
-        const scroll = -rr.top;
+      if (root && L && L.W > 0) {
+        const { hx, hy, W, H, vh } = L;
         const drift = reduce ? 0 : DRIFT;
         const spots = mobileRef.current ? MSP : DSP;
 
@@ -359,25 +418,19 @@ export function PortfolioPage() {
         const fRot = 1 - Math.exp(-dt * 9);
         const popDecay = Math.exp(-dt * 6.5);
 
-        // read every size/position first, then write: no forced re-layout per sticker
+        // the sticker is an <svg>, which has no offsetWidth; its width/height attributes
+        // are its size, and reading those costs nothing (no layout is forced)
         const reads = STK.map((_, i) => {
-          const slot = slotEls.current[i];
-          // the sticker is an <svg>, which has no offsetWidth; its width/height attributes are its size
           const kid = faceS.current[i]?.firstElementChild as SVGSVGElement | null;
-          return {
-            sr: slot?.getBoundingClientRect(),
-            kw: kid ? kid.width.baseVal.value : 0,
-            kh: kid ? kid.height.baseVal.value : 0,
-          };
+          return { kw: kid ? kid.width.baseVal.value : 0, kh: kid ? kid.height.baseVal.value : 0 };
         });
 
         STK.forEach((_, i) => {
           const el = postEls.current[i];
-          const slot = slotEls.current[i];
           const fS = faceS.current[i];
           const fO = faceO.current[i];
           const s = sim.current[i]!;
-          if (!el || !slot || !fS || !fO) return;
+          if (!el || !fS || !fO) return;
           const sp = spots[s.spot]!;
           const tsx = sp[0] + s.jx;
           const tsy = sp[1] + s.jy;
@@ -415,10 +468,8 @@ export function PortfolioPage() {
             fy = clamp(fy, hy + hh, hy + H - hh);
           }
 
-          const sr = rd.sr!;
-          const tx = sr.left - rr.left + sr.width / 2;
-          const ty = sr.top - rr.top + sr.height / 2;
-          const end = Math.max(1, sr.top - rr.top - vh * 0.6);
+          const { tx, ty, top } = L.slots[i]!;
+          const end = Math.max(1, top - vh * 0.6);
           const k = (i % 2) * 0.07;
           const e = reduce ? 1 : easeInOut(clamp((scroll / end - k) / (1 - k)));
           const arc = Math.sin(e * Math.PI) * (i % 2 ? 80 : -80);
@@ -437,21 +488,13 @@ export function PortfolioPage() {
         });
       }
 
-      /* pinned horizontal timeline */
-      const tl = tlRef.current;
+      /* pinned horizontal timeline — its height and travel are set in measure(), and
+         the tail is 100svh in CSS rather than innerHeight, so a collapsing URL bar
+         cannot resize this section under the reader's thumb */
       const track = trackRef.current;
-      if (tl && track) {
-        const r = tl.getBoundingClientRect();
-        const dist = Math.max(0, track.scrollWidth - window.innerWidth);
-        // the tail is 100svh in CSS, not window.innerHeight: on a phone the URL
-        // bar collapses as you scroll, which changes innerHeight mid-scroll and
-        // would resize this section under your thumb, jumping the whole page
-        if (Math.abs(tlH - dist) > 1) {
-          tl.style.height = `calc(${dist}px + 100svh)`;
-          tlH = dist;
-        }
-        const p = clamp(-r.top / Math.max(1, dist));
-        track.style.transform = `translate3d(${-p * dist}px,0,0)`;
+      if (track && L) {
+        const p = clamp((scroll - L.tlTop) / Math.max(1, L.tlDist));
+        track.style.transform = `translate3d(${-p * L.tlDist}px,0,0)`;
         if (tlBarRef.current) tlBarRef.current.style.width = `${p * 100}%`;
       }
 
@@ -582,7 +625,7 @@ export function PortfolioPage() {
     say(MEOWS[pet.meow]!, "talk", 3800);
   };
 
-  const k = mobile ? Math.min(0.62, vw / 630) : Math.min(1.18, vw / 1180);
+  const k = mobile ? Math.min(0.58, vw / 670) : Math.min(1.18, vw / 1180);
   const ko = mobile ? 0.8 : 1;
   const zoneH = mobile ? 240 : 290;
 
@@ -821,6 +864,7 @@ export function PortfolioPage() {
                 <div className="pf-toggle" role="group" aria-label="Switch view">
                   <button
                     type="button"
+                    className="pf-demo"
                     aria-pressed={hjView === "public"}
                     onClick={() => setHjView("public")}
                   >
@@ -828,6 +872,7 @@ export function PortfolioPage() {
                   </button>
                   <button
                     type="button"
+                    className="pf-demo"
                     aria-pressed={hjView === "admin"}
                     onClick={() => setHjView("admin")}
                   >
@@ -866,7 +911,7 @@ export function PortfolioPage() {
                   <span>Every order, start to finish</span>
                   <button
                     type="button"
-                    className="btn pf-pipe-run"
+                    className="pf-demo pf-pipe-run"
                     onClick={runOrder}
                     disabled={lunar >= 0 && lunar < PIPELINE.length}
                   >
@@ -972,35 +1017,6 @@ export function PortfolioPage() {
             <figcaption>that’s me!</figcaption>
           </figure>
         </div>
-        <div className="pf-trips">
-          <div className="pf-trips-head">
-            <h3>This year, so far</h3>
-            <span aria-hidden="true">scroll →</span>
-          </div>
-          <div className="pf-strip" role="region" aria-label="This year, so far" tabIndex={0}>
-            {ADVENTURES.map((a) => (
-              <figure
-                key={a.h}
-                className="pf-polaroid pf-snapcard"
-                style={{ "--r": `${a.r}deg` } as CSSProperties}
-              >
-                {a.photo ? (
-                  <div className="pf-snap-img">
-                    <img src={PHOTOS[a.photo]} alt={a.alt} loading="lazy" />
-                  </div>
-                ) : (
-                  <div className="pf-snap-img pf-snap-pass" aria-hidden="true">
-                    <PassportStamps />
-                  </div>
-                )}
-                <figcaption>
-                  <b>{a.h}</b>
-                  <span>{a.b}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
       </section>
 
       <BeforeYouGo />
@@ -1015,7 +1031,7 @@ export function PortfolioPage() {
           </p>
           <div className="pf-contact-ctas">
             <a href={`mailto:${LINKS.email}`} className="btn pf-contact-cta">
-              Email me ↗
+              Email me
             </a>
           </div>
           <div className="pf-foot">

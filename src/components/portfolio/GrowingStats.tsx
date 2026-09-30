@@ -33,7 +33,7 @@ const STATS: Stat[] = [
   {
     target: 100,
     fmt: (v) => `${v}+`,
-    caption: "orders delivered without me",
+    caption: "orders delivered, start to finish",
     href: "#lunar",
     tone: "sage",
   },
@@ -60,9 +60,18 @@ const CAN_H = 64;
 const SPOUT = { x: 10, y: 0 };
 /** how long it takes to water a pot fully */
 const POUR_S = 1.8;
+/** watering has three beats: the stem climbs first, then the leaves, then the bloom */
+const STEM_END = 0.62;
+const LEAF_A = 0.72;
+const LEAF_B = 0.86;
+
+/** module-level so it is stable: the count effect keys off it */
+const AUTO_FMT = (v: number) => `${v}+`;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const clamp = (v: number) => Math.max(0, Math.min(1, v));
+/** how far up the stem has climbed, for a pot that is `w` watered */
+const stemP = (w: number) => clamp(w / STEM_END);
 
 /** scales a scene to the width it has; `k` also feeds the label sizes so they stay readable */
 function useFit(design: number) {
@@ -82,33 +91,57 @@ function useFit(design: number) {
   return { ref, k, sceneW: k < 1 ? design : w };
 }
 
-function useCount(target: number, on: boolean, dur: number) {
-  const [v, setV] = useState(0);
+/** Counts up to `target`, writing the number straight into the node. Holding it in
+ *  React state re-rendered the whole scene on every frame of the count, which is what
+ *  made scrolling past this section stutter. `onStep` fires only when the number
+ *  actually changes, so the blooms it drives cost five renders, not a hundred. */
+function useCountTo(
+  ref: React.RefObject<HTMLElement | null>,
+  target: number,
+  on: boolean,
+  dur: number,
+  fmt: (v: number) => string,
+  idle: string,
+  onStep?: (v: number) => void,
+) {
+  const step = useRef(onStep);
+  step.current = onStep;
   useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
     if (!on) {
-      setV(0);
+      el.textContent = idle;
+      step.current?.(0);
       return;
     }
     let raf = 0;
+    let shownV = -1;
     const t0 = performance.now();
     const f = (now: number) => {
-      const p = Math.min(1, (now - t0) / dur);
-      setV(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      const p = dur > 0 ? Math.min(1, (now - t0) / dur) : 1;
+      const v = Math.round(target * (1 - Math.pow(1 - p, 3)));
+      if (v !== shownV) {
+        shownV = v;
+        el.textContent = fmt(v);
+        step.current?.(v);
+      }
       if (p < 1) raf = requestAnimationFrame(f);
     };
     raf = requestAnimationFrame(f);
     return () => cancelAnimationFrame(raf);
-  }, [target, on, dur]);
-  return v;
+  }, [ref, target, on, dur, fmt, idle]);
 }
 
 function StatBlock({ m, shown, idle }: { m: Stat; shown: boolean; idle: string }) {
-  const v = useCount(m.target, shown, 800);
+  const num = useRef<HTMLSpanElement>(null);
+  useCountTo(num, m.target, shown, 800, m.fmt, "?");
   return (
     <div className={`gs-stat gs-stat--${m.tone}${shown ? "" : " gs-stat--idle"}`}>
-      <span className="gs-num">{shown ? m.fmt(v) : "?"}</span>
+      <span className="gs-num" ref={num}>
+        ?
+      </span>
       <span className="gs-cap">{shown ? m.caption : idle}</span>
-      {shown && <a href={m.href}>See receipt ↓</a>}
+      <a href={m.href}>See receipt ↓</a>
     </div>
   );
 }
@@ -116,22 +149,33 @@ function StatBlock({ m, shown, idle }: { m: Stat; shown: boolean; idle: string }
 export function GrowingStats() {
   const [reduced, setReduced] = useState(false);
   const [round, setRound] = useState(0);
+  /** both cards report in; there is nothing to start over until they have all grown */
+  const [topDone, setTopDone] = useState(false);
+  const [autoDone, setAutoDone] = useState(false);
   useEffect(() => {
     setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
+  const grown = topDone && autoDone;
 
   return (
     <section className="gs" aria-labelledby="gs-h">
       <div className="gs-head">
         <h2 id="gs-h">What you water, grows</h2>
-        {!reduced && (
-          <button type="button" className="gs-replay" onClick={() => setRound((r) => r + 1)}>
+      </div>
+      <WaterMe key={`w${round}`} reduced={reduced} onDone={setTopDone} />
+      <AutoPot key={`a${round}`} reduced={reduced} onDone={setAutoDone} />
+      {/* sits below everything it replays, and holds its row even while hidden */}
+      {!reduced && (
+        <div className="gs-foot">
+          <button
+            type="button"
+            className={`gs-replay${grown ? "" : " gs-replay--waiting"}`}
+            onClick={() => setRound((r) => r + 1)}
+          >
             Start over ↻
           </button>
-        )}
-      </div>
-      <WaterMe key={`w${round}`} reduced={reduced} />
-      <AutoPot key={`a${round}`} reduced={reduced} />
+        </div>
+      )}
     </section>
   );
 }
@@ -140,7 +184,7 @@ export function GrowingStats() {
 
 type Drag = { id: number; sx: number; sy: number; cx: number; cy: number; moved: boolean };
 
-function WaterMe({ reduced }: { reduced: boolean }) {
+function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) => void }) {
   const { ref, k, sceneW } = useFit(TOP_W);
   const home = useCallback(() => ({ x: sceneW / 2 - CAN_W / 2, y: SHELF_Y - CAN_H }), [sceneW]);
   const [water, setWater] = useState<[number, number]>([0, 0]);
@@ -240,6 +284,9 @@ function WaterMe({ reduced }: { reduced: boolean }) {
 
   const [w0, w1] = water;
   const done = w0 >= 1 && w1 >= 1;
+  useEffect(() => {
+    onDone(done);
+  }, [done, onDone]);
   const soil = (w: number) => (w > 0 ? "var(--accent-900)" : "var(--accent-700)");
 
   return (
@@ -276,14 +323,17 @@ function WaterMe({ reduced }: { reduced: boolean }) {
               >
                 Cofounder
               </span>
-              <div className="gs-stem gs-stem--live" style={{ bottom: 246, height: 190 * w0 }} />
+              <div
+                className="gs-stem gs-stem--live"
+                style={{ bottom: 246, height: 190 * stemP(w0) }}
+              />
               <div
                 className="gs-leaf gs-leaf--l"
-                style={{ bottom: 326, transform: `rotate(-22deg) scale(${w0 > 0.4 ? 1 : 0})` }}
+                style={{ bottom: 326, transform: `rotate(-22deg) scale(${w0 > LEAF_A ? 1 : 0})` }}
               />
               <div
                 className="gs-leaf gs-leaf--r"
-                style={{ bottom: 370, transform: `rotate(22deg) scale(${w0 > 0.65 ? 1 : 0})` }}
+                style={{ bottom: 370, transform: `rotate(22deg) scale(${w0 > LEAF_B ? 1 : 0})` }}
               />
               <div
                 className="gs-sunflower"
@@ -316,14 +366,17 @@ function WaterMe({ reduced }: { reduced: boolean }) {
               >
                 what she paid
               </span>
-              <div className="gs-stem gs-stem--live" style={{ bottom: 236, height: 180 * w1 }} />
+              <div
+                className="gs-stem gs-stem--live"
+                style={{ bottom: 236, height: 180 * stemP(w1) }}
+              />
               <div
                 className="gs-leaf gs-leaf--l gs-leaf--wide"
-                style={{ bottom: 290, transform: `rotate(-30deg) scale(${w1 > 0.35 ? 1 : 0})` }}
+                style={{ bottom: 290, transform: `rotate(-30deg) scale(${w1 > LEAF_A ? 1 : 0})` }}
               />
               <div
                 className="gs-leaf gs-leaf--r gs-leaf--wide"
-                style={{ bottom: 318, transform: `rotate(30deg) scale(${w1 > 0.55 ? 1 : 0})` }}
+                style={{ bottom: 318, transform: `rotate(30deg) scale(${w1 > LEAF_B ? 1 : 0})` }}
               />
               <div className="gs-tulip" style={{ transform: `scale(${w1 >= 1 ? 1 : 0})` }}>
                 <span />
@@ -390,7 +443,7 @@ function WaterMe({ reduced }: { reduced: boolean }) {
 
 /* ── bottom card: waters itself ── */
 
-function AutoPot({ reduced }: { reduced: boolean }) {
+function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) => void }) {
   const { ref, k } = useFit(AUTO_W);
   const [on, setOn] = useState(false);
   const [grown, setGrown] = useState(false);
@@ -425,9 +478,14 @@ function AutoPot({ reduced }: { reduced: boolean }) {
     };
   }, [reduced, ref]);
 
-  const v = useCount(100, shown && !reduced, 1800);
-  const shownV = reduced ? 100 : v;
-  const blooms = Math.floor(shownV / 20);
+  useEffect(() => {
+    onDone(shown);
+  }, [shown, onDone]);
+
+  const num = useRef<HTMLSpanElement>(null);
+  const [blooms, setBlooms] = useState(0);
+  const onStep = useCallback((v: number) => setBlooms(Math.floor(v / 20)), []);
+  useCountTo(num, 100, shown, reduced ? 0 : 1800, AUTO_FMT, "…", onStep);
 
   return (
     <div className="gs-card gs-card--auto">
@@ -456,7 +514,8 @@ function AutoPot({ reduced }: { reduced: boolean }) {
                     className="gs-bushstem"
                     style={{
                       left: `calc(50% + ${b.x}px)`,
-                      height: grown ? b.h : 0,
+                      height: b.h,
+                      transform: `scaleY(${grown ? 1 : 0})`,
                       transitionDelay: `${j * 0.12}s`,
                     }}
                   />
@@ -488,7 +547,9 @@ function AutoPot({ reduced }: { reduced: boolean }) {
       </div>
       <div className="gs-stats gs-stats--auto">
         <div className={`gs-stat gs-stat--sage${shown ? "" : " gs-stat--idle"}`}>
-          <span className="gs-num">{shown ? `${shownV}+` : "…"}</span>
+          <span className="gs-num" ref={num}>
+            …
+          </span>
           <span className="gs-cap">{STATS[2]!.caption}</span>
           <span className="gs-autonote">
             This one waters itself. Every order is charted, written and delivered while I get on

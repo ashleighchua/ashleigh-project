@@ -1222,102 +1222,46 @@ export function TableSticker({ kind, size }: { kind: StickerKind; size: number }
   );
 }
 
-/* ═════ About: work shipped from everywhere, as a stamped passport page ═════ */
+/* ═════ Kitchen: the one postcard with no photo, shown written side up ═════ */
 
-const PLANE =
-  "M0 -9L1.6 -3L9 1V3L1.6 1L1.2 6L3.5 8V9.5L0 8.5L-3.5 9.5V8L-1.2 6L-1.6 1L-9 3V1L-1.6 -3Z";
-
-function Stamp({
-  x,
-  y,
-  r,
-  color,
-  children,
-}: {
-  x: number;
-  y: number;
-  r: number;
-  color: string;
-  children: ReactNode;
-}) {
+export function PostcardBack() {
+  const N3 = "var(--color-neutral-300)";
+  const N5 = "var(--color-neutral-500)";
   return (
-    <g transform={`translate(${x} ${y}) rotate(${r})`} fill="none" stroke={color} opacity={0.88}>
-      {children}
-    </g>
-  );
-}
-
-export function PassportStamps() {
-  const ink = { fontFamily: HEADING, letterSpacing: ".08em" };
-  const A7 = "var(--color-accent-700)";
-  const S7 = "var(--color-accent-2-700)";
-  const N8 = "var(--color-neutral-800)";
-  const A5 = "var(--color-accent-500)";
-  return (
-    <svg viewBox="0 0 200 200" className="pf-passport" aria-hidden="true">
-      <rect width={200} height={200} fill="var(--color-accent-100)" />
-      {Array.from({ length: 9 }, (_, j) => (
-        <path
-          key={j}
-          d={`M-10 ${22 * j + 8} Q50 ${22 * j - 4} 100 ${22 * j + 8} T210 ${22 * j + 8}`}
-          fill="none"
-          stroke="var(--color-accent-200)"
-          strokeWidth={1}
-        />
-      ))}
-      <Stamp x={46} y={44} r={-14} color={A5}>
-        <rect x={-30} y={-17} width={60} height={34} rx={4} strokeWidth={2} />
-        <text y={2} textAnchor="middle" fill={A5} stroke="none" style={{ ...ink, fontSize: 15 }}>
-          MAD
-        </text>
-        <text y={12} textAnchor="middle" fill={A5} stroke="none" style={{ ...ink, fontSize: 6 }}>
-          ARRIVED
-        </text>
-      </Stamp>
-      <Stamp x={152} y={48} r={10} color={S7}>
-        <ellipse rx={34} ry={22} strokeWidth={2} />
-        <ellipse rx={29} ry={17} strokeWidth={1} />
-        <text y={4} textAnchor="middle" fill={S7} stroke="none" style={{ ...ink, fontSize: 14 }}>
-          BKK
-        </text>
-      </Stamp>
-      <Stamp x={146} y={156} r={-8} color={N8}>
-        <rect x={-32} y={-18} width={64} height={36} rx={2} strokeWidth={2} strokeDasharray="5 3" />
-        <text y={1} textAnchor="middle" fill={N8} stroke="none" style={{ ...ink, fontSize: 13 }}>
-          PEK
-        </text>
-        <text y={12} textAnchor="middle" fill={N8} stroke="none" style={{ ...ink, fontSize: 6 }}>
-          DEPARTED
-        </text>
-      </Stamp>
-      <Stamp x={78} y={120} r={-10} color={A7}>
-        <circle r={46} strokeWidth={3} />
-        <circle r={39} strokeWidth={1.2} />
-        <text
-          y={8}
-          textAnchor="middle"
-          fill={A7}
-          stroke="none"
-          style={{ fontFamily: HEADING, fontSize: 17, letterSpacing: ".02em" }}
-        >
-          SHIPPED
-        </text>
-        <text y={-16} textAnchor="middle" fill={A7} stroke="none" style={{ ...ink, fontSize: 7 }}>
-          WORK
-        </text>
-        <text y={22} textAnchor="middle" fill={A7} stroke="none" style={{ ...ink, fontSize: 8 }}>
-          · 2026 ·
-        </text>
-      </Stamp>
-      <path
-        d="M18 182 Q60 150 104 176"
+    <svg viewBox="0 0 160 116" className="pf-card-art" aria-hidden="true">
+      <rect width={160} height={116} fill="var(--color-neutral-100)" />
+      <line x1={84} y1={12} x2={84} y2={104} stroke={N3} strokeWidth={2} />
+      {/* the stamp, and the postmark rings over it */}
+      <rect x={112} y={12} width={34} height={40} rx={2} fill="var(--color-accent-200)" />
+      <rect
+        x={112}
+        y={12}
+        width={34}
+        height={40}
+        rx={2}
         fill="none"
-        stroke={N8}
-        strokeWidth={1.5}
-        strokeDasharray="3 4"
-        strokeLinecap="round"
+        stroke={N3}
+        strokeWidth={2}
+        strokeDasharray="3 2"
       />
-      <path d={PLANE} fill={N8} transform="translate(112 170) rotate(70) scale(1.1)" />
+      <path d="M118 44L127 30L133 38L138 32L142 44Z" fill="var(--color-accent-600)" />
+      <g fill="none" stroke={N5} strokeWidth={1.6} opacity={0.75}>
+        <circle cx={104} cy={34} r={15} />
+        <circle cx={104} cy={34} r={10} />
+      </g>
+      {/* the message side: a few ruled lines of handwriting */}
+      <g stroke={N3} strokeWidth={2.4} strokeLinecap="round">
+        <line x1={14} y1={28} x2={68} y2={28} />
+        <line x1={14} y1={44} x2={72} y2={44} />
+        <line x1={14} y1={60} x2={60} y2={60} />
+        <line x1={14} y1={76} x2={70} y2={76} />
+        <line x1={14} y1={92} x2={44} y2={92} />
+      </g>
+      <g stroke={N5} strokeWidth={2} strokeLinecap="round">
+        <line x1={100} y1={70} x2={146} y2={70} />
+        <line x1={100} y1={84} x2={146} y2={84} />
+        <line x1={100} y1={98} x2={146} y2={98} />
+      </g>
     </svg>
   );
 }

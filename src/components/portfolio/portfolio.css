@@ -49,6 +49,10 @@
   --shadow-lg: 0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
 
   --pad-x: clamp(20px, 5.6vw, 72px);
+  /* every section pads top and bottom by this, so the gap between any two is the same */
+  --sec-y: clamp(56px, 7vw, 100px);
+  /* and every section heading sits this far above its content */
+  --head-gap: clamp(26px, 3.2vw, 44px);
 
   position: relative;
   overflow-x: clip;
@@ -66,8 +70,19 @@
 
 html {
   scroll-behavior: smooth;
-  /* jump links land below the fixed nav */
-  scroll-padding-top: 76px;
+}
+/* Jump links land below the fixed nav. This is set on the targets rather than as
+   scroll-padding on the page, because the browser adds scroll-padding to *every*
+   scroll it makes — including the one it does when you tap a field on a phone. */
+.pf section[id],
+.pf-rcard {
+  scroll-margin-top: 88px;
+}
+@media (max-width: 760px) {
+  .pf section[id],
+  .pf-rcard {
+    scroll-margin-top: 76px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -187,6 +202,30 @@ body {
 }
 .pf .btn-ghost:hover {
   background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+/* Hands-on controls: Hannah's view toggle and the Lunar "run a test order" button.
+   Squared off and outlined in the card's own ink, so neither can be mistaken for
+   the round solid pill that leaves the page. */
+.pf .pf-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 9px 15px;
+  border: 1.5px dashed color-mix(in srgb, currentColor 42%, transparent);
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: 700 13px/1.2 var(--font-body);
+  letter-spacing: 0.02em;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+.pf .pf-demo:hover:not(:disabled) {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
 /* ═════ Hero ═════ */
@@ -448,13 +487,13 @@ body {
 
 /* ═════ Table ═════ */
 .pf-table-sec {
-  padding: clamp(72px, 9vw, 128px) clamp(16px, 5.6vw, 72px) clamp(80px, 10vw, 140px);
+  padding: var(--sec-y) var(--pad-x);
 }
 .pf-head {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin: 0 4px 48px;
+  margin: 0 4px var(--head-gap);
 }
 .pf-head h2 {
   font-size: clamp(40px, 5.4vw, 72px);
@@ -547,7 +586,7 @@ body {
 /* ═════ Timeline ═════ */
 .pf-tl {
   position: relative;
-  height: 320vh;
+  height: 320svh;
 }
 .pf-tl-pin {
   position: sticky;
@@ -557,7 +596,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(24px, 4vh, 44px);
+  gap: clamp(24px, 4svh, 44px);
 }
 .pf-tl-head {
   padding-inline: var(--pad-x);
@@ -607,7 +646,7 @@ body {
 }
 .pf-tl-card {
   width: clamp(280px, 30vw, 400px);
-  min-height: clamp(380px, 54vh, 470px);
+  min-height: clamp(380px, 54svh, 470px);
   border-radius: 40px;
   padding: clamp(24px, 2.6vw, 34px);
   display: flex;
@@ -627,7 +666,7 @@ body {
 
 /* ═════ Receipts: one anatomy for all three ═════ */
 .pf-receipts {
-  padding: 0 clamp(14px, 5.6vw, 72px) clamp(64px, 8vw, 120px);
+  padding: var(--sec-y) var(--pad-x);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -637,7 +676,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin: 0 6px 20px;
+  margin: 0 6px var(--head-gap);
 }
 .pf-receipts-head h2,
 .pf-bye-head h2 {
@@ -662,7 +701,6 @@ body {
   --rc-status-bg: var(--color-accent-2-300);
   --rc-status-fg: var(--color-accent-2-900);
   --rc-line: var(--color-neutral-700);
-  scroll-margin-top: 24px;
   background: var(--rc-bg);
   color: var(--rc-fg);
   border-radius: 40px;
@@ -821,24 +859,11 @@ body {
 .pf-toggle {
   align-self: center;
   display: inline-flex;
-  padding: 4px;
-  border-radius: 999px;
-  background: var(--color-bg);
-  box-shadow: var(--shadow-sm);
+  gap: 8px;
 }
-.pf-toggle button {
-  border: 0;
-  cursor: pointer;
-  padding: 9px 16px;
-  border-radius: 999px;
-  font: 600 14px var(--font-body);
-  background: transparent;
-  color: var(--color-neutral-700);
-  transition:
-    background-color 0.2s,
-    color 0.2s;
-}
-.pf-toggle button[aria-pressed="true"] {
+.pf .pf-toggle .pf-demo[aria-pressed="true"] {
+  border-style: solid;
+  border-color: var(--color-text);
   background: var(--color-text);
   color: var(--color-bg);
 }
@@ -886,6 +911,8 @@ body {
 .pf-hj-cap {
   text-align: center;
   font-size: 14px;
+  /* both captions fit in two lines; reserving them stops the card resizing on toggle */
+  min-height: 2.8em;
   color: var(--color-neutral-700);
 }
 
@@ -915,13 +942,10 @@ body {
   font-size: 18px;
   font-weight: 800;
 }
+/* wide enough for the longest of its three labels, so the head never rewraps */
 .pf .pf-pipe-run {
-  background: var(--color-accent-2-300);
-  color: var(--color-accent-2-900);
-  padding: 9px 16px;
-}
-.pf .pf-pipe-run:hover:not(:disabled) {
-  background: var(--color-accent-2-200);
+  justify-content: center;
+  min-width: 156px;
 }
 .pf .pf-pipe-run:disabled {
   opacity: 0.7;
@@ -1111,7 +1135,9 @@ body {
   font-size: 13px;
   color: var(--color-neutral-400);
 }
+/* holds two lines, so swapping the two footnotes can't resize the panel */
 .pf-pipe-foot {
+  min-height: 2.8em;
   font-size: 13px;
   font-weight: 600;
   color: var(--color-accent-2-300);
@@ -1132,10 +1158,10 @@ body {
 
 /* ═════ Playground: sticker tiles ═════ */
 .pf-play {
-  padding: clamp(56px, 8vw, 110px) var(--pad-x);
+  padding: var(--sec-y) var(--pad-x);
   display: flex;
   flex-direction: column;
-  gap: clamp(28px, 3.5vw, 44px);
+  gap: var(--head-gap);
 }
 .pf-play-head {
   display: flex;
@@ -1240,7 +1266,7 @@ body {
 
 /* ═════ About ═════ */
 .pf-now {
-  padding: clamp(64px, 9vw, 120px) var(--pad-x);
+  padding: var(--sec-y) var(--pad-x);
 }
 .pf-about-top {
   display: grid;
@@ -1263,14 +1289,23 @@ body {
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
-/* the typed word: bigger than the greeting, room kept for three lines so nothing jumps */
+/* The typed word. A hidden copy of the longest role sets the height, so the box is
+   exactly as tall as it needs to be and still never resizes mid-type. */
 .pf-role {
+  position: relative;
   display: block;
-  min-height: 3em;
   font-size: clamp(44px, 5.6vw, 80px);
   line-height: 1;
   letter-spacing: -0.035em;
   color: var(--color-accent);
+}
+.pf-role-sizer {
+  display: block;
+  visibility: hidden;
+}
+.pf-role-word {
+  position: absolute;
+  inset: 0;
 }
 .pf-caret {
   display: inline-block;
@@ -1321,78 +1356,10 @@ body {
   font-weight: 800;
   font-size: 18px;
 }
-.pf-trips {
-  margin-top: 48px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.pf-trips-head {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-}
-.pf-trips-head h3 {
-  font-size: 24px;
-  letter-spacing: -0.01em;
-}
-.pf-trips-head span {
-  font-size: 13px;
-  color: var(--color-neutral-700);
-}
-/* bleeds off the right edge of the page */
-.pf-strip {
-  display: flex;
-  gap: 22px;
-  overflow-x: auto;
-  /* proximity, not mandatory: mandatory re-snaps on every reflow and fights
-     the vertical page scroll when a thumb starts inside the strip */
-  scroll-snap-type: x proximity;
-  scroll-padding-left: 8px;
-  overscroll-behavior-x: contain;
-  margin: 0 calc(-1 * var(--pad-x)) 0 -8px;
-  padding: 18px var(--pad-x) 26px 8px;
-}
-.pf-snapcard {
-  flex: 0 0 240px;
-  padding: 12px 12px 16px;
-  box-shadow: var(--shadow-md);
-  transform: rotate(var(--r));
-  scroll-snap-align: start;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.pf-snap-img {
-  aspect-ratio: 1;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.pf-passport {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.pf-snapcard figcaption {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 0 2px;
-}
-.pf-snapcard b {
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: 17px;
-  line-height: 1.15;
-}
-.pf-snapcard figcaption span {
-  font-size: 13px;
-  color: var(--color-neutral-800);
-}
 @media (max-width: 760px) {
   .pf-about-top {
     grid-template-columns: 1fr;
-    gap: 48px;
+    gap: 24px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1407,7 +1374,8 @@ body {
 
 /* ═════ Contact ═════ */
 .pf-contact {
-  padding: 0 clamp(10px, 3vw, 40px) 90px;
+  /* narrower gutters than the rest on purpose: the orange box runs wider */
+  padding: var(--sec-y) clamp(10px, 3vw, 40px);
 }
 .pf-contact-box {
   background: var(--color-accent);
@@ -1578,16 +1546,153 @@ body {
   font-weight: 600;
 }
 
-/* ═════ Before you go: a table from the side, with a coffee and a note on it ═════ */
+/* ═════ Before you go: a small kitchen — a fridge, and a table seen from the side ═════ */
 .pf-bye {
-  padding: 0 clamp(14px, 5.6vw, 72px) clamp(64px, 8vw, 110px);
+  padding: var(--sec-y) var(--pad-x);
+}
+/* one room: fridge on the left, table on the right, both standing on the same floor */
+.pf-room {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 48px);
+  align-items: end;
 }
 /* everything is placed from the floor up: tabletop surface is 214–244px above the bottom */
 .pf-scene {
   position: relative;
-  max-width: 1080px;
   height: 660px;
-  margin: 0 auto;
+}
+
+/* ── the fridge, and the postcards on its door ── */
+.pf-fridge {
+  position: relative;
+  padding-bottom: 18px;
+}
+.pf-fridge-body {
+  position: relative;
+  height: 600px;
+  border-radius: 26px 26px 14px 14px;
+  background: linear-gradient(100deg, var(--color-neutral-100) 62%, var(--color-neutral-200));
+  box-shadow:
+    inset -14px 0 24px -18px var(--color-neutral-500),
+    var(--shadow-lg);
+}
+.pf-fridge-shadow {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 0;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(46, 43, 37, 0.22), transparent);
+}
+/* the line between the freezer and the door below it */
+.pf-fridge-split {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 132px;
+  height: 4px;
+  background: var(--color-neutral-300);
+}
+.pf-fridge-grip {
+  position: absolute;
+  right: 18px;
+  width: 9px;
+  border-radius: 999px;
+  background: var(--color-neutral-400);
+  box-shadow: inset -2px 0 0 var(--color-neutral-500);
+}
+.pf-fridge-grip--freezer {
+  top: 44px;
+  height: 64px;
+}
+.pf-fridge-grip--door {
+  top: 160px;
+  height: 132px;
+}
+.pf-cards {
+  position: absolute;
+  left: 18px;
+  right: 42px;
+  top: 172px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 12px;
+}
+.pf-card {
+  position: relative;
+  display: block;
+  padding: 5px 5px 7px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--color-neutral-100);
+  cursor: pointer;
+  transform: rotate(var(--r));
+  transition:
+    transform 0.28s,
+    box-shadow 0.28s;
+  box-shadow: var(--shadow-sm);
+}
+.pf-card img,
+.pf-card .pf-card-art {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 2px;
+}
+.pf-card:hover {
+  transform: rotate(var(--r)) translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+/* the one you picked comes off the door and sits in front of the others */
+.pf-card--picked {
+  z-index: 2;
+  transform: rotate(0deg) scale(1.16) translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+.pf-card--picked:hover {
+  transform: rotate(0deg) scale(1.16) translateY(-6px);
+}
+.pf-magnet {
+  position: absolute;
+  z-index: 1;
+  top: -7px;
+  left: 50%;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at 35% 30%, var(--color-accent-400), var(--color-accent-700));
+  box-shadow: 0 2px 3px rgba(46, 43, 37, 0.35);
+}
+/* a magnetic notepad at the bottom of the door; it is sized for two lines either way */
+.pf-card-pad {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 26px;
+  min-height: 82px;
+  padding: 12px 14px;
+  border-radius: 4px;
+  background: var(--color-accent-100);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pf-card-pad b {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  line-height: 1.1;
+}
+.pf-card-pad span {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--color-neutral-700);
 }
 .pf-furniture > span {
   position: absolute;
@@ -1668,7 +1773,7 @@ body {
 
 .pf-coffee {
   position: absolute;
-  left: 18%;
+  left: 13%;
   bottom: 228px;
   z-index: 4;
 }
@@ -1716,8 +1821,31 @@ body {
   stroke: var(--color-neutral-300);
   stroke-width: 2;
 }
+.pf-mug-hollow {
+  fill: var(--color-neutral-300);
+}
 .pf-mug-brew {
   fill: var(--color-accent-800);
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transform: scale(0.35, 1);
+  transition:
+    opacity 0.5s,
+    transform 0.9s ease-out;
+}
+.pf-cup--pouring .pf-mug-brew,
+.pf-cup--made .pf-mug-brew {
+  opacity: 1;
+  transform: scale(1, 1);
+}
+/* steam only once there is something to steam */
+.pf-steam {
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+.pf-cup--made .pf-steam {
+  opacity: 1;
 }
 .pf-steam path {
   stroke: var(--color-neutral-400);
@@ -1780,18 +1908,15 @@ body {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.pf-cue--done {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+/* the clipboard and the fridge pad name themselves; only the mug needs a label */
 .pf-cue-coffee {
-  left: 2%;
+  left: 0;
   top: 150px;
-}
-.pf-cue-note {
-  left: 27%;
-  top: 120px;
-  color: var(--color-accent-2-700);
-}
-/* tilted the other way from "Buy me a coffee", so they don't look stamped out */
-.pf-cue-note > span {
-  transform: rotate(4deg);
 }
 
 .pf-coffee-pop {
@@ -1953,7 +2078,7 @@ body {
   box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 .pf .pf-note-msg {
-  min-height: 1.4em;
+  min-height: 2.8em;
   font-size: 13px;
   line-height: 1.4;
   font-weight: 600;
@@ -2012,8 +2137,41 @@ body {
   cursor: progress;
 }
 
-/* phones: the note stands on its own above the table, the coffee sits on the table */
+/* phones: the room stacks — the table first, since that is what you can act on,
+   then the fridge below it */
 @media (max-width: 860px) {
+  .pf-room {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    justify-items: center;
+  }
+  /* a shorter fridge on a phone, so the freezer door is not half the picture */
+  .pf-fridge {
+    order: 2;
+    width: 100%;
+    max-width: 320px;
+  }
+  .pf-fridge-body {
+    height: 512px;
+  }
+  .pf-fridge-split {
+    top: 104px;
+  }
+  .pf-fridge-grip--freezer {
+    top: 32px;
+    height: 52px;
+  }
+  .pf-fridge-grip--door {
+    top: 130px;
+    height: 118px;
+  }
+  .pf-cards {
+    top: 140px;
+  }
+  .pf-scene {
+    order: 1;
+    width: 100%;
+  }
   .pf-scene {
     height: auto;
     display: flex;
@@ -2037,11 +2195,8 @@ body {
     margin-top: 4px;
     transform: rotate(35deg);
   }
-  .pf-cue-note {
-    order: 1;
-  }
   .pf-clip {
-    order: 2;
+    order: 1;
     width: min(350px, 100%);
     transform: rotate(1deg);
   }
@@ -2074,8 +2229,10 @@ body {
   }
 }
 @media (max-width: 560px) {
+  /* small enough that even the longest role fits two lines, so the space held
+     open below the typed word stays modest */
   .pf-role {
-    font-size: 40px;
+    font-size: 34px;
   }
 }
 .pf-mug-handle-edge {

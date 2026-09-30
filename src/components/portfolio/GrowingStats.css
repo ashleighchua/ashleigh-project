@@ -34,7 +34,7 @@
   color: var(--text);
   max-width: 1040px;
   margin: 0 auto;
-  padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 40px);
+  padding: var(--sec-y) var(--pad-x);
 }
 .gs-head {
   display: flex;
@@ -42,7 +42,7 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: var(--head-gap);
 }
 .gs-head h2 {
   font-family: var(--font-heading);
@@ -66,6 +66,15 @@
 .gs-replay:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+.gs-foot {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+/* still laid out while there is nothing to start over, so the section never reflows */
+.gs-replay--waiting {
+  visibility: hidden;
 }
 
 .gs-stage {
@@ -195,13 +204,16 @@
   background: var(--accent);
 }
 
+/* grown with scaleY rather than height: height would relayout the scene on every
+   frame of the animation, and there are five of these */
 .gs-bushstem {
   position: absolute;
   bottom: 226px;
   width: 5px;
   background: var(--sage-600);
   border-radius: 3px;
-  transition: height 0.9s cubic-bezier(0.3, 0.7, 0.3, 1);
+  transform-origin: 50% 100%;
+  transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.3, 1);
 }
 .gs-daisy {
   position: absolute;
@@ -435,11 +447,16 @@
 .gs-cap {
   font-size: 14px;
   max-width: 220px;
+  /* the captions run to two lines once revealed; hold the room from the start */
+  min-height: 3.1em;
 }
 .gs-stat a {
   font-size: 12px;
   font-weight: 600;
   color: var(--accent-700);
+}
+.gs-stat--idle a {
+  visibility: hidden;
 }
 
 /* watering can */

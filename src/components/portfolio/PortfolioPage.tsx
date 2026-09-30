@@ -972,11 +972,17 @@ export function PortfolioPage() {
             {r.id === "lunar" && (
               <div className="pf-rev">
                 <div className="pf-rev-head">
-                  <h4>What buyers said, on Fiverr</h4>
+                  <h4>What buyers said</h4>
                   <ul className="pf-rev-stats">
-                    {LUNAR_STATS.map(([figure, label]) => (
+                    {LUNAR_STATS.map(([figure, label, star]) => (
                       <li key={label}>
-                        <b>{figure}</b> {label}
+                        <b>{figure}</b>
+                        {star && (
+                          <i className="pf-rev-star" aria-hidden="true">
+                            ★
+                          </i>
+                        )}{" "}
+                        {label}
                       </li>
                     ))}
                   </ul>

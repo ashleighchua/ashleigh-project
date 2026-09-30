@@ -891,6 +891,12 @@ body {
   font-weight: 700;
   color: var(--rc-fg);
 }
+.pf-rev-star {
+  margin-left: 3px;
+  font-size: 13px;
+  font-style: normal;
+  color: var(--rc-num);
+}
 .pf-rev-marquee {
   overflow: hidden;
   /* fade the two ends, so cards arrive and leave rather than being cut off */

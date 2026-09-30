@@ -1635,36 +1635,13 @@ const perfD = (w: number, h: number, r: number, gap: number) => {
   return d + "Z";
 };
 
-/** The stamp on the back: perforated, a solid vignette, and a small motif so no two
- *  cards carry quite the same stamp. */
-export function Stamp({
-  tone,
-  ink,
-  motif,
-  value,
-}: {
-  tone: string;
-  ink: string;
-  motif: number;
-  value: string;
-}) {
-  const motifs = [
-    <path key="star" d={starD(50, 44, 19, 5)} fill={ink} />,
-    <g key="disc" fill="none" stroke={ink} strokeWidth={4}>
-      <circle cx={50} cy={44} r={17} />
-      <circle cx={50} cy={44} r={8} />
-    </g>,
-    <path key="arch" d="M31 62 V44a19 19 0 0 1 38 0v18Z" fill={ink} />,
-    <g key="lines" fill="none" stroke={ink} strokeWidth={4.5} strokeLinecap="round">
-      <path d="M32 54q9-11 18 0t18 0" />
-      <path d="M32 40q9-11 18 0t18 0" />
-    </g>,
-  ];
+/** The stamp on the back: perforated edge, a plain block of the place's colour, and
+ *  a face value, so no two cards carry quite the same stamp. */
+export function Stamp({ tone, value }: { tone: string; value: string }) {
   return (
     <svg viewBox="0 0 100 124" className="pf-k-stamp-svg" aria-hidden="true">
       <path d={perfD(100, 124, 4.2, 13)} fill="#fffdf5" />
       <rect x={13} y={13} width={74} height={62} rx={2} fill={tone} />
-      {motifs[motif % motifs.length]}
       <text
         x={50}
         y={92}

@@ -820,8 +820,6 @@ export function Kitchen() {
                       <i className="pf-k-pb-stamp">
                         <Stamp
                           tone={place.bg}
-                          ink={place.ink}
-                          motif={placeIdx}
                           value={STAMP_VALUES[placeIdx % STAMP_VALUES.length] ?? "20"}
                         />
                       </i>
@@ -829,7 +827,12 @@ export function Kitchen() {
                       <i className="pf-k-pb-split" />
                       <i className="pf-k-pb-address" />
                       <i className="pf-k-pb-note">{place.line}</i>
-                      {place.line && <b className="pf-k-pb-sign">— Ashleigh</b>}
+                      {place.line && (
+                        <b className="pf-k-pb-sign">
+                          love always,
+                          <span>Ashleigh</span>
+                        </b>
+                      )}
                     </span>
                   </button>
                 </div>

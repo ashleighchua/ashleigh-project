@@ -328,11 +328,11 @@ export const PIPELINE = [
  * ellipsis shows, never reworded. `stars` is the rating that buyer left, so a part
  * rating (heyhelena's 4.3) shows as a part-filled star rather than being rounded up. */
 
-/** the figures above the reviews, each set as its own chip */
-export const LUNAR_STATS: [figure: string, label: string][] = [
+/** the figures above the reviews, each set as its own chip; the last wears a star */
+export const LUNAR_STATS: [figure: string, label: string, star?: true][] = [
   ["100+", "orders"],
   ["12", "countries"],
-  ["4.8", "average"],
+  ["4.8", "average", true],
 ];
 
 export const LUNAR_REVIEWS: {

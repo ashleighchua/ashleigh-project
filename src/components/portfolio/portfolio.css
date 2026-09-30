@@ -869,21 +869,64 @@ body {
   flex-direction: column;
   gap: 16px;
 }
+/* Each review is printed on a till receipt: thermal paper, monospace ink, torn
+   zigzag edges. The paper keeps its own colours whatever card it sits on. */
+.pf-rev-stack {
+  display: grid;
+  max-width: 440px;
+  filter: drop-shadow(0 6px 14px rgb(40 30 20 / 0.14));
+}
 .pf-rev-card {
+  --paper: #fdfbf5;
+  --ink: #2b2723;
+  --ink-soft: #7a7168;
+  --z: 7px;
+  grid-area: 1 / 1;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 20px 22px;
-  border-radius: 24px;
-  background: var(--rc-chip);
-  min-height: 140px;
+  gap: 14px;
+  padding: calc(var(--z) + 18px) 24px calc(var(--z) + 18px);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  -webkit-mask:
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--z)) 51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--z)) 51% repeat-x;
+  mask:
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--z)) 51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--z)) 51% repeat-x;
+}
+.pf-rev-card[data-on="false"] {
+  visibility: hidden;
+}
+.pf-rc-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--ink-soft);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.pf-rc-top b {
+  font-size: 13px;
+}
+.pf-rc-top span {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.pf-rev-card .pf-stars {
+  align-self: center;
 }
 .pf-rev-card blockquote {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--rc-muted);
+  font-size: 13px;
+  color: var(--ink);
   text-wrap: pretty;
 }
 .pf-rev-card blockquote::before {
@@ -894,18 +937,56 @@ body {
 }
 .pf-rev-card figcaption {
   margin-top: auto;
-  padding-top: 2px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--rc-fg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
 }
-.pf-rev-card figcaption span {
-  font-weight: 500;
-  color: var(--rc-muted);
+.pf-rc-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--ink-soft);
 }
-.pf-rev-card figcaption span::before {
-  content: "\00b7\00a0";
+/* dot leaders between the label and the value, like a till's line items */
+.pf-rc-row::after {
+  content: "";
+  order: 1;
+  flex: 1;
+  border-bottom: 1px dotted var(--ink-soft);
+}
+.pf-rc-row b {
+  order: 2;
+  color: var(--ink);
+}
+.pf-rc-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.pf-rc-bars {
+  width: 70%;
+  height: 34px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0 2px,
+    transparent 2px 4px,
+    var(--ink) 4px 5px,
+    transparent 5px 8px,
+    var(--ink) 8px 11px,
+    transparent 11px 12px,
+    var(--ink) 12px 13px,
+    transparent 13px 17px
+  );
 }
 .pf-rev-nav {
   display: flex;

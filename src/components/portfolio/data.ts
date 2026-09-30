@@ -385,6 +385,15 @@ export const LUNAR_REVIEWS: {
   },
 ];
 
+/* Hannah's review of the build, as she wrote it. No star rating: she didn't leave one. */
+export const HANNAH_REVIEWS: { quote: string; by: string; where?: string; stars?: number }[] = [
+  "You are excellent at understanding the desired outcome and then working backward to execute.",
+  "You are fastttttt.",
+  "Feels like you are on my team. Like not just a paid product, I feel like you genuinely care about it.",
+  "You went above and beyond in the last 24hrs to make sure it was perfect.",
+  "I was so happy I didn’t feel the quote matched the level that was delivered so I overpaid you.",
+].map((quote) => ({ quote, by: "Hannah Jackson" }));
+
 /* ── Playground ── */
 
 export const PLAY: {

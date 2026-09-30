@@ -166,20 +166,9 @@
   height: 2cqw;
 }
 
-/* plain glazed square tiles, grouted, with a checker behind */
+/* plain wall behind the counter */
 .pf-k-tiles {
-  box-sizing: border-box;
-  border-top: 0.5cqw solid var(--color-accent-2-500);
-  background:
-    linear-gradient(90deg, var(--color-neutral-300) 0.09cqw, transparent 0.09cqw) 0 0 / 2cqw 2cqw,
-    linear-gradient(var(--color-neutral-300) 0.09cqw, transparent 0.09cqw) 0 0 / 2cqw 2cqw,
-    conic-gradient(
-        var(--color-accent-2-200) 25%,
-        var(--color-neutral-100) 0 50%,
-        var(--color-accent-2-200) 0 75%,
-        var(--color-neutral-100) 0
-      )
-      0 0 / 4cqw 4cqw;
+  background: var(--color-surface);
 }
 .pf-k-scene--wide .pf-k-tiles {
   left: 28cqw;

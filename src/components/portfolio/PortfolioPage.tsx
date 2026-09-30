@@ -8,12 +8,14 @@ import hjAdmin from "@/assets/hj-admin.jpg";
 import { LunarPipeline, MoonMark, SceneArt, StickerFace, TableObject, type Look } from "./art";
 import { CatSvg, type CatRefs } from "./cat";
 import { GrowingStats } from "./GrowingStats";
-import { BeforeYouGo } from "./table";
+import { Kitchen } from "./Kitchen";
 import {
   COL,
   DSP,
   HISS,
   LINKS,
+  LUNAR_STATS,
+  LUNAR_REVIEWS,
   MEOWS,
   MSP,
   OBJ,
@@ -90,6 +92,19 @@ function Wordmark() {
     <span className="pf-wordmark" role="img" aria-label="Ashleigh Chua">
       Ashleigh <span className="pf-moon" />
       hua
+    </span>
+  );
+}
+
+/** A star rating out of five. The filled row is clipped to the score, so 4.3 reads as
+ *  four stars and a bit rather than being rounded up to five. */
+function Stars({ n }: { n: number }) {
+  return (
+    <span className="pf-stars" role="img" aria-label={`${n} out of 5 stars`}>
+      <span className="pf-stars-on" style={{ width: `${(n / 5) * 100}%` }}>
+        ★★★★★
+      </span>
+      ★★★★★
     </span>
   );
 }
@@ -825,6 +840,12 @@ export function PortfolioPage() {
               <p className="pf-rcard-mine">
                 <b>My part:</b> {r.mine}
               </p>
+              {r.quote && (
+                <figure className="pf-rcard-quote">
+                  <blockquote>{r.quote}</blockquote>
+                  <figcaption>{r.quoteBy}</figcaption>
+                </figure>
+              )}
               <a
                 href={r.href}
                 target="_blank"
@@ -931,19 +952,52 @@ export function PortfolioPage() {
                         <span className="pf-pipe-dot">
                           {state === "done" ? <Check size={14} strokeWidth={3} /> : j + 1}
                         </span>
-                        <div>
-                          <b>{st.h}</b>
-                          <span>{st.b}</span>
-                        </div>
+                        <b>{st.h}</b>
                       </li>
                     );
                   })}
                 </ol>
+                {/* the detail that used to sit under all four steps at once, shown
+                    one at a time for whichever step is running */}
                 <p className="pf-pipe-foot" aria-live="polite">
-                  {lunar >= PIPELINE.length
-                    ? "Four steps. Fully handled."
-                    : "A replay of what happens with every real order."}
+                  {lunar >= 0 && lunar < PIPELINE.length
+                    ? PIPELINE[lunar]?.b
+                    : lunar >= PIPELINE.length
+                      ? "Four steps. Fully handled."
+                      : "A replay of what happens with every real order."}
                 </p>
+              </div>
+            )}
+            {/* the buyers' own words, under the whole card: what it was and what they got */}
+            {r.id === "lunar" && (
+              <div className="pf-rev">
+                <div className="pf-rev-head">
+                  <h4>What buyers said, on Fiverr</h4>
+                  <ul className="pf-rev-stats">
+                    {LUNAR_STATS.map(([figure, label]) => (
+                      <li key={label}>
+                        <b>{figure}</b> {label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {/* a strip that rolls on its own; the second copy is what makes the
+                    loop seamless, so it is hidden from screen readers */}
+                <div className="pf-rev-marquee">
+                  <ul className="pf-rev-list" aria-label="What buyers said">
+                    {[...LUNAR_REVIEWS, ...LUNAR_REVIEWS].map((v, i) => (
+                      <li key={i} aria-hidden={i >= LUNAR_REVIEWS.length || undefined}>
+                        <figure>
+                          <Stars n={v.stars} />
+                          <blockquote>{v.quote}</blockquote>
+                          <figcaption>
+                            {v.by} <span>{v.where}</span>
+                          </figcaption>
+                        </figure>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             )}
           </article>
@@ -1019,7 +1073,7 @@ export function PortfolioPage() {
         </div>
       </section>
 
-      <BeforeYouGo />
+      <Kitchen />
 
       {/* ═════ Contact ═════ */}
       <section className="pf-contact" id="contact">

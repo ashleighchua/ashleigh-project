@@ -3,6 +3,7 @@
  * they turn into, and the little scenes on the timeline cards.
  */
 import type { ReactNode } from "react";
+import type { FlagCode } from "./data";
 import { COL, OBJ, SH, STK, type ObjKey, type Scene, type StickerKind } from "./data";
 
 export type Look = { c: number; s: number };
@@ -513,34 +514,55 @@ function objectKids(kind: ObjKey): ReactNode {
           ))}
         </>
       );
+    /* Twelve spreadsheets, filed into one thing you can actually open: a ring
+       binder with the messy sheets tabbed and tucked inside it. */
     case "notes": {
-      const cols = [
-        "var(--color-accent-200)",
-        "var(--color-accent-2-200)",
-        "var(--color-neutral-200)",
+      const tabs = [
+        "var(--color-accent-400)",
+        "var(--color-accent-2-400)",
         "var(--color-accent-300)",
+        "var(--color-accent-2-300)",
       ];
-      const notes = [];
-      for (let r = 0; r < 3; r++)
-        for (let q = 0; q < 4; q++)
-          notes.push(
-            <rect
-              key={`${r}-${q}`}
-              x={4 + q * 31}
-              y={4 + r * 32}
-              width={28}
-              height={28}
-              rx={4}
-              fill={cols[(r + q) % 4]}
-              transform={`rotate(${((r * 4 + q) % 3) * 4 - 4} ${18 + q * 31} ${18 + r * 32})`}
-            />,
-          );
       return (
         <>
-          {notes}
-          <rect x={30} y={30} width={70} height={44} rx={8} fill={N1} stroke={N3} strokeWidth={2} />
+          {/* the loose sheets, poking out of the back */}
+          <rect
+            x={30}
+            y={8}
+            width={92}
+            height={80}
+            rx={4}
+            fill={N1}
+            stroke={N3}
+            strokeWidth={2}
+            transform="rotate(-4 76 48)"
+          />
+          <rect
+            x={32}
+            y={12}
+            width={92}
+            height={80}
+            rx={4}
+            fill={N1}
+            stroke={N3}
+            strokeWidth={2}
+            transform="rotate(3 78 52)"
+          />
+          {/* the tabbed dividers down the right edge */}
+          {tabs.map((c, i) => (
+            <rect key={c} x={110} y={20 + i * 17} width={18} height={13} rx={3} fill={c} />
+          ))}
+          {/* the cover */}
+          <rect x={16} y={10} width={94} height={86} rx={7} fill="var(--color-accent-2-600)" />
+          <rect x={16} y={10} width={20} height={86} rx={7} fill="var(--color-accent-2-700)" />
+          {/* the rings on the spine */}
+          {[26, 48, 70].map((cy) => (
+            <circle key={cy} cx={26} cy={cy + 6} r={6} fill="none" stroke={N3} strokeWidth={3} />
+          ))}
+          {/* the label on the cover */}
+          <rect x={40} y={38} width={66} height={28} rx={5} fill={N1} />
           <text
-            x={65}
+            x={73}
             y={52}
             textAnchor="middle"
             dominantBaseline="central"
@@ -552,6 +574,51 @@ function objectKids(kind: ObjKey): ReactNode {
         </>
       );
     }
+    /* a little something on the table, because four settings and no cake is sad */
+    case "cake":
+      return (
+        <>
+          {/* the paper case, pleated */}
+          <path
+            d="M20 38 H72 L64 84 Q63 90 56 90 H36 Q29 90 28 84 Z"
+            fill="var(--color-accent-300)"
+            stroke="var(--color-accent-600)"
+            strokeWidth={2.5}
+            strokeLinejoin="round"
+          />
+          <path
+            d="M34 40 L39 88 M46 40 L46 90 M58 40 L53 88"
+            stroke="var(--color-accent-500)"
+            strokeWidth={2.5}
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* the cream, swirled */}
+          <path
+            d="M14 40 Q12 22 30 22 Q33 10 46 10 Q59 10 62 22 Q80 22 78 40 Z"
+            fill={N1}
+            stroke={N3}
+            strokeWidth={2.5}
+            strokeLinejoin="round"
+          />
+          <path
+            d="M22 34 Q32 25 46 27"
+            stroke={N3}
+            strokeWidth={2}
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* the strawberry, sitting in it */}
+          <path
+            d="M46 4 Q60 5 60 16 Q60 28 46 33 Q32 28 32 16 Q32 5 46 4 Z"
+            fill="var(--color-accent-600)"
+          />
+          <path d="M38 6 L46 10 L54 6 L46 1 Z" fill="var(--color-accent-2-600)" />
+          <circle cx={42} cy={14} r={1.6} fill={N1} />
+          <circle cx={50} cy={17} r={1.6} fill={N1} />
+          <circle cx={46} cy={24} r={1.6} fill={N1} />
+        </>
+      );
     case "jar":
       return (
         <>
@@ -1208,6 +1275,30 @@ export function TableSticker({ kind, size }: { kind: StickerKind; size: number }
         </>
       );
       break;
+    case "yay":
+      body = (
+        <>
+          <path d={burstD(50, 50, 48, 23, 5)} fill="var(--color-accent-400)" {...cut} />
+          <StickerWords lines={["YAY"]} y={52} size={20} fill="var(--color-text)" />
+        </>
+      );
+      break;
+    case "thanks":
+      body = (
+        <>
+          <circle cx={50} cy={50} r={44} fill={N1} {...cut} />
+          <circle
+            cx={50}
+            cy={50}
+            r={37}
+            fill="none"
+            stroke="var(--color-accent-500)"
+            strokeWidth={3}
+          />
+          <StickerWords lines={["THANK", "YOU"]} y={51} size={17} fill="var(--color-accent-600)" />
+        </>
+      );
+      break;
   }
   return (
     <svg
@@ -1218,50 +1309,6 @@ export function TableSticker({ kind, size }: { kind: StickerKind; size: number }
       aria-hidden="true"
     >
       {body}
-    </svg>
-  );
-}
-
-/* ═════ Kitchen: the one postcard with no photo, shown written side up ═════ */
-
-export function PostcardBack() {
-  const N3 = "var(--color-neutral-300)";
-  const N5 = "var(--color-neutral-500)";
-  return (
-    <svg viewBox="0 0 160 116" className="pf-card-art" aria-hidden="true">
-      <rect width={160} height={116} fill="var(--color-neutral-100)" />
-      <line x1={84} y1={12} x2={84} y2={104} stroke={N3} strokeWidth={2} />
-      {/* the stamp, and the postmark rings over it */}
-      <rect x={112} y={12} width={34} height={40} rx={2} fill="var(--color-accent-200)" />
-      <rect
-        x={112}
-        y={12}
-        width={34}
-        height={40}
-        rx={2}
-        fill="none"
-        stroke={N3}
-        strokeWidth={2}
-        strokeDasharray="3 2"
-      />
-      <path d="M118 44L127 30L133 38L138 32L142 44Z" fill="var(--color-accent-600)" />
-      <g fill="none" stroke={N5} strokeWidth={1.6} opacity={0.75}>
-        <circle cx={104} cy={34} r={15} />
-        <circle cx={104} cy={34} r={10} />
-      </g>
-      {/* the message side: a few ruled lines of handwriting */}
-      <g stroke={N3} strokeWidth={2.4} strokeLinecap="round">
-        <line x1={14} y1={28} x2={68} y2={28} />
-        <line x1={14} y1={44} x2={72} y2={44} />
-        <line x1={14} y1={60} x2={60} y2={60} />
-        <line x1={14} y1={76} x2={70} y2={76} />
-        <line x1={14} y1={92} x2={44} y2={92} />
-      </g>
-      <g stroke={N5} strokeWidth={2} strokeLinecap="round">
-        <line x1={100} y1={70} x2={146} y2={70} />
-        <line x1={100} y1={84} x2={146} y2={84} />
-        <line x1={100} y1={98} x2={146} y2={98} />
-      </g>
     </svg>
   );
 }
@@ -1363,8 +1410,14 @@ export function LunarPipeline({ step }: { step: number }) {
   const trackW = xs[3]! - xs[0]!;
   const fillW = (doneFrac / 4) * trackW;
 
+  /* The viewBox is cropped to the band the stations actually occupy (r22 around
+     y45), so the panel is not mostly empty dark space above and below them. */
   return (
-    <svg viewBox="0 0 300 90" className={`pf-pipe-map${step >= 0 ? " on" : ""}`} aria-hidden="true">
+    <svg
+      viewBox="0 20 300 50"
+      className={`pf-pipe-map${step >= 0 ? " on" : ""}`}
+      aria-hidden="true"
+    >
       <line x1={xs[0]} y1={45} x2={xs[3]} y2={45} className="lp-track" />
       <rect x={xs[0]} y={43} width={fillW} height={4} rx={2} className="lp-progress" />
       {(["order", "chart", "reading", "pdf"] as const).map((kind, i) => {
@@ -1381,6 +1434,255 @@ export function LunarPipeline({ step }: { step: number }) {
           </g>
         );
       })}
+    </svg>
+  );
+}
+
+/* ═════ Flags, drawn properly, for the stamp on each postcard ═════ */
+
+/** How far to turn a star so its top point aims at (tx, ty). */
+const aimAt = (cx: number, cy: number, tx: number, ty: number) =>
+  Math.atan2(ty - cy, tx - cx) + Math.PI / 2;
+
+/** An n-pointed star as a path, first point straight up unless turned. */
+const starD = (cx: number, cy: number, R: number, n = 5, inner = 0.382, turn = 0) => {
+  let d = "";
+  for (let i = 0; i < n * 2; i++) {
+    const a = (i / (n * 2)) * Math.PI * 2 - Math.PI / 2 + turn;
+    const r = i % 2 ? R * inner : R;
+    d +=
+      (i ? "L" : "M") + (cx + r * Math.cos(a)).toFixed(2) + " " + (cy + r * Math.sin(a)).toFixed(2);
+  }
+  return d + "Z";
+};
+
+/** A crescent: the part of one disc left uncovered by a second, offset to the right.
+ *  Traced as a single outline through the two points where the discs cross — two
+ *  circles with even-odd fill leave the cutting disc's own lump behind instead. */
+const crescent = (cx: number, cy: number, r: number, dx: number, cut: number) => {
+  const x = (dx * dx + r * r - cut * cut) / (2 * dx);
+  const y = Math.sqrt(Math.max(0, r * r - x * x));
+  const p1 = `${(cx + x).toFixed(2)} ${(cy - y).toFixed(2)}`;
+  const p2 = `${(cx + x).toFixed(2)} ${(cy + y).toFixed(2)}`;
+  return `M${p1}A${r} ${r} 0 1 0 ${p2}A${cut} ${cut} 0 1 1 ${p1}Z`;
+};
+
+/** The Union Flag, drawn into a w×h box at (x, y) — Australia reuses it as its canton. */
+function UnionJack({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+  const id = `uj${x}-${y}-${w}`;
+  return (
+    <g>
+      <clipPath id={id}>
+        <rect x={x} y={y} width={w} height={h} />
+      </clipPath>
+      <g clipPath={`url(#${id})`}>
+        <rect x={x} y={y} width={w} height={h} fill="#012169" />
+        {/* the saltires: white first, then the narrower red over them */}
+        <g stroke="#f7f7f7" strokeWidth={h * 0.2}>
+          <line x1={x} y1={y} x2={x + w} y2={y + h} />
+          <line x1={x + w} y1={y} x2={x} y2={y + h} />
+        </g>
+        <g stroke="#c8102e" strokeWidth={h * 0.085}>
+          <line x1={x} y1={y} x2={x + w} y2={y + h} />
+          <line x1={x + w} y1={y} x2={x} y2={y + h} />
+        </g>
+        {/* then the upright cross, which sits over both */}
+        <g stroke="#f7f7f7" strokeWidth={h * 0.29}>
+          <line x1={x + w / 2} y1={y} x2={x + w / 2} y2={y + h} />
+          <line x1={x} y1={y + h / 2} x2={x + w} y2={y + h / 2} />
+        </g>
+        <g stroke="#c8102e" strokeWidth={h * 0.17}>
+          <line x1={x + w / 2} y1={y} x2={x + w / 2} y2={y + h} />
+          <line x1={x} y1={y + h / 2} x2={x + w} y2={y + h / 2} />
+        </g>
+      </g>
+    </g>
+  );
+}
+
+/** Each flag on a 60 × 40 field. */
+export function Flag({ code }: { code: FlagCode }) {
+  switch (code) {
+    case "th":
+      return (
+        <>
+          <rect width={60} height={40} fill="#f4f5f8" />
+          <rect width={60} height={6.67} fill="#a51931" />
+          <rect y={33.33} width={60} height={6.67} fill="#a51931" />
+          <rect y={13.33} width={60} height={13.34} fill="#2d2a4a" />
+        </>
+      );
+    case "cn":
+      return (
+        <>
+          <rect width={60} height={40} fill="#de2910" />
+          <path d={starD(12, 10, 6)} fill="#ffde00" />
+          {/* the four small stars each point at the big one */}
+          {(
+            [
+              [22, 4],
+              [26, 8.5],
+              [26, 14.5],
+              [22, 19],
+            ] as const
+          ).map(([cx, cy]) => (
+            <path
+              key={cx + cy}
+              d={starD(cx, cy, 2, 5, 0.382, aimAt(cx, cy, 12, 10))}
+              fill="#ffde00"
+            />
+          ))}
+        </>
+      );
+    case "sg":
+      return (
+        <>
+          <rect width={60} height={40} fill="#f7f7f7" />
+          <rect width={60} height={20} fill="#ed2939" />
+          <path d={crescent(13, 10, 7.6, 3.6, 6.9)} fill="#f7f7f7" />
+          {(
+            [
+              [21.6, 5.4],
+              [26.4, 8.9],
+              [24.6, 14.6],
+              [18.6, 14.6],
+              [16.8, 8.9],
+            ] as const
+          ).map(([cx, cy]) => (
+            <path key={cx} d={starD(cx, cy, 2.4)} fill="#f7f7f7" />
+          ))}
+        </>
+      );
+    case "jp":
+      return (
+        <>
+          <rect width={60} height={40} fill="#f7f7f7" />
+          <circle cx={30} cy={20} r={12} fill="#bc002d" />
+        </>
+      );
+    case "vn":
+      return (
+        <>
+          <rect width={60} height={40} fill="#da251d" />
+          <path d={starD(30, 20, 12)} fill="#ffff00" />
+        </>
+      );
+    case "my":
+      return (
+        <>
+          <rect width={60} height={40} fill="#f7f7f7" />
+          {[0, 2, 4, 6, 8, 10, 12].map((i) => (
+            <rect key={i} y={(i * 40) / 14} width={60} height={40 / 14} fill="#cc0001" />
+          ))}
+          <rect width={30} height={(8 * 40) / 14} fill="#010066" />
+          <path d={crescent(11, 11.4, 6.8, 3.2, 6.2)} fill="#ffcc00" />
+          <path d={starD(20.5, 11.4, 5.6, 14, 0.58)} fill="#ffcc00" />
+        </>
+      );
+    case "es":
+      return (
+        <>
+          <rect width={60} height={40} fill="#aa151b" />
+          <rect y={10} width={60} height={20} fill="#f1bf00" />
+        </>
+      );
+    case "be":
+      return (
+        <>
+          <rect width={20} height={40} fill="#2d2926" />
+          <rect x={20} width={20} height={40} fill="#fae042" />
+          <rect x={40} width={20} height={40} fill="#ed2939" />
+        </>
+      );
+    case "gb":
+      return <UnionJack x={0} y={0} w={60} h={40} />;
+    case "au":
+      return (
+        <>
+          <rect width={60} height={40} fill="#012169" />
+          <UnionJack x={0} y={0} w={30} h={20} />
+          <path d={starD(15, 30, 5, 7, 0.46)} fill="#f7f7f7" />
+          {/* the Southern Cross */}
+          <path d={starD(45, 8, 3, 7, 0.46)} fill="#f7f7f7" />
+          <path d={starD(38, 20, 3, 7, 0.46)} fill="#f7f7f7" />
+          <path d={starD(52, 21, 3, 7, 0.46)} fill="#f7f7f7" />
+          <path d={starD(45, 33, 3, 7, 0.46)} fill="#f7f7f7" />
+          <path d={starD(47.5, 16, 1.7, 5, 0.46)} fill="#f7f7f7" />
+        </>
+      );
+  }
+}
+
+/* ═════ A postage stamp: perforated edge, white margin, the flag as its picture ═════ */
+
+/** The outline of a stamp: a rectangle with half-round bites taken out of every edge. */
+const perfD = (w: number, h: number, r: number, gap: number) => {
+  const run = (len: number) => {
+    const n = Math.max(2, Math.round(len / gap));
+    return Array.from({ length: n }, (_, i) => ((i + 0.5) * len) / n);
+  };
+  let d = `M0 0`;
+  for (const t of run(w)) d += `L${(t - r).toFixed(2)} 0A${r} ${r} 0 0 0 ${(t + r).toFixed(2)} 0`;
+  d += `L${w} 0`;
+  for (const t of run(h))
+    d += `L${w} ${(t - r).toFixed(2)}A${r} ${r} 0 0 0 ${w} ${(t + r).toFixed(2)}`;
+  d += `L${w} ${h}`;
+  for (const t of run(w))
+    d += `L${(w - t + r).toFixed(2)} ${h}A${r} ${r} 0 0 0 ${(w - t - r).toFixed(2)} ${h}`;
+  d += `L0 ${h}`;
+  for (const t of run(h))
+    d += `L0 ${(h - t + r).toFixed(2)}A${r} ${r} 0 0 0 0 ${(h - t - r).toFixed(2)}`;
+  return d + "Z";
+};
+
+/** The stamp on the back: perforated, a solid vignette, and a small motif so no two
+ *  cards carry quite the same stamp. */
+export function Stamp({
+  tone,
+  ink,
+  motif,
+  value,
+}: {
+  tone: string;
+  ink: string;
+  motif: number;
+  value: string;
+}) {
+  const motifs = [
+    <path key="star" d={starD(50, 44, 19, 5)} fill={ink} />,
+    <g key="disc" fill="none" stroke={ink} strokeWidth={4}>
+      <circle cx={50} cy={44} r={17} />
+      <circle cx={50} cy={44} r={8} />
+    </g>,
+    <path key="arch" d="M31 62 V44a19 19 0 0 1 38 0v18Z" fill={ink} />,
+    <g key="lines" fill="none" stroke={ink} strokeWidth={4.5} strokeLinecap="round">
+      <path d="M32 54q9-11 18 0t18 0" />
+      <path d="M32 40q9-11 18 0t18 0" />
+    </g>,
+  ];
+  return (
+    <svg viewBox="0 0 100 124" className="pf-k-stamp-svg" aria-hidden="true">
+      <path d={perfD(100, 124, 4.2, 13)} fill="#fffdf5" />
+      <rect x={13} y={13} width={74} height={62} rx={2} fill={tone} />
+      {motifs[motif % motifs.length]}
+      <text
+        x={50}
+        y={92}
+        textAnchor="middle"
+        fill="#6f6754"
+        style={{ fontFamily: HEADING, fontSize: 11, letterSpacing: 1.4 }}
+      >
+        POSTAGE
+      </text>
+      <text
+        x={50}
+        y={112}
+        textAnchor="middle"
+        fill="#3f3a30"
+        style={{ fontFamily: HEADING, fontSize: 17, fontWeight: 700 }}
+      >
+        {value}
+      </text>
     </svg>
   );
 }

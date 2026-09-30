@@ -1,5 +1,5 @@
 /*
- * POST /api/sticker: a visitor left a sticker (and maybe a note) on the table.
+ * POST /api/sticker: a visitor left a sticker, a note, or both on the fridge door.
  * Emails it to Ashleigh through Resend. The browser only ever talks to this site,
  * so ad blockers and filtered networks can't stop it.
  */
@@ -33,9 +33,11 @@ export const Route = createFileRoute("/api/sticker")({
         // bots fill the hidden field; tell them it worked and send nothing
         if (str(body.honey, 200)) return json({ ok: true });
         const sticker = TABLE_STICKERS.find((t) => t.kind === body.kind);
-        if (!sticker) return json({ ok: false, error: "pick a sticker" }, 400);
         const name = str(body.name, 80);
         const note = str(body.note, 600);
+        // a sticker, a note, or both — but not an empty envelope
+        if (!sticker && !note)
+          return json({ ok: false, error: "pick a sticker or write a note" }, 400);
 
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -43,8 +45,10 @@ export const Route = createFileRoute("/api/sticker")({
           body: JSON.stringify({
             from: process.env["STICKER_FROM"] ?? "Portfolio table <onboarding@resend.dev>",
             to: [process.env["STICKER_TO"] ?? LINKS.email],
-            subject: `${name || "Someone"} left you a “${sticker.label}” sticker`,
-            html: `<p><b>Sticker:</b> ${esc(sticker.label)}</p><p><b>From:</b> ${esc(name || "Anonymous")}</p><p><b>Note:</b><br>${note ? esc(note) : "<i>No note, just the sticker.</i>"}</p>`,
+            subject: sticker
+              ? `${name || "Someone"} left you a “${sticker.label}” sticker`
+              : `${name || "Someone"} left you a note`,
+            html: `<p><b>Sticker:</b> ${sticker ? esc(sticker.label) : "<i>None, just a note.</i>"}</p><p><b>From:</b> ${esc(name || "Anonymous")}</p><p><b>Note:</b><br>${note ? esc(note) : "<i>No note, just the sticker.</i>"}</p>`,
           }),
         });
         if (!res.ok) {

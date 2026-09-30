@@ -18,7 +18,7 @@ type Stat = {
 const STATS: Stat[] = [
   {
     target: 4,
-    fmt: (v) => `${v} mo`,
+    fmt: (v) => `${v} month${v === 1 ? "" : "s"}`,
     caption: "from virtual assistant to cofounder",
     href: "#schooltrips",
     tone: "accent",

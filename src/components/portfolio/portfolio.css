@@ -43,6 +43,12 @@
 
   --font-heading: "Fraunces", Georgia, serif;
   --font-body: "Figtree", system-ui, sans-serif;
+  /* only for the signature on the back of a postcard */
+  --font-script: "Dancing Script", "Snell Roundhand", cursive;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
 
   --shadow-sm: 0 1px 2px color-mix(in srgb, #2e2b25 14%, transparent);
   --shadow-md: 0 3px 10px color-mix(in srgb, #2e2b25 16%, transparent);
@@ -672,20 +678,20 @@ body {
   gap: 20px;
 }
 .pf-receipts-head,
-.pf-bye-head {
+.pf-kitchen-head {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin: 0 6px var(--head-gap);
 }
 .pf-receipts-head h2,
-.pf-bye-head h2 {
+.pf-kitchen-head h2 {
   font-size: clamp(40px, 4.4vw, 48px);
   line-height: 1;
   letter-spacing: -0.03em;
 }
 .pf-receipts-head p,
-.pf-bye-head p {
+.pf-kitchen-head p {
   font-size: 17px;
   color: var(--color-neutral-700);
 }
@@ -779,6 +785,192 @@ body {
 .pf-rcard-mine b {
   color: var(--rc-fg);
 }
+/* what the person it was built for said about it, in the card's own ink */
+.pf-rcard-quote {
+  margin: 0;
+  padding-left: 18px;
+  border-left: 3px solid var(--rc-num);
+}
+.pf-rcard-quote blockquote {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(17px, 1.7vw, 21px);
+  line-height: 1.35;
+  color: var(--rc-fg);
+  text-wrap: pretty;
+}
+.pf-rcard-quote blockquote::before {
+  content: "\201C";
+}
+.pf-rcard-quote blockquote::after {
+  content: "\201D";
+}
+.pf-rcard-quote figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--rc-muted);
+}
+.pf-rcard-quote figcaption::before {
+  content: "\2014\00a0";
+}
+/* Star rating. Both rows are the same five glyphs; the filled one sits on top and is
+   clipped to the score, which is how a part rating (4.3) keeps its part star. */
+.pf-stars {
+  position: relative;
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 2px;
+  color: color-mix(in srgb, var(--rc-fg) 22%, transparent);
+}
+.pf-stars-on {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--color-accent-600);
+}
+
+/* The buyers' reviews, across the foot of the Lunar card: what the listing was,
+   then the words themselves. The first one runs the full width. */
+.pf-rev {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: clamp(20px, 2.4vw, 30px);
+  border-top: 1px solid var(--rc-line);
+}
+.pf-rev-note {
+  max-width: 76ch;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--rc-muted);
+  text-wrap: pretty;
+}
+/* The reviews roll past on their own. The list is rendered twice, so when the
+   animation has moved exactly one copy along it is back where it started and the
+   loop is invisible. */
+.pf-rev-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px 24px;
+}
+.pf-rev-head h4 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(19px, 1.8vw, 23px);
+  font-weight: 400;
+  color: var(--rc-fg);
+}
+.pf-rev-stats {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pf-rev-stats li {
+  padding: 5px 13px;
+  border-radius: 999px;
+  background: var(--rc-chip);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rc-muted);
+  white-space: nowrap;
+}
+.pf-rev-stats b {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rc-fg);
+}
+.pf-rev-marquee {
+  overflow: hidden;
+  /* fade the two ends, so cards arrive and leave rather than being cut off */
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.pf-rev-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: max-content;
+  animation: pf-rev-roll 70s linear infinite;
+}
+/* half the width, less half a gap, is exactly one copy of the list */
+@keyframes pf-rev-roll {
+  to {
+    transform: translateX(calc(-50% - 6px));
+  }
+}
+.pf-rev-marquee:hover .pf-rev-list,
+.pf-rev-marquee:focus-within .pf-rev-list {
+  animation-play-state: paused;
+}
+.pf-rev-list li {
+  flex: 0 0 clamp(250px, 26vw, 330px);
+  /* a floor, so the shortest review is not a stub next to the longest */
+  min-height: 160px;
+  display: flex;
+  padding: 20px 22px;
+  border-radius: 24px;
+  background: var(--rc-chip);
+  box-sizing: border-box;
+}
+.pf-rev-list figure {
+  margin: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pf-rev-list blockquote {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--rc-muted);
+  text-wrap: pretty;
+}
+.pf-rev-list blockquote::before {
+  content: "\201C";
+}
+.pf-rev-list blockquote::after {
+  content: "\201D";
+}
+.pf-rev-list figcaption {
+  margin-top: auto;
+  padding-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--rc-fg);
+}
+.pf-rev-list figcaption span {
+  font-weight: 500;
+  color: var(--rc-muted);
+}
+.pf-rev-list figcaption span::before {
+  content: "\00b7\00a0";
+}
+/* nothing moving on its own: the strip becomes one you scroll yourself */
+@media (prefers-reduced-motion: reduce) {
+  .pf-rev-marquee {
+    overflow-x: auto;
+  }
+  .pf-rev-list {
+    animation: none;
+  }
+}
+
 /* SchoolTrips */
 
 .pf .pf-btn-lg {
@@ -923,12 +1115,12 @@ body {
   background: var(--color-neutral-900);
   color: var(--color-neutral-100);
   border-radius: 28px;
-  padding: clamp(18px, 2.2vw, 26px);
+  padding: clamp(16px, 1.8vw, 22px);
   box-shadow: var(--shadow-lg);
   transform: rotate(1.2deg);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 11px;
 }
 .pf-pipe-head {
   display: flex;
@@ -1076,20 +1268,23 @@ body {
 .lp-station[data-state="done"] .lp-check {
   opacity: 1;
 }
+/* One row of four. The per-step detail is not repeated here — the line under the
+   panel says what the running step is doing, so the panel stays short. */
 .pf-pipe-steps {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 6px;
 }
 .pf-pipe-steps li {
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 10px 12px;
-  border-radius: 16px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
   transition:
     background-color 0.3s,
     opacity 0.3s;
@@ -1128,12 +1323,7 @@ body {
   color: var(--color-accent-2-900);
 }
 .pf-pipe-steps b {
-  display: block;
-  font-size: 15px;
-}
-.pf-pipe-steps li div > span {
-  font-size: 13px;
-  color: var(--color-neutral-400);
+  font-size: 14px;
 }
 /* holds two lines, so swapping the two footnotes can't resize the panel */
 .pf-pipe-foot {
@@ -1546,696 +1736,10 @@ body {
   font-weight: 600;
 }
 
-/* ═════ Before you go: a small kitchen — a fridge, and a table seen from the side ═════ */
-.pf-bye {
-  padding: var(--sec-y) var(--pad-x);
-}
-/* one room: fridge on the left, table on the right, both standing on the same floor */
-.pf-room {
-  max-width: 1180px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
-  gap: clamp(16px, 3vw, 48px);
-  align-items: end;
-}
-/* everything is placed from the floor up: tabletop surface is 214–244px above the bottom */
-.pf-scene {
-  position: relative;
-  height: 660px;
-}
-
-/* ── the fridge, and the postcards on its door ── */
-.pf-fridge {
-  position: relative;
-  padding-bottom: 18px;
-}
-.pf-fridge-body {
-  position: relative;
-  height: 600px;
-  border-radius: 26px 26px 14px 14px;
-  background: linear-gradient(100deg, var(--color-neutral-100) 62%, var(--color-neutral-200));
-  box-shadow:
-    inset -14px 0 24px -18px var(--color-neutral-500),
-    var(--shadow-lg);
-}
-.pf-fridge-shadow {
-  position: absolute;
-  left: 4%;
-  right: 4%;
-  bottom: 0;
-  height: 26px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(46, 43, 37, 0.22), transparent);
-}
-/* the line between the freezer and the door below it */
-.pf-fridge-split {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 132px;
-  height: 4px;
-  background: var(--color-neutral-300);
-}
-.pf-fridge-grip {
-  position: absolute;
-  right: 18px;
-  width: 9px;
-  border-radius: 999px;
-  background: var(--color-neutral-400);
-  box-shadow: inset -2px 0 0 var(--color-neutral-500);
-}
-.pf-fridge-grip--freezer {
-  top: 44px;
-  height: 64px;
-}
-.pf-fridge-grip--door {
-  top: 160px;
-  height: 132px;
-}
-.pf-cards {
-  position: absolute;
-  left: 18px;
-  right: 42px;
-  top: 172px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 12px;
-}
-.pf-card {
-  position: relative;
-  display: block;
-  padding: 5px 5px 7px;
-  border: 0;
-  border-radius: 4px;
-  background: var(--color-neutral-100);
-  cursor: pointer;
-  transform: rotate(var(--r));
-  transition:
-    transform 0.28s,
-    box-shadow 0.28s;
-  box-shadow: var(--shadow-sm);
-}
-.pf-card img,
-.pf-card .pf-card-art {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  border-radius: 2px;
-}
-.pf-card:hover {
-  transform: rotate(var(--r)) translateY(-3px);
-  box-shadow: var(--shadow-md);
-}
-/* the one you picked comes off the door and sits in front of the others */
-.pf-card--picked {
-  z-index: 2;
-  transform: rotate(0deg) scale(1.16) translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
-.pf-card--picked:hover {
-  transform: rotate(0deg) scale(1.16) translateY(-6px);
-}
-.pf-magnet {
-  position: absolute;
-  z-index: 1;
-  top: -7px;
-  left: 50%;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  transform: translateX(-50%);
-  background: radial-gradient(circle at 35% 30%, var(--color-accent-400), var(--color-accent-700));
-  box-shadow: 0 2px 3px rgba(46, 43, 37, 0.35);
-}
-/* a magnetic notepad at the bottom of the door; it is sized for two lines either way */
-.pf-card-pad {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 26px;
-  min-height: 82px;
-  padding: 12px 14px;
-  border-radius: 4px;
-  background: var(--color-accent-100);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.pf-card-pad b {
-  font-family: var(--font-heading);
-  font-size: 16px;
-  line-height: 1.1;
-}
-.pf-card-pad span {
-  font-size: 13px;
-  line-height: 1.35;
-  color: var(--color-neutral-700);
-}
-.pf-furniture > span {
-  position: absolute;
-}
-.pf-t-shadow {
-  left: 3%;
-  right: 3%;
-  bottom: 2px;
-  height: 30px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(46, 43, 37, 0.22), transparent);
-}
-.pf-leg {
-  bottom: 16px;
-  width: 30px;
-  height: 176px;
-  border-radius: 0 0 8px 8px;
-  background: var(--color-accent-700);
-}
-.pf-leg-l {
-  left: 7%;
-}
-.pf-leg-r {
-  right: 7%;
-}
-.pf-leg-back {
-  bottom: 42px;
-  width: 24px;
-  height: 150px;
-  background: var(--color-accent-800);
-}
-.pf-leg-back.pf-leg-l {
-  left: 14%;
-}
-.pf-leg-back.pf-leg-r {
-  right: 14%;
-}
-.pf-t-apron {
-  left: 7%;
-  right: 7%;
-  bottom: 168px;
-  height: 24px;
-  background: var(--color-accent-700);
-}
-.pf-t-top {
-  left: 4%;
-  right: 4%;
-  bottom: 214px;
-  height: 30px;
-  border-radius: 10px 10px 0 0;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent 0 70px,
-      color-mix(in srgb, var(--color-accent-500) 35%, transparent) 70px 72px
-    ),
-    linear-gradient(var(--color-accent-300), var(--color-accent-400));
-}
-.pf-t-edge {
-  left: 3%;
-  right: 3%;
-  bottom: 190px;
-  height: 24px;
-  border-radius: 6px;
-  background: var(--color-accent-600);
-  box-shadow: 0 6px 0 var(--color-accent-800);
-}
-.pf-t-pen {
-  left: 44%;
-  bottom: 232px;
-  width: 120px;
-  height: 11px;
-  border-radius: 999px;
-  background: var(--color-neutral-900);
-  transform: rotate(-3deg);
-  box-shadow: inset -22px 0 0 var(--color-accent);
-}
-
-.pf-coffee {
-  position: absolute;
-  left: 13%;
-  bottom: 228px;
-  z-index: 4;
-}
-.pf .pf-cup {
-  display: block;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  transition: transform 0.25s;
-  transform-origin: 50% 100%;
-}
-.pf .pf-cup:focus-visible {
-  outline-offset: 6px;
-  border-radius: 24px;
-}
-.pf-cup:hover {
-  transform: rotate(-3deg) scale(1.03);
-}
-.pf-cup svg {
-  display: block;
-  width: 200px;
-  height: auto;
-  overflow: visible;
-}
-.pf-mug-saucer {
-  fill: var(--color-neutral-100);
-  stroke: var(--color-neutral-300);
-  stroke-width: 2;
-}
-.pf-mug-handle {
-  stroke: var(--color-neutral-100);
-  stroke-linecap: round;
-}
-.pf-mug-body {
-  fill: var(--color-neutral-100);
-  stroke: var(--color-neutral-300);
-  stroke-width: 2;
-}
-.pf-mug-band {
-  fill: var(--color-accent);
-}
-.pf-mug-rim {
-  fill: var(--color-neutral-100);
-  stroke: var(--color-neutral-300);
-  stroke-width: 2;
-}
-.pf-mug-hollow {
-  fill: var(--color-neutral-300);
-}
-.pf-mug-brew {
-  fill: var(--color-accent-800);
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  transform: scale(0.35, 1);
-  transition:
-    opacity 0.5s,
-    transform 0.9s ease-out;
-}
-.pf-cup--pouring .pf-mug-brew,
-.pf-cup--made .pf-mug-brew {
-  opacity: 1;
-  transform: scale(1, 1);
-}
-/* steam only once there is something to steam */
-.pf-steam {
-  opacity: 0;
-  transition: opacity 0.6s;
-}
-.pf-cup--made .pf-steam {
-  opacity: 1;
-}
-.pf-steam path {
-  stroke: var(--color-neutral-400);
-  animation: pf-steam 2.4s ease-in-out infinite;
-}
-.pf-steam path:nth-child(2) {
-  animation-delay: 0.6s;
-}
-.pf-steam path:nth-child(3) {
-  animation-delay: 1.2s;
-}
-@keyframes pf-steam {
-  0%,
-  100% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  50% {
-    opacity: 0.8;
-    transform: translateY(-4px);
-  }
-}
-
-/* hand-drawn arrows pointing at the things on the table */
-.pf-cue {
-  position: absolute;
-  z-index: 3;
-  display: flex;
-  align-items: flex-start;
-  gap: 4px;
-  color: var(--color-accent-700);
-}
-.pf-cue > span,
-.pf-cue > button {
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  color: inherit;
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: clamp(22px, 2.4vw, 28px);
-  line-height: 1.05;
-  white-space: nowrap;
-  transform: rotate(-5deg);
-}
-.pf-cue > span {
-  cursor: default;
-}
-.pf-cue-arrow {
-  width: clamp(80px, 9vw, 110px);
-  height: auto;
-  overflow: visible;
-  margin-top: 16px;
-}
-.pf-cue-arrow path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 3.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.pf-cue--done {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s;
-}
-/* the clipboard and the fridge pad name themselves; only the mug needs a label */
-.pf-cue-coffee {
-  left: 0;
-  top: 150px;
-}
-
-.pf-coffee-pop {
-  position: absolute;
-  z-index: 4;
-  left: 50%;
-  bottom: calc(100% + 16px);
-  transform: translateX(-40%);
-  width: min(290px, calc(100vw - 48px));
-  padding: 20px;
-  border-radius: 24px;
-  background: var(--color-neutral-100);
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.pf-coffee-pop > b {
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: 20px;
-  line-height: 1.1;
-}
-.pf-coffee-pop p {
-  font-size: 14px;
-  color: var(--color-neutral-800);
-}
-.pf-coffee-picks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.pf-coffee-picks button {
-  padding: 7px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--color-divider);
-  background: transparent;
-  color: var(--color-text);
-  font: 600 13px var(--font-body);
-  cursor: pointer;
-}
-.pf-coffee-picks button[aria-pressed="true"] {
-  background: var(--color-text);
-  border-color: var(--color-text);
-  color: var(--color-bg);
-}
-.pf .pf-coffee-pop .btn {
-  padding: 12px 18px;
-  font-size: 15px;
-}
-
-/* stickers visitors have stuck on the front of the table */
-.pf-t-stickers {
-  position: absolute;
-  z-index: 1;
-  left: 4%;
-  right: 4%;
-  bottom: 158px;
-  height: 64px;
-  pointer-events: none;
-}
-.pf-t-stuck {
-  position: absolute;
-  bottom: 0;
-  pointer-events: auto;
-  filter: drop-shadow(0 3px 4px rgba(46, 43, 37, 0.25));
-  animation: pf-stick 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3);
-}
-.pf-tsticker {
-  display: block;
-  overflow: visible;
-}
-@keyframes pf-stick {
-  from {
-    opacity: 0;
-    scale: 1.8;
-  }
-}
-
-/* the sticker sheet, on a clipboard propped up on the table */
-.pf-clip {
-  position: absolute;
-  right: 9%;
-  bottom: 230px;
-  z-index: 2;
-  width: 350px;
-  padding: 26px 14px 16px;
-  border-radius: 16px;
-  background: var(--color-accent-700);
-  box-shadow: var(--shadow-lg);
-  transform: rotate(2deg);
-}
-.pf-clip-clamp {
-  position: absolute;
-  z-index: 1;
-  top: -10px;
-  left: 50%;
-  width: 110px;
-  height: 30px;
-  transform: translateX(-50%);
-  border-radius: 10px 10px 6px 6px;
-  background: linear-gradient(var(--color-neutral-300), var(--color-neutral-500));
-  box-shadow: var(--shadow-sm);
-}
-/* Ruled every 32px, 8px above the bottom of each line box so text sits on the rule.
-   The textarea starts 64px down (30px padding + a 34px heading) and carries the same
-   rules, so typing stays on the lines even as it scrolls. */
-.pf-note {
-  --rules: repeating-linear-gradient(
-    180deg,
-    transparent 0 24px,
-    var(--color-accent-2-300) 24px 25px,
-    transparent 25px 32px
-  );
-  position: relative;
-  padding: 26px 22px 16px;
-  border-radius: 6px;
-  background: var(--color-neutral-100);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.pf-note h3 {
-  font-size: 24px;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
-}
-.pf .pf-note-sub {
-  margin-top: -4px;
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--color-neutral-700);
-}
-.pf-sheet {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
-  padding: 8px;
-  border-radius: 12px;
-  background: var(--color-bg);
-}
-.pf-sheet button {
-  display: grid;
-  place-items: center;
-  padding: 6px 0;
-  border: 0;
-  border-radius: 12px;
-  background: none;
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    background-color 0.2s;
-}
-.pf-sheet button:hover {
-  transform: rotate(-6deg) scale(1.06);
-}
-.pf-sheet button[aria-checked="true"] {
-  background: var(--color-accent-200);
-  box-shadow: inset 0 0 0 2px var(--color-accent);
-}
-.pf .pf-note-msg {
-  min-height: 2.8em;
-  font-size: 13px;
-  line-height: 1.4;
-  font-weight: 600;
-  color: var(--color-accent-2-800);
-}
-.pf-note textarea {
-  height: 64px;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  resize: none;
-  background: var(--rules);
-  background-attachment: local;
-  color: var(--color-text);
-  font: 400 17px/32px var(--font-body);
-}
-.pf-note textarea::placeholder,
-.pf-note-foot input::placeholder {
-  color: var(--color-neutral-600);
-}
-.pf-honey {
-  position: absolute;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-.pf-note-foot {
-  display: flex;
-  align-items: flex-end;
-  gap: 14px;
-  padding-top: 10px;
-}
-.pf-note-foot label {
-  flex: 1;
-  min-width: 0;
-}
-.pf-note-foot input {
-  width: 100%;
-  padding: 6px 2px;
-  border: 0;
-  border-bottom: 1.5px solid var(--color-neutral-400);
-  border-radius: 0;
-  background: transparent;
-  color: var(--color-text);
-  font: 400 15px var(--font-body);
-}
-.pf .pf-note-foot .btn {
-  padding: 11px 22px;
-  font-size: 15px;
-}
-.pf .pf-note-foot .btn:disabled {
-  opacity: 0.7;
-  cursor: progress;
-}
-
-/* phones: the room stacks — the table first, since that is what you can act on,
-   then the fridge below it */
-@media (max-width: 860px) {
-  .pf-room {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 32px;
-    justify-items: center;
-  }
-  /* a shorter fridge on a phone, so the freezer door is not half the picture */
-  .pf-fridge {
-    order: 2;
-    width: 100%;
-    max-width: 320px;
-  }
-  .pf-fridge-body {
-    height: 512px;
-  }
-  .pf-fridge-split {
-    top: 104px;
-  }
-  .pf-fridge-grip--freezer {
-    top: 32px;
-    height: 52px;
-  }
-  .pf-fridge-grip--door {
-    top: 130px;
-    height: 118px;
-  }
-  .pf-cards {
-    top: 140px;
-  }
-  .pf-scene {
-    order: 1;
-    width: 100%;
-  }
-  .pf-scene {
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-    padding-bottom: 230px;
-  }
-  .pf-cue,
-  .pf-coffee,
-  .pf-clip {
-    position: relative;
-    inset: auto;
-  }
-  .pf-cue {
-    flex-direction: column;
-    align-items: center;
-  }
-  .pf-cue-arrow {
-    width: 60px;
-    margin-top: 4px;
-    transform: rotate(35deg);
-  }
-  .pf-clip {
-    order: 1;
-    width: min(350px, 100%);
-    transform: rotate(1deg);
-  }
-  .pf-cue-coffee {
-    order: 4;
-    margin-top: 24px;
-  }
-  .pf-coffee {
-    order: 5;
-    margin-bottom: -2px;
-  }
-  .pf-cup svg {
-    width: 160px;
-  }
-  .pf-t-pen {
-    display: none;
-  }
-  .pf-coffee-pop {
-    transform: translateX(-50%);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pf-cup:hover {
-    transform: none;
-  }
-  .pf-t-stuck,
-  .pf-steam path,
-  .pf-drops i {
-    animation: none;
-  }
-}
 @media (max-width: 560px) {
   /* small enough that even the longest role fits two lines, so the space held
      open below the typed word stays modest */
   .pf-role {
     font-size: 34px;
   }
-}
-.pf-mug-handle-edge {
-  stroke: var(--color-neutral-300);
-  stroke-linecap: round;
 }

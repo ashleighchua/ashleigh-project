@@ -16,7 +16,8 @@ export type ObjKey =
   | "phone"
   | "plant"
   | "card"
-  | "keys";
+  | "keys"
+  | "cake";
 
 export type Sticker = {
   /** `/` = line break */
@@ -78,6 +79,7 @@ export const OBJ: Record<ObjKey, ObjSpec> = {
   plant: { w: 150, h: 150, x: 36, y: 12, r: 0 },
   card: { w: 130, h: 100, x: 68, y: 178, r: 9 },
   keys: { w: 86, h: 86, x: 84, y: 40, r: -12 },
+  cake: { w: 92, h: 92, x: 14, y: 176, r: -6 },
 };
 
 /** Table objects with no sticker of their own; they're already set out on the table */
@@ -86,6 +88,7 @@ export const DECOR: { obj: ObjKey; z: number }[] = [
   { obj: "jar", z: 1 },
   { obj: "phone", z: 2 },
   { obj: "keys", z: 3 },
+  { obj: "cake", z: 3 },
 ];
 
 export const ZONES: [title: string, body: string, dot: string][] = [
@@ -266,6 +269,12 @@ export const RECEIPTS: {
   mine: string;
   cta: string;
   href: string;
+  /* TODO (Ashleigh): a line from the person it was built for, and who said it.
+   * Hannah's testimonial goes on card 02, a Lunar Playground review on card 03.
+   * Leave them out and the card renders exactly as it does now. Real words only —
+   * get their say-so before putting a name to one. */
+  quote?: string;
+  quoteBy?: string;
 }[] = [
   {
     id: "schooltrips",
@@ -296,7 +305,7 @@ export const RECEIPTS: {
     status: "Live, fully automated",
     h: "The Lunar Playground",
     body: "Astrology as a reflective tool, not a fortune: the answers aren’t really in the stars, they’re in you. People come for natal and relocation readings, and stay for the free tools (birth chart, BaZi, Human Design, numerology and more) and the blog.",
-    mine: "I built the whole pipeline, from the order form to the finished PDF. It runs without me touching each order.",
+    mine: "I designed the prompt structure, the report format and the delivery workflow, so an order becomes a finished PDF without me touching it. I handled customer communication myself; the reports were automated.",
     cta: "Visit the site",
     href: "https://thelunarplayground.com",
   },
@@ -312,6 +321,68 @@ export const PIPELINE = [
   },
   { h: "Reading written", b: "The results are interpreted and laid out as a report." },
   { h: "PDF delivered", b: "It lands in the client’s inbox." },
+];
+
+/* ── What buyers said about the reports the pipeline delivered ──
+ * Real reviews from the Fiverr listing, copied as written. Trimmed only where the
+ * ellipsis shows, never reworded. `stars` is the rating that buyer left, so a part
+ * rating (heyhelena's 4.3) shows as a part-filled star rather than being rounded up. */
+
+/** the figures above the reviews, each set as its own chip */
+export const LUNAR_STATS: [figure: string, label: string][] = [
+  ["100+", "orders"],
+  ["12", "countries"],
+  ["4.8", "average"],
+];
+
+export const LUNAR_REVIEWS: {
+  quote: string;
+  by: string;
+  where: string;
+  stars: number;
+}[] = [
+  {
+    quote:
+      "I went in just curious about my astrocartography since I didn't know how to read it, and came out understanding a lot… Lots of things resonated and it felt very personal.",
+    by: "sakiptoo",
+    where: "United States",
+    stars: 5,
+  },
+  {
+    quote:
+      "…inspired me to consider traveling and possibly relocating to the places that were revealed and analyzed.",
+    by: "staceyd4u",
+    where: "United States",
+    stars: 5,
+  },
+  {
+    quote: "This report was beautifully written.",
+    by: "theseveredlink",
+    where: "Germany",
+    stars: 5,
+  },
+  {
+    quote:
+      "I loved my report, it is very clear to understand. The report was delivered prior to the delivery date.",
+    by: "heyhelena",
+    where: "United States",
+    stars: 4.3,
+  },
+  {
+    quote: "The report is so informative and detailed. Would highly recommend!",
+    by: "marisav03",
+    where: "United States",
+    stars: 5,
+  },
+  /* this one is about me, not the report — it stays only as long as the card says
+   * I answered the messages myself */
+  {
+    quote:
+      "They explained everything clearly, answered every question thoroughly, and made the entire process easy to understand… I would not hesitate to work with them again.",
+    by: "sose29910",
+    where: "United States",
+    stars: 5,
+  },
 ];
 
 /* ── Playground ── */
@@ -410,44 +481,192 @@ export const ROLES = [
   "serial side-project starter",
 ];
 
-/* ── The kitchen: postcards held on the fridge door ── */
+/* ── The kitchen: the magnets on the fridge door ── */
 
-export type Postcard = {
-  h: string;
-  b: string;
-  /** photo key, resolved in table.tsx; no photo = the written side of a postcard */
-  photo?: "monastery" | "spain" | "wall";
-  alt?: string;
+/** Whose post a card would have gone through; art.tsx draws the flag. */
+export type FlagCode = "th" | "cn" | "sg" | "jp" | "vn" | "my" | "es" | "be" | "gb" | "au";
+
+export type PlaceKind =
+  | "kch"
+  | "cnx"
+  | "pek"
+  | "bkk"
+  | "sin"
+  | "hkd"
+  | "han"
+  | "scq"
+  | "kul"
+  | "bru"
+  | "ldn"
+  | "agp"
+  | "mel";
+
+export type Place = {
+  /** picks the drawn magnet, and doubles as its airport code */
+  kind: PlaceKind;
+  name: string;
+  /** where it sits on the door, in % of the door's width (the door is its own container) */
+  x: number;
+  y: number;
   /** how crooked it hangs, in degrees */
   r: number;
+  /** the postcard: a solid block of this, with the name set in the ink */
+  bg: string;
+  ink: string;
+  /** whose post it would have gone through; picks the flag drawn on the stamp */
+  flag: FlagCode;
+  /** what she wrote on the back */
+  line?: string;
 };
 
-export const POSTCARDS: Postcard[] = [
+/* Read left to right, top to bottom, the way they hang on the door. x and y are the
+ * magnet's top-left corner in % of the door's width. The door is not the whole
+ * rectangle: the top corners are rounded off by 10, the right 3.5 is the side of the
+ * fridge, and the handles run down 89.6–92.6. So a magnet lands inside x 3–86 and
+ * y 12–115, and below that is where visitors' notes go. */
+export const PLACES: Place[] = [
   {
-    h: "A week in a monastery",
-    b: "A mindfulness retreat. I lived and ate with the monks.",
-    photo: "monastery",
-    alt: "Evening exercise in a field below misty hills at the monastery",
-    r: -3.5,
+    kind: "cnx",
+    name: "Chiang Mai",
+    x: 6,
+    y: 13,
+    r: -7,
+    bg: "#f6c177",
+    ink: "#5a2c06",
+    flag: "th",
+    line: "My dad is one of ten siblings, so when the whole family came to visit, obviously I had to show up as everyone’s favourite niece. Then Songkran happened. Thai New Year, three days of water fights, and absolutely no chance of staying dry. I gave up pretending to be a respectable adult pretty quickly.",
   },
   {
-    h: "120km across Spain",
-    b: "On foot, with my best friend.",
-    photo: "spain",
-    alt: "Ashleigh and her best friend beside a Camino marker reading Km 100",
-    r: 2.5,
+    kind: "pek",
+    name: "Beijing",
+    x: 23,
+    y: 19,
+    r: 5,
+    bg: "#c81d25",
+    ink: "#ffe08a",
+    flag: "cn",
+    line: "Camped by the Great Wall with 150-odd students. Also a glow-worm cave, tea leaves picked on a mountainside, and a village so far out the road ran out before we did.",
   },
   {
-    h: "A night at the Great Wall",
-    b: "Camped out with 150 students on a school trip.",
-    photo: "wall",
-    alt: "Tents lit up at night by the Great Wall",
-    r: 2,
+    kind: "bkk",
+    name: "Bangkok",
+    x: 43,
+    y: 11,
+    r: -3,
+    bg: "#c8102e",
+    ink: "#fff4d6",
+    flag: "th",
+    line: "After a year of calling Bangkok home, I spent a week at a monastery on a mindfulness retreat, eating what the monks ate. Then came the goodbye. I left Bangkok and started moving properly. The longest I’ve stayed anywhere this year is six weeks. She moves quick.",
   },
   {
-    h: "10 countries, one laptop",
-    b: "Wherever I was this year, the work kept shipping.",
-    r: -2.5,
+    kind: "sin",
+    name: "Singapore",
+    x: 64,
+    y: 17,
+    r: 9,
+    bg: "#6b8e23",
+    ink: "#fffbe6",
+    flag: "sg",
+    line: "Saw my brother’s new place, and squeezed in three kaya toast breakfasts before the next trip. I stand by all three.",
+  },
+  {
+    kind: "hkd",
+    name: "Hokkaido",
+    x: 5,
+    y: 45,
+    r: -5,
+    bg: "#1e3a8a",
+    ink: "#ffffff",
+    flag: "jp",
+    line: "Tried snowboarding for the first time. Snowboard in the day and then onsen after. Did this on repeat for 10 days. Pure bliss. Loved it enough to decide this was now a personality trait. My body disagreed and ached for about a month afterwards.",
+  },
+  {
+    kind: "han",
+    name: "Hanoi",
+    x: 36,
+    y: 40,
+    r: 6,
+    bg: "#da251d",
+    ink: "#ffdd00",
+    flag: "vn",
+    line: "Finally met my cofounder in person. I joined for the school trip season, drank far too many egg and salt coffees, and it’s my base now — though most of the season is spent on trips in China.",
+  },
+  {
+    kind: "kch",
+    name: "Kuching",
+    x: 64,
+    y: 40,
+    r: -4,
+    bg: "#1f6f54",
+    ink: "#ffd97a",
+    flag: "my",
+    line: "My parents still live here, so technically this is home. Except I left 10 years ago, and coming back feels weirdly familiar and foreign at the same time. I know where everything is, but somehow I’m still a visitor. I do, however, have incredibly restful sleep here.",
+  },
+  {
+    kind: "scq",
+    name: "Santiago de Compostela",
+    x: 4,
+    y: 64,
+    r: -6,
+    bg: "#1d4e9e",
+    ink: "#f7c600",
+    flag: "es",
+    line: "Walked 120km with my best friend, then went to Finisterre alone. There was something very nice about finishing the walk with someone and then having a little time by myself at what was once considered the end of the world. Also, the sunset was ridiculous.",
+  },
+  {
+    kind: "kul",
+    name: "Kuala Lumpur",
+    x: 32,
+    y: 68,
+    r: 4,
+    bg: "#8fd0f0",
+    ink: "#173b63",
+    flag: "my",
+    line: "The plan was early nights and sensible behaviour. Instead, I stayed up talking with friends until the sun came up. Three times. We talked about everything and absolutely nothing, which is probably my favourite kind of night.",
+  },
+  {
+    kind: "bru",
+    name: "Brussels",
+    x: 63,
+    y: 66,
+    r: 8,
+    bg: "#e0a458",
+    ink: "#4a2c10",
+    flag: "be",
+    line: "My connecting flight was cancelled and the next one wasn’t for another week, so apparently I lived in Belgium now. EU compensation and travel insurance meant my expenses were covered, so I was basically being paid to travel around Belgium.",
+  },
+  {
+    kind: "ldn",
+    name: "London",
+    x: 6,
+    y: 94,
+    r: -3,
+    bg: "#d0021b",
+    ink: "#ffffff",
+    flag: "gb",
+    line: "Caught London in suspiciously good weather. Sun the entire time, which I’m told is basically a miracle. Picnics in parks, wandering around, and The Book of Mormon, which was deeply inappropriate and extremely funny.",
+  },
+  {
+    kind: "agp",
+    name: "Málaga",
+    x: 33,
+    y: 92,
+    r: -6,
+    bg: "#1e8fc6",
+    ink: "#ffffff",
+    flag: "es",
+    line: "Visited the bestie for five weeks. Experienced San Juan. Jumped into the sea at midnight, over bonfires, and into the World Cup with about 20% understanding of what was happening (I think I finally sort of understand what an offside is?). Also beach. Lots of beach.",
+  },
+  {
+    kind: "mel",
+    name: "Melbourne",
+    x: 62,
+    y: 96,
+    r: 5,
+    bg: "#2e6b3a",
+    ink: "#f3e7c3",
+    flag: "au",
+    line: "My brother married his best friend, then I stayed on for a month to au pair two little girls. It was such a special little pocket of life. I looked after them, took them on adventures, and helped their mum Hannah build an art website somewhere in between.",
   },
 ];
 
@@ -457,9 +676,13 @@ export const POSTCARDS: Postcard[] = [
 export const COFFEE_PRICE = 5;
 export const COFFEE_COUNTS = [1, 3, 5];
 
-export type StickerKind = "hi" | "hire" | "coffee" | "love" | "build" | "moon";
+/** How long the oven and the coffee machine take, in ms. The oven counts down. */
+export const BAKE_MS = 8000;
+export const BREW_MS = 3200;
 
-/** Stickers a visitor can leave on the table */
+export type StickerKind = "hi" | "hire" | "coffee" | "love" | "build" | "moon" | "yay" | "thanks";
+
+/** Stickers a visitor can leave on the fridge */
 export const TABLE_STICKERS: { kind: StickerKind; label: string }[] = [
   { kind: "hi", label: "Hi!" },
   { kind: "hire", label: "Hire her" },
@@ -467,6 +690,8 @@ export const TABLE_STICKERS: { kind: StickerKind; label: string }[] = [
   { kind: "love", label: "Love this" },
   { kind: "build", label: "Let’s build" },
   { kind: "moon", label: "Moon" },
+  { kind: "yay", label: "Yay" },
+  { kind: "thanks", label: "Thank you" },
 ];
 
 export const LINKS = {

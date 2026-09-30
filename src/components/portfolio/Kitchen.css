@@ -1,0 +1,2725 @@
+/*
+ * The kitchen in "Before you go".
+ *
+ * The room is one container-query box (`.pf-k-scene`), so every part inside it is
+ * positioned and sized in `cqw` — 1% of the room's width — and the whole drawing
+ * scales with the page instead of breaking up at odd widths. The fridge is a second
+ * container nested in the first, so the magnets and notes on its door are placed in
+ * percentages of the *door*, not the room, and stay on it at every size.
+ *
+ * Colours come from the design-system tokens, with one exception: the fridge magnets
+ * and the Dutch oven use hard-coded hex, because they are meant to look like real
+ * things rather than like the rest of the site.
+ */
+
+@keyframes pf-k-sway {
+  from {
+    transform: rotate(-2.4deg);
+  }
+  to {
+    transform: rotate(2.4deg);
+  }
+}
+@keyframes pf-k-pop {
+  0% {
+    transform: scale(0.2) rotate(-30deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes pf-k-steam {
+  0% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-2.6cqw) scaleX(1.7);
+    opacity: 0;
+  }
+}
+/* the same wisp, for the cup in the popup, which is sized in pixels */
+@keyframes pf-k-steam-px {
+  0% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-34px) scaleX(1.7);
+    opacity: 0;
+  }
+}
+@keyframes pf-k-drip {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 1.2cqw;
+  }
+}
+
+/* ═════ the section ═════ */
+.pf-kitchen {
+  padding: var(--sec-y) var(--pad-x);
+}
+.pf-kitchen-head,
+.pf-k-frame,
+.pf-k-hint,
+.pf-k-said {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+/* the room can be wider than a narrow phone; let it scroll rather than squash */
+.pf-k-frame {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+.pf-k-scene {
+  position: relative;
+  width: 100%;
+  container-type: inline-size;
+  background: var(--color-surface);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+.pf-k-scene--wide {
+  min-width: 640px;
+  aspect-ratio: 16 / 10;
+}
+.pf-k-scene--tall {
+  aspect-ratio: 10 / 13;
+}
+/* The wide room is what the server renders, whatever the viewport turns out to be.
+   Below the breakpoint this gives that first frame the portrait box straight away,
+   so the swap to the portrait room on hydration does not move the page. */
+@media (max-width: 639px) {
+  .pf-k-scene--wide {
+    min-width: 0;
+    aspect-ratio: 10 / 13;
+  }
+}
+.pf-k-hint,
+.pf-k-said {
+  font-size: 14px;
+  color: var(--color-neutral-700);
+  margin: 14px 0 0;
+}
+/* Announced, not shown: it used to hold a blank line open under the room, which
+   left the kitchen with more space beneath it than every other section. What a
+   sighted visitor sees instead is the sticker landing on the door, or DONE on the
+   oven. */
+.pf-k-said {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Every part of the drawing is placed from the room's top-left corner. These are
+   written with :where() so they stay at one class of specificity and any rule
+   below can simply override them by coming later. */
+.pf-k-scene :where(span, i, b, u) {
+  position: absolute;
+  display: block;
+  font-style: normal;
+  font-weight: inherit;
+  text-decoration: none;
+}
+.pf-k-scene :where(button) {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ═════ shell: ceiling, tiles, floor ═════ */
+.pf-k-ceiling {
+  left: 0;
+  top: 0;
+  width: 100%;
+  background: var(--color-neutral-400);
+}
+.pf-k-scene--wide .pf-k-ceiling {
+  height: 1.2cqw;
+}
+.pf-k-scene--tall .pf-k-ceiling {
+  height: 2cqw;
+}
+
+/* plain glazed square tiles, grouted, with a checker behind */
+.pf-k-tiles {
+  box-sizing: border-box;
+  border-top: 0.5cqw solid var(--color-accent-2-500);
+  background:
+    linear-gradient(90deg, var(--color-neutral-300) 0.09cqw, transparent 0.09cqw) 0 0 / 2cqw 2cqw,
+    linear-gradient(var(--color-neutral-300) 0.09cqw, transparent 0.09cqw) 0 0 / 2cqw 2cqw,
+    conic-gradient(
+        var(--color-accent-2-200) 25%,
+        var(--color-neutral-100) 0 50%,
+        var(--color-accent-2-200) 0 75%,
+        var(--color-neutral-100) 0
+      )
+      0 0 / 4cqw 4cqw;
+}
+.pf-k-scene--wide .pf-k-tiles {
+  left: 28cqw;
+  top: 20.5cqw;
+  width: 70cqw;
+  height: 15.2cqw;
+}
+.pf-k-scene--tall .pf-k-tiles {
+  left: 51cqw;
+  top: 30cqw;
+  width: 49cqw;
+  height: 34cqw;
+  border-top-width: 1cqw;
+  background-size:
+    5cqw 5cqw,
+    5cqw 5cqw,
+    10cqw 10cqw;
+}
+
+.pf-k-floor {
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  border-top: 0.6cqw solid var(--color-neutral-400);
+  background: conic-gradient(
+      var(--color-accent-300) 25%,
+      var(--color-accent-100) 0 50%,
+      var(--color-accent-300) 0 75%,
+      var(--color-accent-100) 0
+    )
+    0 0 / 5cqw 5cqw;
+}
+.pf-k-scene--wide .pf-k-floor {
+  top: 54.5cqw;
+  height: 8cqw;
+}
+.pf-k-scene--tall .pf-k-floor {
+  top: 112cqw;
+  height: 18cqw;
+  border-top-width: 1cqw;
+  background-size: 12cqw 12cqw;
+}
+
+/* ═════ the window over the sink ═════ */
+.pf-k-window {
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 0.9cqw solid var(--color-neutral-100);
+  border-radius: 10cqw 10cqw 1cqw 1cqw;
+  background: linear-gradient(var(--color-accent-2-100), var(--color-accent-100));
+  box-shadow: var(--shadow-sm);
+}
+.pf-k-scene--wide .pf-k-window {
+  left: 55cqw;
+  top: 4cqw;
+  width: 19cqw;
+  height: 15.5cqw;
+}
+.pf-k-scene--tall .pf-k-window {
+  left: 55cqw;
+  top: 5cqw;
+  width: 40cqw;
+  height: 22cqw;
+  border-width: 1.6cqw;
+  border-radius: 20cqw 20cqw 2cqw 2cqw;
+}
+.pf-k-sun {
+  left: 58%;
+  top: 24%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--color-accent-300);
+}
+.pf-k-scene--wide .pf-k-sun {
+  width: 3.6cqw;
+}
+.pf-k-scene--tall .pf-k-sun {
+  width: 7cqw;
+}
+.pf-k-hill {
+  border-radius: 50%;
+}
+.pf-k-hill--l {
+  left: -20%;
+  bottom: -30%;
+  width: 80%;
+  height: 60%;
+  background: var(--color-accent-2-300);
+}
+.pf-k-hill--r {
+  right: -25%;
+  bottom: -38%;
+  width: 90%;
+  height: 62%;
+  background: var(--color-accent-2-400);
+}
+.pf-k-mullion {
+  background: var(--color-neutral-100);
+}
+.pf-k-mullion--v {
+  left: 50%;
+  top: 0;
+  height: 100%;
+}
+.pf-k-mullion--h {
+  left: 0;
+  top: 58%;
+  width: 100%;
+}
+.pf-k-scene--wide .pf-k-mullion--v {
+  width: 0.5cqw;
+  margin-left: -0.25cqw;
+}
+.pf-k-scene--wide .pf-k-mullion--h {
+  height: 0.5cqw;
+}
+.pf-k-scene--tall .pf-k-mullion--v {
+  width: 1cqw;
+  margin-left: -0.5cqw;
+}
+.pf-k-scene--tall .pf-k-mullion--h {
+  top: 60%;
+  height: 1cqw;
+}
+
+.pf-k-sill {
+  border-radius: 0.5cqw;
+  background: var(--color-accent-600);
+}
+.pf-k-scene--wide .pf-k-sill {
+  left: 54cqw;
+  top: 19.3cqw;
+  width: 21cqw;
+  height: 1cqw;
+}
+.pf-k-scene--tall .pf-k-sill {
+  left: 53cqw;
+  top: 26.4cqw;
+  width: 44cqw;
+  height: 2cqw;
+  border-radius: 1cqw;
+}
+
+/* two little pots on the sill */
+.pf-k-sprout {
+  left: 57cqw;
+  top: 16.4cqw;
+  width: 2.4cqw;
+  height: 2.9cqw;
+}
+.pf-k-sprout-leaf {
+  width: 1.6cqw;
+  height: 1.6cqw;
+}
+.pf-k-sprout-leaf--l {
+  left: -0.3cqw;
+  top: 0;
+  border-radius: 50% 50% 50% 0;
+  background: var(--color-accent-2-500);
+  transform: rotate(-20deg);
+}
+.pf-k-sprout-leaf--r {
+  left: 1.1cqw;
+  top: -0.3cqw;
+  border-radius: 50% 50% 0 50%;
+  background: var(--color-accent-2-600);
+  transform: rotate(15deg);
+}
+.pf-k-sprout-pot {
+  left: 0;
+  bottom: 0;
+  width: 2.4cqw;
+  height: 1.6cqw;
+  border-radius: 0.3cqw 0.3cqw 0.9cqw 0.9cqw;
+  background: var(--color-accent-400);
+}
+.pf-k-succulent {
+  left: 70.4cqw;
+  top: 17.2cqw;
+  width: 2cqw;
+  height: 2.1cqw;
+}
+.pf-k-succulent-top {
+  left: 0.1cqw;
+  top: -0.2cqw;
+  width: 1.8cqw;
+  height: 1.4cqw;
+  border-radius: 50%;
+  background: var(--color-accent-2-500);
+}
+.pf-k-succulent-pot {
+  left: 0;
+  bottom: 0;
+  width: 2cqw;
+  height: 1.2cqw;
+  border-radius: 0.3cqw 0.3cqw 0.8cqw 0.8cqw;
+  background: var(--color-neutral-100);
+  box-shadow: inset 0 -0.3cqw 0 var(--color-accent-2-200);
+}
+
+/* ═════ the open shelf, and what is on it ═════ */
+.pf-k-shelf {
+  left: 30cqw;
+  top: 11.5cqw;
+  width: 15cqw;
+  height: 0.8cqw;
+  border-radius: 0.4cqw;
+  background: var(--color-accent-600);
+  box-shadow: 0 0.4cqw 0.6cqw -0.3cqw var(--color-accent-800);
+}
+.pf-k-jar--1 {
+  left: 30.8cqw;
+  top: 6.8cqw;
+  width: 3.6cqw;
+  height: 4.7cqw;
+}
+.pf-k-jar--1 i {
+  left: 0.3cqw;
+  top: 0;
+  width: 3cqw;
+  height: 0.8cqw;
+  border-radius: 0.4cqw;
+  background: var(--color-accent-700);
+}
+.pf-k-jar--1 b {
+  left: 0;
+  top: 0.7cqw;
+  width: 3.6cqw;
+  height: 4cqw;
+  border-radius: 0.8cqw;
+  background: var(--color-neutral-200);
+  box-shadow: inset 0 -2.2cqw 0 var(--color-neutral-100);
+}
+.pf-k-jar--2 {
+  left: 35cqw;
+  top: 7.8cqw;
+  width: 3cqw;
+  height: 3.7cqw;
+}
+.pf-k-jar--2 i {
+  left: 0.3cqw;
+  top: 0;
+  width: 2.4cqw;
+  height: 0.7cqw;
+  border-radius: 0.4cqw;
+  background: var(--color-accent-2-600);
+}
+.pf-k-jar--2 b {
+  left: 0;
+  top: 0.6cqw;
+  width: 3cqw;
+  height: 3.1cqw;
+  border-radius: 0.8cqw;
+  background: var(--color-neutral-200);
+  box-shadow: inset 0 -2cqw 0 var(--color-accent-800);
+}
+.pf-k-jar--3 {
+  left: 38.6cqw;
+  top: 6.2cqw;
+  width: 3.4cqw;
+  height: 5.3cqw;
+}
+.pf-k-jar--3 i {
+  left: -0.1cqw;
+  top: 0;
+  width: 3.6cqw;
+  height: 1.3cqw;
+  border-radius: 50%;
+  background: var(--color-neutral-100);
+  box-shadow: inset 0 -0.2cqw 0 var(--color-neutral-300);
+}
+.pf-k-jar--3 b {
+  left: 0;
+  top: 0.8cqw;
+  width: 3.4cqw;
+  height: 4.5cqw;
+  border-radius: 0.6cqw 0.6cqw 1cqw 1cqw;
+  background: linear-gradient(transparent 30%, var(--color-accent-100) 30%);
+  background-color: var(--color-neutral-200);
+}
+.pf-k-crock {
+  left: 42.4cqw;
+  top: 9.2cqw;
+  width: 2.6cqw;
+  height: 2.3cqw;
+}
+.pf-k-crock-lid {
+  left: 0.1cqw;
+  top: -0.4cqw;
+  width: 2.4cqw;
+  height: 1.4cqw;
+  border-radius: 50%;
+  background: var(--color-accent-2-500);
+}
+.pf-k-crock-body {
+  left: 0;
+  bottom: 0;
+  width: 2.6cqw;
+  height: 1.8cqw;
+  border-radius: 0.3cqw 0.3cqw 1cqw 1cqw;
+  background: var(--color-accent-500);
+}
+.pf-k-crock-spoon {
+  left: 1.9cqw;
+  top: 1.6cqw;
+  width: 0.8cqw;
+  height: 4cqw;
+  border-radius: 0 0 0.5cqw 0.5cqw;
+  background: repeating-linear-gradient(
+    170deg,
+    var(--color-accent-2-500) 0 0.45cqw,
+    var(--color-accent-2-400) 0.45cqw 0.9cqw
+  );
+  transform: rotate(-6deg);
+  transform-origin: top;
+}
+
+/* ═════ the hanging plants ═════ */
+.pf-k-plant {
+  position: absolute;
+  left: var(--left);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: 50% 0;
+  animation: pf-k-sway var(--dur) ease-in-out infinite alternate;
+  z-index: 3;
+}
+.pf-k-scene--wide .pf-k-plant {
+  top: 1cqw;
+  width: 4cqw;
+}
+.pf-k-scene--tall .pf-k-plant {
+  top: 2cqw;
+  width: 10cqw;
+}
+.pf-k-hang {
+  position: relative;
+  height: var(--string);
+  background: var(--color-neutral-600);
+}
+.pf-k-scene--wide .pf-k-hang {
+  width: 0.16cqw;
+}
+.pf-k-scene--tall .pf-k-hang {
+  width: 0.4cqw;
+}
+.pf-k-foliage {
+  position: relative;
+}
+.pf-k-scene--wide .pf-k-foliage {
+  width: 4cqw;
+  height: 3.2cqw;
+}
+.pf-k-scene--tall .pf-k-foliage {
+  width: 10cqw;
+  height: 8cqw;
+}
+/* the macramé strings holding the pot; too fine to be worth drawing on a phone */
+.pf-k-sling {
+  top: -1.6cqw;
+  width: 1.7cqw;
+  height: 1.9cqw;
+}
+.pf-k-sling--l {
+  left: 0.3cqw;
+  border-left: 0.14cqw solid var(--color-neutral-600);
+  transform: skewX(-40deg);
+  transform-origin: 100% 0;
+}
+.pf-k-sling--r {
+  right: 0.3cqw;
+  border-right: 0.14cqw solid var(--color-neutral-600);
+  transform: skewX(40deg);
+  transform-origin: 0 0;
+}
+.pf-k-scene--tall .pf-k-sling {
+  display: none;
+}
+.pf-k-frond {
+  border-radius: 50%;
+}
+.pf-k-scene--wide .pf-k-frond--l {
+  left: -0.8cqw;
+  top: -0.4cqw;
+  width: 2.4cqw;
+  height: 1.6cqw;
+  transform: rotate(-25deg);
+}
+.pf-k-scene--wide .pf-k-frond--c {
+  left: 0.8cqw;
+  top: -0.9cqw;
+  width: 2.4cqw;
+  height: 1.8cqw;
+}
+.pf-k-scene--wide .pf-k-frond--r {
+  left: 2.4cqw;
+  top: -0.4cqw;
+  width: 2.4cqw;
+  height: 1.5cqw;
+  transform: rotate(25deg);
+}
+.pf-k-scene--tall .pf-k-frond--l {
+  left: -2cqw;
+  top: -1cqw;
+  width: 6cqw;
+  height: 4cqw;
+  transform: rotate(-25deg);
+}
+.pf-k-scene--tall .pf-k-frond--c {
+  left: 2cqw;
+  top: -2.2cqw;
+  width: 6cqw;
+  height: 4.4cqw;
+}
+.pf-k-scene--tall .pf-k-frond--r {
+  left: 6cqw;
+  top: -1cqw;
+  width: 6cqw;
+  height: 3.8cqw;
+  transform: rotate(25deg);
+}
+.pf-k-frond--l {
+  background: var(--color-accent-2-600);
+}
+.pf-k-frond--c {
+  background: var(--color-accent-2-500);
+}
+.pf-k-frond--r {
+  background: var(--color-accent-2-400);
+}
+.pf-k-pot {
+  background: var(--pot);
+  box-shadow: inset 0 0.6cqw 0 color-mix(in srgb, var(--color-text) 14%, transparent);
+}
+.pf-k-scene--wide .pf-k-pot {
+  left: 0;
+  top: 0.4cqw;
+  width: 4cqw;
+  height: 2.8cqw;
+  border-radius: 0.4cqw 0.4cqw 2cqw 2cqw;
+}
+.pf-k-scene--tall .pf-k-pot {
+  left: 0;
+  top: 1cqw;
+  width: 10cqw;
+  height: 7cqw;
+  border-radius: 1cqw 1cqw 5cqw 5cqw;
+  box-shadow: inset 0 1.4cqw 0 color-mix(in srgb, var(--color-text) 14%, transparent);
+}
+.pf-k-vines {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.pf-k-scene--wide .pf-k-vines {
+  left: -0.3cqw;
+  top: 2.2cqw;
+  width: 4.6cqw;
+}
+.pf-k-scene--tall .pf-k-vines {
+  left: -0.6cqw;
+  top: 6cqw;
+  width: 11.2cqw;
+}
+.pf-k-vine {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pf-k-scene--wide .pf-k-vine {
+  width: 1.3cqw;
+}
+.pf-k-scene--tall .pf-k-vine {
+  width: 3cqw;
+}
+.pf-k-leaf {
+  position: relative;
+  border-radius: 50%;
+}
+.pf-k-scene--wide .pf-k-leaf {
+  width: 1.1cqw;
+  height: 0.75cqw;
+  margin-top: -0.1cqw;
+}
+.pf-k-scene--tall .pf-k-leaf {
+  width: 2.6cqw;
+  height: 1.8cqw;
+  margin-top: -0.25cqw;
+}
+/* leaves alternate down the vine, and cycle through three greens */
+.pf-k-leaf:nth-child(odd) {
+  transform: translateX(-0.22cqw) rotate(-24deg);
+}
+.pf-k-leaf:nth-child(even) {
+  transform: translateX(0.22cqw) rotate(24deg);
+}
+.pf-k-leaf:nth-child(3n + 1) {
+  background: var(--color-accent-2-500);
+}
+.pf-k-leaf:nth-child(3n + 2) {
+  background: var(--color-accent-2-600);
+}
+.pf-k-leaf:nth-child(3n) {
+  background: var(--color-accent-2-400);
+}
+
+/* ═════ cabinets and counter ═════ */
+.pf-k-carcass {
+  background: var(--color-accent-2-700);
+}
+.pf-k-scene--wide .pf-k-carcass {
+  left: 29cqw;
+  top: 37.2cqw;
+  width: 68cqw;
+  height: 17.3cqw;
+}
+.pf-k-scene--tall .pf-k-carcass {
+  left: 51cqw;
+  top: 64cqw;
+  width: 49cqw;
+  height: 48cqw;
+}
+.pf-k-counter {
+  background: var(--color-accent-600);
+}
+.pf-k-scene--wide .pf-k-counter {
+  left: 28cqw;
+  top: 35.6cqw;
+  width: 70cqw;
+  height: 1.8cqw;
+  border-radius: 0.6cqw;
+  box-shadow:
+    inset 0 0.35cqw 0 var(--color-accent-400),
+    0 0.5cqw 0.8cqw -0.4cqw var(--color-accent-900);
+}
+.pf-k-scene--tall .pf-k-counter {
+  left: 50cqw;
+  top: 62cqw;
+  width: 50cqw;
+  height: 3.6cqw;
+  border-radius: 1cqw 0 0 1cqw;
+  box-shadow: inset 0 0.7cqw 0 var(--color-accent-400);
+}
+.pf-k-door {
+  top: 38cqw;
+  height: 15.4cqw;
+  box-sizing: border-box;
+  padding: 0.7cqw;
+  border-radius: 1cqw;
+  background: var(--color-accent-2-500);
+}
+.pf-k-door > i {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 0.25cqw solid var(--color-accent-2-600);
+  border-radius: 0.7cqw;
+}
+/* the knob, on whichever side the door opens from */
+.pf-k-door > i::after {
+  content: "";
+  position: absolute;
+  top: 1cqw;
+  width: 0.9cqw;
+  height: 0.9cqw;
+  border-radius: 50%;
+  background: var(--color-accent-200);
+}
+.pf-k-door--1 {
+  left: 29.8cqw;
+  width: 10.7cqw;
+}
+.pf-k-door--1 > i::after {
+  right: 0.6cqw;
+}
+.pf-k-door--2 {
+  left: 41cqw;
+  width: 10.7cqw;
+}
+.pf-k-door--2 > i::after {
+  left: 0.6cqw;
+}
+.pf-k-door--3 {
+  left: 83.8cqw;
+  width: 12.6cqw;
+}
+.pf-k-door--3 > i::after {
+  left: 0.6cqw;
+}
+.pf-k-drawers {
+  left: 70.2cqw;
+  top: 38cqw;
+  width: 13cqw;
+  height: 15.4cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6cqw;
+}
+.pf-k-drawers > i {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 1cqw;
+  background: var(--color-accent-2-500);
+}
+.pf-k-drawers > i::after {
+  content: "";
+  width: 3.4cqw;
+  height: 0.7cqw;
+  border-radius: 0.4cqw;
+  background: var(--color-accent-200);
+}
+
+/* ═════ the oven ═════ */
+.pf-k-oven {
+  border-radius: 1.2cqw;
+  background: var(--color-neutral-100);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.15s;
+}
+.pf-k-scene--wide .pf-k-oven {
+  left: 52.3cqw;
+  top: 38cqw;
+  width: 17.3cqw;
+  height: 15.4cqw;
+}
+.pf-k-scene--tall .pf-k-oven {
+  left: 54cqw;
+  top: 68cqw;
+  width: 43cqw;
+  height: 40cqw;
+  border-radius: 3cqw;
+}
+.pf-k-oven:hover {
+  transform: translateY(-0.15cqw);
+}
+.pf-k-oven-panel {
+  left: 0;
+  top: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  background: var(--color-neutral-200);
+}
+.pf-k-scene--wide .pf-k-oven-panel {
+  height: 2.7cqw;
+  padding: 0 1.2cqw;
+  justify-content: space-between;
+  border-radius: 1.2cqw 1.2cqw 0 0;
+}
+.pf-k-scene--tall .pf-k-oven-panel {
+  height: 7cqw;
+  justify-content: center;
+  gap: 2cqw;
+  border-radius: 3cqw 3cqw 0 0;
+}
+.pf-k-knobs {
+  position: relative;
+  display: flex;
+}
+.pf-k-knobs > b {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--color-accent-500);
+}
+.pf-k-scene--wide .pf-k-knobs {
+  gap: 0.6cqw;
+}
+.pf-k-scene--wide .pf-k-knobs > b {
+  width: 1.2cqw;
+}
+.pf-k-scene--tall .pf-k-knobs > b {
+  width: 3cqw;
+}
+/* one knob a side is enough at phone size */
+.pf-k-scene--tall .pf-k-knobs > b + b {
+  display: none;
+}
+.pf-k-readout {
+  position: relative;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: var(--color-accent-300);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.pf-k-scene--wide .pf-k-readout {
+  min-width: 3.8cqw;
+  padding: 0.25cqw 0.6cqw;
+  font-size: 0.9cqw;
+}
+.pf-k-scene--tall .pf-k-readout {
+  padding: 0.6cqw 2cqw;
+  font-size: 2.8cqw;
+}
+.pf-k-oven-handle {
+  left: 2.2cqw;
+  top: 3.4cqw;
+  width: 12.9cqw;
+  height: 0.7cqw;
+  border-radius: 0.4cqw;
+  background: var(--color-neutral-500);
+}
+.pf-k-scene--tall .pf-k-oven-handle {
+  display: none;
+}
+.pf-k-oven-window {
+  background: var(--color-text);
+  overflow: hidden;
+}
+.pf-k-scene--wide .pf-k-oven-window {
+  left: 2cqw;
+  top: 4.8cqw;
+  width: 13.3cqw;
+  height: 9cqw;
+  border-radius: 1.2cqw;
+  box-shadow: inset 0 0 0 0.35cqw var(--color-neutral-700);
+}
+.pf-k-scene--tall .pf-k-oven-window {
+  left: 4cqw;
+  top: 11cqw;
+  width: 35cqw;
+  height: 25cqw;
+  border-radius: 3cqw;
+  box-shadow: inset 0 0 0 0.9cqw var(--color-neutral-700);
+}
+.pf-k-oven-glow {
+  inset: 0;
+  width: auto;
+  height: auto;
+  background: radial-gradient(
+    ellipse at 50% 95%,
+    var(--color-accent-400),
+    var(--color-accent-700) 55%,
+    transparent 82%
+  );
+  opacity: var(--glow);
+  transition: opacity 1.2s;
+}
+.pf-k-oven-rack {
+  left: 0;
+  width: 100%;
+  background: var(--color-neutral-600);
+}
+.pf-k-scene--wide .pf-k-oven-rack {
+  bottom: 2cqw;
+  height: 0.22cqw;
+}
+.pf-k-scene--tall .pf-k-oven-rack {
+  bottom: 4.4cqw;
+  height: 0.6cqw;
+}
+/* the loaf rises and browns over the whole bake */
+.pf-k-loaf {
+  border-radius: 50% 50% 38% 38% / 70% 70% 30% 30%;
+  background-color: var(--loaf-color);
+  transform: scale(var(--loaf-scale));
+  transform-origin: 50% 100%;
+  transition:
+    transform var(--bake-secs) ease-out,
+    background-color var(--bake-secs) ease-in;
+}
+.pf-k-scene--wide .pf-k-loaf {
+  left: 3.4cqw;
+  bottom: 3.4cqw;
+  width: 6.5cqw;
+  height: 3.6cqw;
+}
+.pf-k-scene--tall .pf-k-loaf {
+  left: 9.5cqw;
+  bottom: 8cqw;
+  width: 16cqw;
+  height: 9cqw;
+}
+.pf-k-score {
+  border-radius: 50%;
+  opacity: var(--score-op);
+  transition: opacity 3s;
+}
+.pf-k-scene--wide .pf-k-score {
+  left: 1.3cqw;
+  top: 0.7cqw;
+  width: 3.8cqw;
+  height: 1.4cqw;
+  border-top: 0.28cqw solid var(--color-accent-100);
+}
+.pf-k-scene--tall .pf-k-score {
+  left: 3.2cqw;
+  top: 1.8cqw;
+  width: 9.4cqw;
+  height: 3.4cqw;
+  border-top: 0.7cqw solid var(--color-accent-100);
+}
+/* the Dutch oven the loaf bakes in: enamel orange, not a theme colour */
+.pf-k-dutch {
+  box-sizing: border-box;
+  background: linear-gradient(#f99b2a, #ee5a24 45%, #a62a0c);
+  border-top: 0.28cqw solid #f1e3c8;
+}
+.pf-k-dutch-ear {
+  background: #e8561f;
+}
+.pf-k-scene--wide .pf-k-dutch {
+  left: 2.6cqw;
+  bottom: 2.2cqw;
+  width: 8.1cqw;
+  height: 2.8cqw;
+  border-radius: 0.5cqw 0.5cqw 1.4cqw 1.4cqw;
+  box-shadow: inset 0 -0.34cqw 0 rgb(0 0 0 / 18%);
+}
+.pf-k-scene--wide .pf-k-dutch-ear {
+  top: 0.34cqw;
+  width: 0.97cqw;
+  height: 0.62cqw;
+  border-radius: 2.8cqw;
+}
+.pf-k-scene--wide .pf-k-dutch-ear--l {
+  left: -0.73cqw;
+}
+.pf-k-scene--wide .pf-k-dutch-ear--r {
+  right: -0.73cqw;
+}
+.pf-k-scene--tall .pf-k-dutch {
+  left: 7.5cqw;
+  bottom: 4.4cqw;
+  width: 20cqw;
+  height: 7cqw;
+  border-radius: 1.26cqw 1.26cqw 3.5cqw 3.5cqw;
+  border-top-width: 0.7cqw;
+  box-shadow: inset 0 -0.84cqw 0 rgb(0 0 0 / 18%);
+}
+.pf-k-scene--tall .pf-k-dutch-ear {
+  top: 0.84cqw;
+  width: 2.4cqw;
+  height: 1.54cqw;
+  border-radius: 7cqw;
+}
+.pf-k-scene--tall .pf-k-dutch-ear--l {
+  left: -1.8cqw;
+}
+.pf-k-scene--tall .pf-k-dutch-ear--r {
+  right: -1.8cqw;
+}
+
+/* ═════ the coffee machine ═════ */
+.pf-k-machine {
+  z-index: 2;
+  transition: transform 0.15s;
+}
+.pf-k-machine:hover {
+  transform: translateY(-0.2cqw);
+}
+.pf-k-scene--wide .pf-k-machine {
+  left: 31.5cqw;
+  top: 22.6cqw;
+  width: 11cqw;
+  height: 13cqw;
+}
+.pf-k-scene--tall .pf-k-machine {
+  left: 53cqw;
+  top: 39cqw;
+  width: 21cqw;
+  height: 23cqw;
+}
+.pf-k-mach-back {
+  background: var(--color-accent-600);
+}
+.pf-k-scene--wide .pf-k-mach-back {
+  left: 6.6cqw;
+  top: 1cqw;
+  width: 4cqw;
+  height: 11.5cqw;
+  border-radius: 0.8cqw;
+}
+.pf-k-scene--tall .pf-k-mach-back {
+  left: 13cqw;
+  top: 2cqw;
+  width: 7cqw;
+  height: 20cqw;
+  border-radius: 1.4cqw;
+}
+.pf-k-mach-head {
+  top: 0;
+  background: var(--color-accent-500);
+}
+.pf-k-scene--wide .pf-k-mach-head {
+  left: 0.6cqw;
+  width: 10cqw;
+  height: 4.2cqw;
+  border-radius: 1.4cqw 1.4cqw 0.8cqw 0.8cqw;
+  box-shadow: inset 0 0.4cqw 0 var(--color-accent-400);
+}
+.pf-k-scene--tall .pf-k-mach-head {
+  left: 1cqw;
+  width: 19cqw;
+  height: 7.4cqw;
+  border-radius: 3cqw 3cqw 1.4cqw 1.4cqw;
+  box-shadow: inset 0 0.8cqw 0 var(--color-accent-400);
+}
+.pf-k-gauge {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--color-neutral-100);
+}
+.pf-k-scene--wide .pf-k-gauge {
+  right: 1cqw;
+  top: 0.9cqw;
+  width: 2.4cqw;
+  box-shadow: inset 0 0 0 0.25cqw var(--color-neutral-400);
+}
+.pf-k-scene--tall .pf-k-gauge {
+  right: 2cqw;
+  top: 1.6cqw;
+  width: 4.4cqw;
+  box-shadow: inset 0 0 0 0.5cqw var(--color-neutral-400);
+}
+.pf-k-needle {
+  background: var(--color-accent-700);
+  transform-origin: 50% 100%;
+  transform: rotate(var(--needle));
+  transition: transform 1.4s;
+}
+.pf-k-scene--wide .pf-k-needle {
+  left: 1.1cqw;
+  top: 0.35cqw;
+  width: 0.18cqw;
+  height: 0.9cqw;
+}
+.pf-k-scene--tall .pf-k-needle {
+  left: 2.05cqw;
+  top: 0.7cqw;
+  width: 0.34cqw;
+  height: 1.6cqw;
+}
+.pf-k-lamp {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--lamp);
+  transition: background-color 0.4s;
+}
+.pf-k-scene--wide .pf-k-lamp {
+  left: 1cqw;
+  top: 1.5cqw;
+  width: 0.9cqw;
+}
+.pf-k-scene--tall .pf-k-lamp {
+  left: 2cqw;
+  top: 2.8cqw;
+  width: 1.8cqw;
+}
+.pf-k-group {
+  background: var(--color-neutral-600);
+}
+.pf-k-scene--wide .pf-k-group {
+  left: 3.4cqw;
+  top: 4.2cqw;
+  width: 3.2cqw;
+  height: 0.9cqw;
+  border-radius: 0 0 0.4cqw 0.4cqw;
+}
+.pf-k-scene--tall .pf-k-group {
+  left: 5.6cqw;
+  top: 7.4cqw;
+  width: 6cqw;
+  height: 1.6cqw;
+  border-radius: 0 0 0.8cqw 0.8cqw;
+}
+.pf-k-mach-foot {
+  left: 0;
+  top: 4.6cqw;
+  width: 4cqw;
+  height: 0.8cqw;
+  border-radius: 0.4cqw;
+  background: var(--color-text);
+}
+.pf-k-scene--tall .pf-k-mach-foot {
+  display: none;
+}
+/* the shot itself: a striped bar scrolling downwards */
+.pf-k-stream {
+  border-radius: 0.2cqw;
+  background: linear-gradient(var(--color-accent-800) 50%, var(--color-accent-700) 50%) 0 0 / 100%
+    1.2cqw;
+  opacity: var(--stream);
+  transition: opacity 0.3s;
+  animation: pf-k-drip 0.4s linear infinite;
+}
+.pf-k-scene--wide .pf-k-stream {
+  left: 4.85cqw;
+  top: 5.1cqw;
+  width: 0.32cqw;
+  height: 3.4cqw;
+}
+.pf-k-scene--tall .pf-k-stream {
+  left: 8.85cqw;
+  top: 9cqw;
+  width: 0.7cqw;
+  height: 4.2cqw;
+}
+.pf-k-glass {
+  z-index: 1;
+}
+.pf-k-scene--wide .pf-k-glass {
+  left: 3.3cqw;
+  top: 8cqw;
+  width: 3.4cqw;
+  height: 3.6cqw;
+}
+.pf-k-scene--tall .pf-k-glass {
+  left: 6cqw;
+  top: 13cqw;
+  width: 6.4cqw;
+  height: 7cqw;
+}
+.pf-k-glass-wall {
+  inset: 0;
+  width: auto;
+  height: auto;
+  background: rgb(255 255 255 / 28%);
+  border: 0.175cqw solid rgb(255 255 255 / 95%);
+  box-sizing: border-box;
+  box-shadow: inset 0 0 0 0.06cqw rgb(255 255 255 / 50%);
+}
+.pf-k-scene--wide .pf-k-glass-wall {
+  border-radius: 0.4cqw 0.4cqw 1.2cqw 1.2cqw;
+}
+.pf-k-scene--tall .pf-k-glass-wall {
+  border-width: 0.315cqw;
+  border-radius: 0.8cqw 0.8cqw 2.4cqw 2.4cqw;
+  box-shadow: inset 0 0 0 0.108cqw rgb(255 255 255 / 50%);
+}
+.pf-k-glass-well {
+  width: auto;
+  height: auto;
+  overflow: hidden;
+  background: rgb(255 255 255 / 20%);
+}
+.pf-k-scene--wide .pf-k-glass-well {
+  inset: 0.45cqw 0.45cqw 0.6cqw;
+  border-radius: 0.2cqw 0.2cqw 0.9cqw 0.9cqw;
+}
+.pf-k-scene--tall .pf-k-glass-well {
+  inset: 0.9cqw 0.9cqw 1cqw;
+  border-radius: 0.4cqw 0.4cqw 1.8cqw 1.8cqw;
+}
+.pf-k-glass-fill {
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--fill);
+  background: var(--color-accent-800);
+  transition: height var(--fill-secs) ease-in;
+}
+.pf-k-steam {
+  display: flex;
+  justify-content: space-between;
+}
+.pf-k-steam > b {
+  position: relative;
+  border-radius: 0.2cqw;
+  background: var(--color-neutral-100);
+  animation: pf-k-steam 2s ease-out infinite;
+}
+.pf-k-steam > b:nth-child(2) {
+  animation-delay: 0.6s;
+}
+.pf-k-steam > b:nth-child(3) {
+  animation-delay: 1.2s;
+}
+.pf-k-scene--wide .pf-k-steam {
+  left: 0.4cqw;
+  top: -2.6cqw;
+  width: 2.6cqw;
+  height: 2.4cqw;
+}
+.pf-k-scene--wide .pf-k-steam > b {
+  width: 0.28cqw;
+  height: 1.6cqw;
+}
+.pf-k-scene--tall .pf-k-steam {
+  left: 0.9cqw;
+  top: -5cqw;
+  width: 4.6cqw;
+  height: 4.6cqw;
+}
+.pf-k-scene--tall .pf-k-steam > b {
+  width: 0.6cqw;
+  height: 3.2cqw;
+}
+.pf-k-grille {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-neutral-500) 0 0.3cqw,
+    var(--color-neutral-600) 0.3cqw 0.6cqw
+  );
+}
+.pf-k-scene--wide .pf-k-grille {
+  left: 0.6cqw;
+  top: 11.6cqw;
+  width: 10cqw;
+  height: 1.4cqw;
+  border-radius: 0.5cqw;
+}
+.pf-k-scene--tall .pf-k-grille {
+  left: 1cqw;
+  top: 20cqw;
+  width: 19cqw;
+  height: 2.6cqw;
+  border-radius: 1cqw;
+  background-size: 1.2cqw 100%;
+}
+
+/* ═════ the notepad and sticker sheet ═════ */
+.pf-k-pad {
+  z-index: 2;
+  transition: transform 0.15s;
+}
+.pf-k-pad:hover {
+  transform: translateY(-0.3cqw) rotate(-1deg);
+}
+.pf-k-scene--wide .pf-k-pad {
+  left: 78.5cqw;
+  top: 25.6cqw;
+  width: 15cqw;
+  height: 10cqw;
+}
+.pf-k-scene--tall .pf-k-pad {
+  left: 76cqw;
+  top: 47cqw;
+  width: 21cqw;
+  height: 15cqw;
+}
+.pf-k-sheet-of-stickers {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+  background: var(--color-accent-100);
+  box-shadow: var(--shadow-sm);
+  transform: rotate(7deg);
+}
+.pf-k-sheet-of-stickers > i {
+  position: relative;
+  aspect-ratio: 1;
+}
+.pf-k-sheet-of-stickers > i:nth-child(1) {
+  border-radius: 50%;
+  background: var(--color-accent-500);
+}
+.pf-k-sheet-of-stickers > i:nth-child(2) {
+  border-radius: 0.4cqw;
+  background: var(--color-accent-2-500);
+  transform: rotate(12deg);
+}
+.pf-k-sheet-of-stickers > i:nth-child(3) {
+  border-radius: 50%;
+  background: var(--color-text);
+  box-shadow: inset -0.6cqw -0.2cqw 0 var(--color-accent-400);
+}
+.pf-k-sheet-of-stickers > i:nth-child(4) {
+  border-radius: 50% 50% 50% 0;
+  background: var(--color-accent-300);
+  transform: rotate(-45deg);
+}
+.pf-k-scene--wide .pf-k-sheet-of-stickers {
+  left: 7.4cqw;
+  top: 1.4cqw;
+  width: 7cqw;
+  height: 8.4cqw;
+  gap: 0.5cqw;
+  padding: 0.8cqw;
+  border-radius: 0.6cqw;
+}
+.pf-k-scene--tall .pf-k-sheet-of-stickers {
+  left: 8cqw;
+  top: 1cqw;
+  width: 12cqw;
+  height: 13cqw;
+  gap: 1cqw;
+  padding: 1.6cqw;
+  border-radius: 1.2cqw;
+  transform: rotate(8deg);
+}
+.pf-k-notepad {
+  box-sizing: border-box;
+  background: var(--color-neutral-100);
+  box-shadow: var(--shadow-md);
+  text-align: left;
+  transform: rotate(-4deg);
+}
+.pf-k-scene--wide .pf-k-notepad {
+  left: 0.4cqw;
+  top: 0.4cqw;
+  width: 9cqw;
+  height: 9.4cqw;
+  padding: 0.9cqw 1cqw;
+  border-radius: 0.5cqw;
+  background-image: repeating-linear-gradient(
+    transparent 0 1.2cqw,
+    var(--color-accent-2-200) 1.2cqw 1.32cqw
+  );
+  background-position: 0 3cqw;
+}
+.pf-k-scene--tall .pf-k-notepad {
+  left: 0;
+  top: 1cqw;
+  width: 13cqw;
+  height: 14cqw;
+  padding: 1.8cqw;
+  border-radius: 1cqw;
+  transform: rotate(-5deg);
+  background-image: repeating-linear-gradient(
+    transparent 0 2.6cqw,
+    var(--color-accent-2-200) 2.6cqw 2.9cqw
+  );
+  background-position: 0 6cqw;
+}
+.pf-k-notepad .pf-k-tape {
+  background: color-mix(in srgb, var(--color-accent-2-300) 80%, transparent);
+  transform: rotate(3deg);
+}
+.pf-k-scene--wide .pf-k-notepad .pf-k-tape {
+  left: 3cqw;
+  top: -0.5cqw;
+  width: 3cqw;
+  height: 1cqw;
+}
+.pf-k-scene--tall .pf-k-notepad .pf-k-tape {
+  left: 4cqw;
+  top: -1cqw;
+  width: 5cqw;
+  height: 2cqw;
+}
+.pf-k-pad-title {
+  position: relative;
+  font-family: var(--font-heading);
+  line-height: 1.1;
+  color: var(--color-text);
+}
+.pf-k-scene--wide .pf-k-pad-title {
+  font-size: 1.15cqw;
+}
+.pf-k-scene--tall .pf-k-pad-title {
+  font-size: 2.6cqw;
+}
+.pf-k-pad-sub {
+  position: relative;
+  margin-top: 1.6cqw;
+  font-size: 0.8cqw;
+  font-style: italic;
+  color: var(--color-neutral-700);
+}
+.pf-k-scene--tall .pf-k-pad-sub {
+  display: none;
+}
+.pf-k-pencil {
+  left: 1cqw;
+  top: 8.8cqw;
+  width: 8cqw;
+  height: 0.6cqw;
+  border-radius: 0.3cqw;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-300) 12%,
+    var(--color-accent-400) 12% 85%,
+    var(--color-neutral-700) 85%
+  );
+  transform: rotate(-12deg);
+}
+.pf-k-scene--tall .pf-k-pencil {
+  display: none;
+}
+
+/* ═════ the fridge ═════ */
+.pf-k-fridge {
+  position: absolute;
+  left: 3cqw;
+  aspect-ratio: 23 / 45.5;
+  container-type: inline-size;
+  border-radius: 10cqw 10cqw 3.5cqw 3.5cqw;
+  background: var(--color-neutral-100);
+  box-shadow:
+    var(--shadow-lg),
+    inset -3.5cqw 0 0 var(--color-neutral-200);
+  z-index: 2;
+}
+.pf-k-fridge--wide {
+  top: 9cqw;
+  width: 23cqw;
+}
+.pf-k-fridge--tall {
+  top: 17cqw;
+  width: 48cqw;
+}
+/* inside the door, 1cqw is 1% of the door's own width */
+.pf-k-fridge-split {
+  left: 0;
+  top: 55.6cqw;
+  width: 100%;
+  height: 1.5cqw;
+  background: var(--color-neutral-300);
+}
+.pf-k-fridge-grip {
+  left: 89.6cqw;
+  width: 3cqw;
+  border-radius: 2cqw;
+  background: var(--color-neutral-400);
+}
+.pf-k-fridge-grip--freezer {
+  top: 19.6cqw;
+  height: 21.7cqw;
+}
+.pf-k-fridge-grip--door {
+  top: 67.4cqw;
+  height: 43.5cqw;
+}
+.pf-k-magnets {
+  display: contents;
+}
+.pf-k-magnet {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transform: rotate(var(--r));
+  transition: transform 0.2s;
+}
+.pf-k-magnet:hover,
+.pf-k-magnet:focus-visible {
+  transform: rotate(0deg) scale(1.1);
+  z-index: 4;
+}
+.pf-k-magnet-art {
+  position: relative;
+  display: block;
+  filter: drop-shadow(0 0.8cqw 1cqw rgb(46 43 37 / 30%));
+}
+/* the magnets are drawn from real things, so they carry their own colours */
+.pf-k-mag,
+.pf-k-mag :where(i, b) {
+  box-sizing: border-box;
+  font-style: normal;
+}
+.pf-k-mag :where(i, b) {
+  position: absolute;
+  display: block;
+}
+.pf-k-mag {
+  /* every code on the door is set at one size, whatever the magnet around it */
+  --code-fs: 4cqw;
+  font-family: var(--font-heading);
+  line-height: 1;
+}
+
+/* Kuching: a cat, sitting, with the code on its collar */
+.pf-k-mag--kch {
+  position: relative;
+  width: 19cqw;
+  height: 21cqw;
+}
+.pf-k-kch-tail {
+  left: 13.5cqw;
+  top: 9cqw;
+  width: 5.5cqw;
+  height: 9cqw;
+  border-radius: 0 3cqw 3cqw 0;
+  border: 1.5cqw solid #e08a2c;
+  border-left: 0;
+  box-sizing: border-box;
+}
+.pf-k-kch-body {
+  left: 2cqw;
+  top: 8.5cqw;
+  width: 12.5cqw;
+  height: 12.5cqw;
+  border-radius: 5cqw 5cqw 2.4cqw 2.4cqw;
+  background: #f0a437;
+}
+.pf-k-kch-head {
+  left: 1.2cqw;
+  top: 2.6cqw;
+  width: 14cqw;
+  height: 11.5cqw;
+  border-radius: 50%;
+  background: #f5b556;
+}
+.pf-k-kch-ear {
+  top: 0.4cqw;
+  width: 5cqw;
+  height: 5cqw;
+  background: #f0a437;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.pf-k-kch-ear--l {
+  left: 1.6cqw;
+  transform: rotate(-14deg);
+}
+.pf-k-kch-ear--r {
+  left: 10.6cqw;
+  transform: rotate(14deg);
+}
+.pf-k-kch-eye {
+  top: 4.4cqw;
+  width: 1.5cqw;
+  height: 1.9cqw;
+  border-radius: 50%;
+  background: #2f2a24;
+}
+.pf-k-kch-eye--l {
+  left: 3.6cqw;
+}
+.pf-k-kch-eye--r {
+  left: 8.9cqw;
+}
+.pf-k-kch-nose {
+  left: 6.4cqw;
+  top: 7cqw;
+  width: 1.6cqw;
+  height: 1.3cqw;
+  border-radius: 50% 50% 60% 60%;
+  background: #d4573a;
+}
+.pf-k-kch-collar {
+  left: 2.4cqw;
+  top: 12.4cqw;
+  width: 11.8cqw;
+  height: 5.4cqw;
+  border-radius: 1cqw;
+  background: #1f6f54;
+  display: grid;
+  place-items: center;
+  color: #ffd97a;
+  font-size: var(--code-fs);
+}
+
+/* Chiang Mai: a paper lantern */
+.pf-k-mag--cnx {
+  position: relative;
+  width: 14cqw;
+  height: 18cqw;
+  border-radius: 6cqw 6cqw 2cqw 2cqw;
+  background: radial-gradient(circle at 50% 80%, #fff1c9, #f6c177 70%, #e9a44f);
+  display: grid;
+  place-items: center;
+  color: #7a3e0a;
+  font-size: var(--code-fs);
+  box-shadow: 0 0 5cqw #ffd98a;
+}
+.pf-k-cnx-tassel {
+  left: 5.5cqw;
+  bottom: -2.4cqw;
+  width: 3cqw;
+  height: 3.6cqw;
+  border-radius: 50% / 60% 60% 40% 40%;
+  background: #f08a24;
+}
+
+/* Beijing: a ribbed red lantern with brass caps */
+.pf-k-mag--pek {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pf-k-pek-cap {
+  position: relative;
+  width: 8cqw;
+  height: 2.2cqw;
+  border-radius: 0.8cqw;
+  background: #f2b705;
+}
+.pf-k-pek-body {
+  position: relative;
+  width: 17cqw;
+  height: 15cqw;
+  border-radius: 50%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 3.6cqw, rgb(0 0 0 / 16%) 3.6cqw 4.1cqw),
+    radial-gradient(circle at 40% 35%, #ef4b4b, #c81d25 70%);
+  display: grid;
+  place-items: center;
+  color: #ffe08a;
+  font-size: var(--code-fs);
+}
+.pf-k-pek-tail {
+  position: relative;
+  width: 1.4cqw;
+  height: 5cqw;
+  border-radius: 0 0 0.7cqw 0.7cqw;
+  background: #f2b705;
+}
+
+/* Bangkok: a tiered temple roof */
+.pf-k-mag--bkk {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pf-k-mag--bkk > * {
+  position: relative;
+}
+.pf-k-bkk-spire {
+  width: 1.6cqw;
+  height: 5cqw;
+  background: #e9b530;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.pf-k-bkk-roof--1 {
+  width: 7cqw;
+  height: 3cqw;
+  background: #c8102e;
+  clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+}
+.pf-k-bkk-roof--2 {
+  width: 12cqw;
+  height: 3.2cqw;
+  background: #c8102e;
+  clip-path: polygon(28% 0, 72% 0, 100% 100%, 0 100%);
+}
+.pf-k-bkk-roof--3 {
+  width: 17cqw;
+  height: 3.2cqw;
+  background: #1f7a4d;
+  clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+}
+.pf-k-bkk-eave {
+  height: 0.9cqw;
+  background: #e9b530;
+}
+.pf-k-bkk-eave--1 {
+  width: 8cqw;
+}
+.pf-k-bkk-eave--2 {
+  width: 13cqw;
+}
+.pf-k-bkk-wall {
+  width: 15cqw;
+  height: 6cqw;
+  border-radius: 0 0 1cqw 1cqw;
+  background: #f7f1e3;
+  display: grid;
+  place-items: center;
+  color: #c8102e;
+  font-size: var(--code-fs);
+  box-shadow: inset 0 0.6cqw 0 #e9b530;
+}
+
+/* Singapore: a durian */
+.pf-k-mag--sin {
+  position: relative;
+  width: 17cqw;
+  height: 17cqw;
+}
+.pf-k-sin-husk {
+  inset: 0;
+  background: #6b8e23;
+  clip-path: polygon(
+    50% 7%,
+    61.6% 21.1%,
+    65.9% 14.4%,
+    72.5% 25.6%,
+    78.9% 21.1%,
+    81.5% 33.3%,
+    88.9% 32.2%,
+    86.3% 44%,
+    93.5% 47.3%,
+    86.3% 56%,
+    91.2% 64.9%,
+    82% 67.3%,
+    83.4% 76.9%,
+    73.9% 74.2%,
+    71.6% 83.9%,
+    63.1% 78.5%,
+    57.2% 86.6%,
+    50% 79.2%,
+    42.8% 86.6%,
+    36.9% 78.5%,
+    28.4% 83.9%,
+    26.1% 74.2%,
+    16.6% 76.9%,
+    18% 67.3%,
+    8.8% 64.9%,
+    13.7% 56%,
+    6.5% 47.3%,
+    13.7% 44%,
+    11.1% 32.2%,
+    18.5% 33.3%,
+    21.1% 21.1%,
+    27.5% 25.6%,
+    34.1% 14.4%,
+    38.4% 21.1%
+  );
+}
+.pf-k-sin-flesh {
+  position: absolute;
+  inset: 2.6cqw;
+  border-radius: 50%;
+  background: #f4d35e;
+  display: grid;
+  place-items: center;
+  color: #5b3a12;
+  font-size: var(--code-fs);
+}
+.pf-k-sin-stem {
+  left: 7.6cqw;
+  top: -2cqw;
+  width: 1.4cqw;
+  height: 3cqw;
+  border-radius: 0.6cqw;
+  background: #6b4423;
+}
+
+/* Hokkaido: a lift pass on its clips */
+.pf-k-mag--hkd {
+  position: relative;
+  width: 30cqw;
+  height: 8.6cqw;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1e3a8a, #3056c7);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: var(--code-fs);
+  letter-spacing: 0.08em;
+  box-shadow: inset 0 0 0 0.6cqw #f4a261;
+}
+.pf-k-hkd-clip {
+  top: -1.2cqw;
+  width: 3cqw;
+  height: 2cqw;
+  border-radius: 0.5cqw;
+  background: #1b1b1b;
+}
+.pf-k-hkd-clip--l {
+  left: 6cqw;
+}
+.pf-k-hkd-clip--r {
+  right: 6cqw;
+}
+
+/* Hanoi: a conical hat over a ribbon */
+.pf-k-mag--han {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pf-k-han-hat {
+  position: relative;
+  width: 25cqw;
+  height: 11cqw;
+  background: repeating-linear-gradient(90deg, #ead7a6 0 2.2cqw, #d9bf83 2.2cqw 4.4cqw);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.pf-k-han-band {
+  position: relative;
+  width: 23cqw;
+  height: 5.4cqw;
+  margin-top: -2.6cqw;
+  border-radius: 1cqw;
+  background: #d62828;
+  display: grid;
+  place-items: center;
+  color: #ffdd00;
+  font-size: var(--code-fs);
+  letter-spacing: 0.08em;
+}
+
+/* Santiago: the scallop shell and yellow arrow of the Camino */
+.pf-k-mag--scq {
+  position: relative;
+  width: 22cqw;
+  height: 22cqw;
+  border-radius: 2.4cqw;
+  background: #1d4e9e;
+}
+.pf-k-scq-shell {
+  left: 4cqw;
+  top: 3cqw;
+  width: 14cqw;
+  height: 8cqw;
+  border-radius: 7cqw 7cqw 0 0;
+  background: repeating-conic-gradient(
+    from -90deg at 50% 100%,
+    #f7c600 0 9deg,
+    transparent 9deg 20deg
+  );
+}
+.pf-k-scq-arrow-bar {
+  left: 7cqw;
+  top: 12.4cqw;
+  width: 6cqw;
+  height: 1.2cqw;
+  background: #f7c600;
+}
+.pf-k-scq-arrow-head {
+  left: 12.6cqw;
+  top: 11.2cqw;
+  width: 3.4cqw;
+  height: 3.6cqw;
+  background: #f7c600;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+.pf-k-scq-name {
+  left: 0;
+  bottom: 2cqw;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-size: var(--code-fs);
+  letter-spacing: 0.06em;
+}
+
+/* Kuala Lumpur: the Petronas Towers and their skybridge */
+.pf-k-mag--kul {
+  position: relative;
+  width: 27cqw;
+  height: 19cqw;
+  border-radius: 1.2cqw;
+  background: linear-gradient(#8fd0f0, #e8f6fc);
+}
+.pf-k-kul-tower {
+  bottom: 0;
+  width: 4cqw;
+  height: 13cqw;
+  border-radius: 2cqw 2cqw 0 0;
+  background: repeating-linear-gradient(#c9d1d9 0 1.2cqw, #9aa6b2 1.2cqw 1.6cqw);
+}
+.pf-k-kul-tower--l {
+  left: 5cqw;
+}
+.pf-k-kul-tower--r {
+  left: 12cqw;
+}
+.pf-k-kul-spire {
+  bottom: 13cqw;
+  width: 0.5cqw;
+  height: 3.4cqw;
+  background: #7d8893;
+}
+.pf-k-kul-spire--l {
+  left: 6.8cqw;
+}
+.pf-k-kul-spire--r {
+  left: 13.8cqw;
+}
+.pf-k-kul-bridge {
+  left: 8.6cqw;
+  bottom: 7cqw;
+  width: 3.8cqw;
+  height: 1.2cqw;
+  background: #6b7680;
+}
+.pf-k-kul-name {
+  right: 2.4cqw;
+  bottom: 2.2cqw;
+  color: #173b63;
+  font-size: var(--code-fs);
+}
+/* the round magnet holding the flatter cards on */
+.pf-k-magnet-dot {
+  left: 11cqw;
+  top: -2.2cqw;
+  width: 5.2cqw;
+  height: 5.2cqw;
+  border-radius: 50%;
+  box-shadow: inset -0.9cqw -0.9cqw 0 rgb(0 0 0 / 22%);
+}
+.pf-k-mag--kul .pf-k-magnet-dot {
+  background: #e63946;
+}
+.pf-k-mag--agp .pf-k-magnet-dot {
+  background: #f28c28;
+}
+
+/* Brussels: a waffle, cream and a strawberry */
+.pf-k-mag--bru {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pf-k-bru-waffle {
+  position: relative;
+  width: 18cqw;
+  height: 18cqw;
+  border-radius: 2.6cqw;
+  background:
+    linear-gradient(90deg, #b5773a 0.8cqw, transparent 0.8cqw) 0.6cqw 0 / 4.2cqw 4.2cqw,
+    linear-gradient(#b5773a 0.8cqw, transparent 0.8cqw) 0 0.6cqw / 4.2cqw 4.2cqw,
+    #e0a458;
+  box-shadow: inset 0 0 0 1cqw #b5773a;
+}
+.pf-k-bru-cream {
+  right: -1cqw;
+  top: -2cqw;
+  width: 9cqw;
+  height: 5.4cqw;
+  border-radius: 50%;
+  background: #fffdf7;
+}
+.pf-k-bru-name {
+  left: 0;
+  bottom: 2.4cqw;
+  width: 100%;
+  text-align: center;
+  color: #6b3f14;
+  font-size: var(--code-fs);
+  letter-spacing: 0.06em;
+}
+.pf-k-bru-berry {
+  right: 1.8cqw;
+  top: -3.4cqw;
+  width: 3.8cqw;
+  height: 4.2cqw;
+  border-radius: 50% / 40% 40% 60% 60%;
+  background: #e23b3b;
+  box-shadow: inset 0 1cqw 0 #3c9d4a;
+}
+
+/* London: a Routemaster */
+.pf-k-mag--ldn {
+  position: relative;
+  width: 26cqw;
+  height: 15cqw;
+  border-radius: 2.4cqw 2.4cqw 1cqw 1cqw;
+  background: #d0021b;
+}
+.pf-k-ldn-windows {
+  left: 1.6cqw;
+  background: repeating-linear-gradient(90deg, #d8eef8 0 4.4cqw, #d0021b 4.4cqw 5.2cqw);
+}
+.pf-k-ldn-windows--top {
+  top: 1.4cqw;
+  right: 1.6cqw;
+  height: 3.6cqw;
+  border-radius: 0.8cqw;
+}
+.pf-k-ldn-windows--low {
+  top: 10.2cqw;
+  right: 6cqw;
+  height: 2.8cqw;
+  border-radius: 0.5cqw;
+}
+.pf-k-ldn-blind {
+  left: 1.6cqw;
+  top: 6cqw;
+  right: 1.6cqw;
+  height: 3.2cqw;
+  border-radius: 0.5cqw;
+  background: #1c1c1c;
+  display: grid;
+  place-items: center;
+  color: #ffd23f;
+  font-size: var(--code-fs);
+  letter-spacing: 0.08em;
+}
+.pf-k-ldn-wheel {
+  bottom: -1.8cqw;
+  width: 4cqw;
+  height: 4cqw;
+  border-radius: 50%;
+  background: #222;
+  box-shadow: inset 0 0 0 1.1cqw #555;
+}
+.pf-k-ldn-wheel--l {
+  left: 3.6cqw;
+}
+.pf-k-ldn-wheel--r {
+  right: 3.6cqw;
+}
+
+/* Málaga: the shoreline */
+.pf-k-mag--agp {
+  position: relative;
+  width: 27cqw;
+  height: 19cqw;
+  border-radius: 1.2cqw;
+  background: linear-gradient(#bde5f6 0 52%, #1e8fc6 52% 74%, #f4dca8 74%);
+}
+.pf-k-agp-sun {
+  right: 3.4cqw;
+  top: 2.4cqw;
+  width: 6.4cqw;
+  height: 6.4cqw;
+  border-radius: 50%;
+  background: #ffc53a;
+}
+.pf-k-agp-surf {
+  left: 0;
+  top: 47%;
+  width: 100%;
+  height: 2cqw;
+  background: radial-gradient(circle at 50% 100%, #1e8fc6 0 1.1cqw, transparent 1.2cqw) 0 0 / 3cqw
+    2cqw;
+}
+.pf-k-agp-name {
+  left: 2.4cqw;
+  bottom: 1.2cqw;
+  color: #164a6e;
+  font-size: var(--code-fs);
+  letter-spacing: 0.04em;
+}
+
+/* Melbourne: a tram, pole up */
+.pf-k-mag--mel {
+  position: relative;
+  width: 22cqw;
+  height: 13cqw;
+  margin-top: 3cqw;
+}
+.pf-k-mel-pole {
+  left: 9cqw;
+  top: -3.6cqw;
+  width: 0.5cqw;
+  height: 4.4cqw;
+  background: #333;
+  transform: rotate(30deg);
+  transform-origin: bottom;
+}
+.pf-k-mel-body {
+  inset: 0;
+  border-radius: 3cqw 3cqw 1cqw 1cqw;
+  background: #2e6b3a;
+}
+.pf-k-mel-windows {
+  left: 1.4cqw;
+  right: 1.4cqw;
+  top: 2.6cqw;
+  height: 4.4cqw;
+  border-radius: 0.6cqw;
+  background:
+    repeating-linear-gradient(90deg, #bfd9e6 0 3.4cqw, #f3e7c3 3.4cqw 4.2cqw) content-box,
+    #f3e7c3;
+  padding: 0.7cqw;
+}
+.pf-k-mel-name {
+  left: 0;
+  bottom: 1.6cqw;
+  width: 100%;
+  text-align: center;
+  color: #f3e7c3;
+  font-size: var(--code-fs);
+}
+.pf-k-mel-wheel {
+  bottom: -1.4cqw;
+  width: 3cqw;
+  height: 3cqw;
+  border-radius: 50%;
+  background: #222;
+}
+.pf-k-mel-wheel--l {
+  left: 3cqw;
+}
+.pf-k-mel-wheel--r {
+  right: 3cqw;
+}
+
+/* ═════ what the visitor stuck on the door ═════ */
+.pf-k-stuck {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 15cqw;
+  transform: rotate(var(--r));
+  z-index: 5;
+}
+.pf-k-stuck--note {
+  width: 30cqw;
+}
+.pf-k-pop {
+  animation: pf-k-pop 0.5s ease-out;
+}
+.pf-k-fnote {
+  position: relative;
+  border-radius: 1cqw;
+  padding: 3.4cqw 3cqw 2.6cqw;
+  background: var(--color-accent-100);
+  box-shadow: 0 0.8cqw 2cqw color-mix(in srgb, var(--color-text) 22%, transparent);
+  font-size: 3.3cqw;
+  line-height: 1.3;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+.pf-k-fnote p {
+  margin: 0;
+}
+.pf-k-fnote .pf-k-tape {
+  position: absolute;
+  left: 8cqw;
+  top: -1.6cqw;
+  width: 10cqw;
+  height: 3.4cqw;
+  background: color-mix(in srgb, var(--color-accent-2-300) 80%, transparent);
+  transform: rotate(-4deg);
+}
+.pf-k-fnote-sign {
+  margin-top: 1.2cqw;
+  font-weight: 700;
+  color: var(--color-accent-700);
+}
+.pf-k-fsticker {
+  position: relative;
+  display: block;
+  width: 100%;
+  filter: drop-shadow(0 0.6cqw 0.8cqw rgb(46 43 37 / 35%));
+}
+.pf-k-fsticker svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* with a note, the sticker tacks it on by one corner */
+.pf-k-fsticker--corner {
+  position: absolute;
+  right: -5cqw;
+  top: -6cqw;
+  width: 13cqw;
+  transform: rotate(12deg);
+}
+
+/* ═════ the popup ═════ */
+.pf-k-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+  padding: 16px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--color-text) 45%, transparent);
+}
+.pf-k-modal {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 28px 24px 24px;
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-100);
+  box-shadow: var(--shadow-lg);
+  animation: pf-k-pop 0.3s ease-out;
+}
+.pf-k-modal:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.pf-k-modal h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-heading);
+  font-size: 26px;
+  line-height: 1.05;
+  font-weight: 400;
+}
+.pf-k-modal > p {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-neutral-800);
+  text-wrap: pretty;
+}
+.pf .pf-k-close {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  z-index: 5;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-neutral-200);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.pf .pf-k-close:hover {
+  background: var(--color-neutral-300);
+}
+.pf .pf-k-cta {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  font-size: 17px;
+}
+.pf .pf-k-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* the cup being filled, big */
+.pf-k-brewstage {
+  position: relative;
+  height: 170px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-2-600);
+  overflow: hidden;
+}
+.pf-k-brewstage :where(span, i, b) {
+  position: absolute;
+  display: block;
+}
+.pf-k-brewstage .pf-k-stream {
+  left: 50%;
+  top: 0;
+  width: 8px;
+  margin-left: -4px;
+  height: 62px;
+  border-radius: 0 0 4px 4px;
+  background: var(--color-accent-800);
+  animation: none;
+}
+.pf-k-brewstage .pf-k-glass {
+  left: 50%;
+  bottom: 22px;
+  width: 96px;
+  height: 92px;
+  margin-left: -48px;
+}
+.pf-k-brewstage .pf-k-glass-wall {
+  inset: 0;
+  border: 3.5px solid rgb(255 255 255 / 95%);
+  border-radius: 10px 10px 40px 40px;
+  box-shadow: inset 0 0 0 1.2px rgb(255 255 255 / 50%);
+}
+.pf-k-brewstage .pf-k-glass-well {
+  inset: 11px 11px 15px;
+  border-radius: 5px 5px 30px 30px;
+  background: rgb(255 255 255 / 22%);
+}
+.pf-k-brewstage .pf-k-glass-fill {
+  box-sizing: border-box;
+  background: #5a3417;
+  border-top: 5px solid #c8894f;
+}
+.pf-k-glass-shine {
+  left: 10px;
+  top: 12px;
+  width: 6px;
+  height: 56px;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 70%);
+}
+.pf-k-brewstage .pf-k-steam {
+  display: flex;
+  left: 24px;
+  top: -50px;
+  width: 48px;
+  height: 44px;
+}
+.pf-k-brewstage .pf-k-steam > b {
+  width: 6px;
+  height: 30px;
+  border-radius: 3px;
+  animation-name: pf-k-steam-px;
+}
+.pf-k-saucer {
+  left: 50%;
+  bottom: 12px;
+  width: 150px;
+  margin-left: -75px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-neutral-100);
+}
+.pf-k-picks {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pf .pf-k-picks button {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 2px solid var(--color-neutral-400);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pf .pf-k-picks button[aria-pressed="true"] {
+  border-color: var(--color-text);
+  background: var(--color-text);
+  color: var(--color-neutral-100);
+}
+
+/* ═════ the postcard behind a magnet ═════ */
+/* One card with two sides. Tapping it turns it over: the picture side carries the
+   place, the written side carries what the place taught her. */
+.pf-k-card-wrap {
+  perspective: 1400px;
+  margin: 8px 0 16px;
+}
+.pf .pf-k-card {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transform: rotate(-1.5deg);
+  transition: transform 0.6s cubic-bezier(0.4, 0.15, 0.2, 1);
+}
+.pf .pf-k-card--turned {
+  transform: rotate(1.5deg) rotateY(180deg);
+}
+.pf .pf-k-card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 6px;
+  border-radius: var(--radius-md);
+}
+.pf-k-postcard,
+.pf-k-postback {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  backface-visibility: hidden;
+}
+/* Only the card's own parts, not the magnet drawing nested inside one of them —
+   the flex-built magnets fall apart if their pieces are forced out of flow. */
+.pf-k-postcard > :where(i, b),
+.pf-k-postback > :where(i, b) {
+  position: absolute;
+  display: block;
+  font-style: normal;
+  font-weight: inherit;
+}
+
+/* The picture side. The name is laid out in flow rather than pinned to the bottom,
+   so a long one like Santiago de Compostela pushes "greetings from" up instead of
+   landing on top of it. A button centres its text by default, hence text-align. */
+.pf-k-postcard {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 22px 7%;
+  box-sizing: border-box;
+  text-align: left;
+  background: var(--bg);
+  color: var(--ink);
+}
+.pf-k-postcard .pf-k-greet,
+.pf-k-postcard .pf-k-place {
+  position: static;
+}
+/* The front is a solid block of the place's colour. Nothing sits on it but the
+   flag, in the corner a stamp would go, and the name set as large as it will go. */
+.pf-k-postcard {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 24px 7%;
+  box-sizing: border-box;
+  text-align: left;
+  background: var(--bg);
+  color: var(--ink);
+}
+.pf-k-postcard .pf-k-greet,
+.pf-k-postcard .pf-k-place {
+  position: static;
+}
+/* the flag itself in the corner — on the front it is not a stamp, just a flag */
+.pf-k-flag {
+  right: 7%;
+  top: 8%;
+  width: 17%;
+  aspect-ratio: 3 / 2;
+  box-shadow:
+    0 0 0 1.5px rgb(255 255 255 / 55%),
+    0 3px 8px rgb(24 20 16 / 30%);
+}
+.pf-k-flag svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.pf-k-greet {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: clamp(14px, 3.6vw, 17px);
+  opacity: 0.85;
+}
+/* big and chunky: the name is most of what the front is */
+.pf-k-place {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  font-size: clamp(38px, 13vw, 66px);
+}
+.pf-k-place[data-len="mid"] {
+  font-size: clamp(32px, 11vw, 56px);
+}
+.pf-k-place[data-len="long"] {
+  font-size: clamp(26px, 8.6vw, 45px);
+}
+
+/* the nudge to turn it over: a dotted arrow curving back up at the card */
+.pf-k-flip-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 0 6px;
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--color-neutral-700);
+}
+.pf-k-flip-hint--gone {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.pf-k-flip-hint svg {
+  width: 56px;
+  height: auto;
+  flex: none;
+  fill: none;
+  stroke: var(--color-neutral-600);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 6;
+}
+/* the arrowhead is solid, or it reads as three unrelated dots */
+.pf-k-flip-hint svg path:last-child {
+  stroke-dasharray: none;
+}
+
+/* the written side */
+.pf-k-postback {
+  text-align: left;
+  background: var(--color-neutral-100);
+  color: var(--color-text);
+  transform: rotateY(180deg);
+}
+/* the rule down the middle, message one side, address the other */
+.pf-k-pb-split {
+  left: 58%;
+  top: 8%;
+  bottom: 8%;
+  width: 2px;
+  background: var(--color-neutral-400);
+}
+.pf-k-pb-stamp {
+  right: 6%;
+  top: 7%;
+  width: 22%;
+  filter: drop-shadow(0 1px 3px rgb(24 20 16 / 22%));
+}
+.pf-k-stamp-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* the chop, struck across the corner of the stamp the way a real one lands */
+.pf-k-pb-chop {
+  right: 16%;
+  top: 4%;
+  width: 22%;
+  aspect-ratio: 1;
+  border: 2.5px solid var(--color-neutral-500);
+  border-radius: 50%;
+  outline: 2.5px solid var(--color-neutral-500);
+  outline-offset: -7px;
+  opacity: 0.55;
+  transform: rotate(-12deg);
+}
+/* where the address would go: ruled, and left blank, because it never got posted */
+.pf-k-pb-address {
+  left: 62%;
+  right: 6%;
+  top: 48%;
+  bottom: 12%;
+  background:
+    linear-gradient(var(--color-neutral-400) 0 0) 0 0 / 100% 1.8px no-repeat,
+    linear-gradient(var(--color-neutral-400) 0 0) 0 33.3% / 100% 1.8px no-repeat,
+    linear-gradient(var(--color-neutral-400) 0 0) 0 66.6% / 100% 1.8px no-repeat,
+    linear-gradient(var(--color-neutral-400) 0 0) 0 100% / 100% 1.8px no-repeat;
+}
+.pf-k-pb-note {
+  left: 7%;
+  right: 45%;
+  top: 8%;
+  /* stops well clear of the signature, which sits in the same column */
+  bottom: 22%;
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: clamp(9.5px, 2.4vw, 11.5px);
+  line-height: 1.45;
+  color: var(--color-neutral-900);
+  text-wrap: pretty;
+  overflow: hidden;
+}
+.pf-k-pb-sign {
+  left: 7%;
+  bottom: 6%;
+  font-family: var(--font-script);
+  font-size: clamp(17px, 4.4vw, 23px);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-accent-700);
+}
+/* on a phone the card is too small to spare half of it for an address nobody reads,
+   so the writing takes the width and only the stamp stays */
+@media (max-width: 520px) {
+  .pf-k-pb-address {
+    top: 52%;
+    background:
+      linear-gradient(var(--color-neutral-400) 0 0) 0 0 / 100% 1.5px no-repeat,
+      linear-gradient(var(--color-neutral-400) 0 0) 0 50% / 100% 1.5px no-repeat,
+      linear-gradient(var(--color-neutral-400) 0 0) 0 100% / 100% 1.5px no-repeat;
+  }
+}
+
+.pf-k-stickers {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-100);
+}
+.pf .pf-k-stickers button {
+  padding: 6px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.pf .pf-k-stickers button svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2px 2px rgb(46 43 37 / 30%));
+}
+.pf .pf-k-stickers button:hover {
+  transform: scale(1.08) rotate(-4deg);
+}
+.pf .pf-k-stickers button[aria-checked="true"] {
+  background: var(--color-accent-300);
+  transform: scale(1.06);
+}
+.pf-k-note textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--color-accent-100);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text);
+  resize: none;
+}
+.pf-k-note label {
+  display: block;
+  margin-bottom: 16px;
+}
+.pf-k-note label input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 0;
+  border-bottom: 2px solid var(--color-neutral-400);
+  border-radius: 0;
+  padding: 10px 4px;
+  background: transparent;
+  font: inherit;
+  font-size: 16px;
+  color: var(--color-text);
+}
+.pf-k-note textarea::placeholder,
+.pf-k-note label input::placeholder {
+  color: var(--color-neutral-600);
+}
+.pf-k-honey {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.pf-k-note-msg {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--color-accent-700);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-k-plant,
+  .pf-k-stream,
+  .pf-k-steam > b,
+  .pf-k-pop,
+  .pf-k-modal {
+    animation: none;
+  }
+  .pf-k-oven,
+  .pf-k-machine,
+  .pf-k-pad,
+  .pf-k-magnet,
+  .pf .pf-k-stickers button {
+    transition: none;
+  }
+  .pf-k-oven:hover,
+  .pf-k-machine:hover,
+  .pf-k-pad:hover {
+    transform: none;
+  }
+}

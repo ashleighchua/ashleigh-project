@@ -186,8 +186,9 @@ function Reviews({ title, shop, list }: { title: string; shop: string; list: Rev
 /** the longest role sets the height of the typed line, so it fits exactly and never resizes */
 const LONGEST_ROLE = `${ROLES.reduce((a, b) => (b.length > a.length ? b : a))}.`;
 
-/** "I'm a ___" pill: types each word out, holds it, backspaces, then types the next */
-function RotatingRole() {
+/** "I'm a ___" pill: types each word out, holds it, backspaces, then types the next.
+ *  Renders the lead-in line too, so its "a"/"an" can follow the current word. */
+function RotatingRole({ lead }: { lead: string }) {
   const [i, setI] = useState(0);
   const [n, setN] = useState(ROLES[0]!.length + 1);
   const [erasing, setErasing] = useState(false);
@@ -219,14 +220,20 @@ function RotatingRole() {
     const id = window.setTimeout(next, wait);
     return () => window.clearTimeout(id);
   }, [still, erasing, n, i, word.length]);
+  const article = /^[aeiou]/i.test(ROLES[i]!) ? "an" : "a";
   return (
-    <span className="pf-role" aria-hidden="true">
-      <span className="pf-role-sizer">{LONGEST_ROLE}</span>
-      <span className="pf-role-word">
-        {word.slice(0, n)}
-        {!still && <span className="pf-caret" />}
+    <>
+      <span aria-hidden="true">
+        {lead} {article}
       </span>
-    </span>
+      <span className="pf-role" aria-hidden="true">
+        <span className="pf-role-sizer">{LONGEST_ROLE}</span>
+        <span className="pf-role-word">
+          {word.slice(0, n)}
+          {!still && <span className="pf-caret" />}
+        </span>
+      </span>
+    </>
   );
 }
 
@@ -1103,9 +1110,8 @@ export function PortfolioPage() {
           <div className="pf-about-copy">
             <span className="pf-kicker pf-kicker-soft">About me</span>
             <h2 className="pf-iam">
-              <span className="sr-only">Hi, I’m Ashleigh and I’m a {ROLES.join(", ")}.</span>
-              <span aria-hidden="true">Hi, I’m Ashleigh and I’m a</span>
-              <RotatingRole />
+              <span className="sr-only">Hi, I’m Ashleigh and I’m a {ROLES.join("; ")}.</span>
+              <RotatingRole lead="Hi, I’m Ashleigh and I’m" />
             </h2>
           </div>
           <figure className="pf-polaroid pf-me">

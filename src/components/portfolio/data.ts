@@ -483,10 +483,12 @@ export const PLAY: {
 export const ROLES = [
   "cofounder",
   "product builder",
-  "chemical engineer",
-  "violinist and violist (and pianist)",
+  "chemical engineering grad",
+  "violinist, violist (& pianist)",
   "recovering consultant",
   "children's book author",
+  "school trip leader",
+  "AI tinkerer",
   "serial side-project starter",
 ];
 

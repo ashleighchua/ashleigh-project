@@ -26,14 +26,14 @@ const STATS: Stat[] = [
   {
     target: 50,
     fmt: (v) => `+${v}%`,
-    caption: "a client paid over my quote",
+    caption: "a client tipped 50% above my quote",
     href: "#hannah",
     tone: "accent",
   },
   {
     target: 100,
     fmt: (v) => `${v}+`,
-    caption: "orders delivered, start to finish",
+    caption: "orders, from a system I built once",
     href: "#lunar",
     tone: "sage",
   },
@@ -141,7 +141,7 @@ function StatBlock({ m, shown, idle }: { m: Stat; shown: boolean; idle: string }
         ?
       </span>
       <span className="gs-cap">{shown ? m.caption : idle}</span>
-      <a href={m.href}>See receipt ↓</a>
+      <a href={m.href}>Receipt ↓</a>
     </div>
   );
 }
@@ -192,6 +192,7 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
   const [held, setHeld] = useState(false);
   const [auto, setAuto] = useState(false);
   const drag = useRef<Drag | null>(null);
+  const dragCleanup = useRef<(() => void) | null>(null);
   const waterRef = useRef(water);
   waterRef.current = water;
 
@@ -243,44 +244,60 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
     setAuto(false);
   };
 
+  /** Dragging is driven by window-level listeners rather than native pointer capture.
+   *  Capture has two failure modes we hit in practice on mobile: some browsers drop the
+   *  pointerup/pointercancel it owes a captured element, leaving the page unable to
+   *  scroll or respond to taps ever again; others lose capture outright when the
+   *  captured element sits under a CSS `transform: scale()` ancestor, which this scene
+   *  always has on a phone. A window listener doesn't depend on capture at all, so
+   *  neither failure mode applies, and it's trivial to guarantee cleanup on pointerup. */
   const onDown = (e: PointerEvent<HTMLButtonElement>) => {
     if (auto) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    drag.current = {
-      id: e.pointerId,
-      sx: e.clientX,
-      sy: e.clientY,
-      cx: can.x,
-      cy: can.y,
-      moved: false,
+    const id = e.pointerId;
+    const startK = k;
+    const startSceneW = sceneW;
+    const d: Drag = { id, sx: e.clientX, sy: e.clientY, cx: can.x, cy: can.y, moved: false };
+    drag.current = d;
+
+    const move = (ev: globalThis.PointerEvent) => {
+      if (ev.pointerId !== id) return;
+      const dx = (ev.clientX - d.sx) / startK;
+      const dy = (ev.clientY - d.sy) / startK;
+      if (!d.moved && Math.hypot(dx, dy) < 6) return;
+      if (!d.moved) {
+        d.moved = true;
+        setHeld(true);
+      }
+      setCan({
+        x: Math.max(-20, Math.min(startSceneW - CAN_W + 20, d.cx + dx)),
+        y: Math.max(20, Math.min(SHELF_Y - CAN_H, d.cy + dy)),
+      });
     };
+    const cleanup = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      dragCleanup.current = null;
+    };
+    const up = (ev: globalThis.PointerEvent) => {
+      if (ev.pointerId !== id) return;
+      cleanup();
+      drag.current = null;
+      if (!d.moved) {
+        waterNext();
+        return;
+      }
+      setHeld(false);
+      setCan({ x: startSceneW / 2 - CAN_W / 2, y: SHELF_Y - CAN_H });
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+    dragCleanup.current = cleanup;
   };
-  const onMove = (e: PointerEvent<HTMLButtonElement>) => {
-    const d = drag.current;
-    if (!d || d.id !== e.pointerId) return;
-    const dx = (e.clientX - d.sx) / k;
-    const dy = (e.clientY - d.sy) / k;
-    if (!d.moved && Math.hypot(dx, dy) < 6) return;
-    if (!d.moved) {
-      d.moved = true;
-      setHeld(true);
-    }
-    setCan({
-      x: Math.max(-20, Math.min(sceneW - CAN_W + 20, d.cx + dx)),
-      y: Math.max(20, Math.min(SHELF_Y - CAN_H, d.cy + dy)),
-    });
-  };
-  const onUp = (e: PointerEvent<HTMLButtonElement>) => {
-    const d = drag.current;
-    if (!d || d.id !== e.pointerId) return;
-    drag.current = null;
-    if (!d.moved) {
-      waterNext();
-      return;
-    }
-    setHeld(false);
-    setCan(home());
-  };
+  // if the card unmounts mid-drag (e.g. "Start over"), the window listeners above would
+  // otherwise outlive it
+  useEffect(() => () => dragCleanup.current?.(), []);
 
   const [w0, w1] = water;
   const done = w0 >= 1 && w1 >= 1;
@@ -409,9 +426,6 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
                 transform: `rotate(${pouring >= 0 ? -30 : held ? -8 : 0}deg)`,
               }}
               onPointerDown={onDown}
-              onPointerMove={onMove}
-              onPointerUp={onUp}
-              onPointerCancel={onUp}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
@@ -551,11 +565,7 @@ function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
             …
           </span>
           <span className="gs-cap">{STATS[2]!.caption}</span>
-          <span className="gs-autonote">
-            This one waters itself. Every order is charted, written and delivered while I get on
-            with other things.
-          </span>
-          <a href={STATS[2]!.href}>See receipt ↓</a>
+          <a href={STATS[2]!.href}>Receipt ↓</a>
         </div>
       </div>
     </div>

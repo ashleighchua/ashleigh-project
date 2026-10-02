@@ -867,6 +867,7 @@ body {
 .pf-rev-paged {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 16px;
 }
 /* Each review is printed on a till receipt: thermal paper, monospace ink, torn

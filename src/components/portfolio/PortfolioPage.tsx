@@ -305,6 +305,7 @@ type Sim = {
   rot: number;
   trot: number;
   pop: number;
+  dip: number;
   ph: number;
   sp: number;
   init: boolean;
@@ -370,11 +371,12 @@ export function PortfolioPage() {
         spot: i,
         sx: 0.5,
         sy: 0.45,
-        jx: rnd(-0.035, 0.035),
-        jy: rnd(-0.03, 0.03),
+        jx: rnd(-0.02, 0.02),
+        jy: rnd(-0.018, 0.018),
         rot,
         trot: rot,
         pop: 0,
+        dip: 0,
         ph: rnd(0, 6.28),
         sp: rnd(0.5, 1.1),
         init: false,
@@ -521,12 +523,11 @@ export function PortfolioPage() {
           return { kw: kid ? kid.width.baseVal.value : 0, kh: kid ? kid.height.baseVal.value : 0 };
         });
 
-        STK.forEach((_, i) => {
-          const el = postEls.current[i];
-          const fS = faceS.current[i];
-          const fO = faceO.current[i];
+        // Pass 1: each sticker's own target spot, drift and headline avoidance — same as
+        // before, just collected instead of written straight to the DOM, so pass 2 can
+        // push overlapping pairs apart before anything is painted.
+        const pos = STK.map((_, i) => {
           const s = sim.current[i]!;
-          if (!el || !fS || !fO) return;
           const sp = spots[s.spot]!;
           const tsx = sp[0] + s.jx;
           const tsy = sp[1] + s.jy;
@@ -539,13 +540,18 @@ export function PortfolioPage() {
           s.sy += (tsy - s.sy) * fPos;
           s.rot += (s.trot - s.rot) * fRot;
           s.pop *= popDecay;
+          s.dip *= popDecay;
 
-          const a = reduce ? 1 : clamp((t - 0.2 - i * 0.09) / 0.75);
           let fx = hx + s.sx * W + Math.sin(t * s.sp + s.ph) * drift;
           let fy = hy + s.sy * H + Math.cos(t * s.sp * 0.8 + s.ph) * drift;
           const rd = reads[i]!;
           const hw = rd.kw / 2 + 14;
           const hh = rd.kh / 2 + 14;
+          // the label sits well inside the card's outer edge, so a much smaller box is
+          // what actually needs to stay clear of a neighbour — the card shapes themselves
+          // are allowed to overlap at their edges
+          const tw = rd.kw * 0.34 + 4;
+          const th = rd.kh * 0.3 + 4;
           fx = clamp(fx, hx + hw, hx + W - hw);
           fy = clamp(fy, hy + hh, hy + H - hh);
           // keep stickers off the headline
@@ -563,6 +569,57 @@ export function PortfolioPage() {
             fx = clamp(fx, hx + hw, hx + W - hw);
             fy = clamp(fy, hy + hh, hy + H - hh);
           }
+          return { fx, fy, hw, hh, tw, th };
+        });
+
+        // Pass 2: push every pair whose LABELS would overlap apart, along whichever axis
+        // clears it with the smaller nudge, then re-clamp the outer shape to the hero box.
+        // The cards themselves are free to overlap at their edges — only the text has to
+        // stay legible. Stickers can resize (click) or swap spots (poke) at any time, so
+        // this runs fresh every frame rather than relying on the starting layout to fit.
+        // A fraction of the push also feeds back into the sticker's own eased position
+        // (sx/sy), not just this frame's render — otherwise the easing pulls it straight
+        // back toward the overlapping spot every frame and the push has to redo the full
+        // correction each time, which reads as a shove rather than a settle.
+        const SGAP = 4;
+        const PUSHBACK = 0.3;
+        for (let i = 0; i < pos.length; i++) {
+          for (let j = i + 1; j < pos.length; j++) {
+            const a = pos[i]!;
+            const b = pos[j]!;
+            const dx = b.fx - a.fx;
+            const dy = b.fy - a.fy;
+            const ox = a.tw + b.tw + SGAP - Math.abs(dx);
+            const oy = a.th + b.th + SGAP - Math.abs(dy);
+            if (ox <= 0 || oy <= 0) continue;
+            if (ox < oy) {
+              const push = (ox / 2) * (dx < 0 ? -1 : 1);
+              a.fx -= push;
+              b.fx += push;
+              sim.current[i]!.sx -= (push * PUSHBACK) / W;
+              sim.current[j]!.sx += (push * PUSHBACK) / W;
+            } else {
+              const push = (oy / 2) * (dy < 0 ? -1 : 1);
+              a.fy -= push;
+              b.fy += push;
+              sim.current[i]!.sy -= (push * PUSHBACK) / H;
+              sim.current[j]!.sy += (push * PUSHBACK) / H;
+            }
+          }
+        }
+        for (const p of pos) {
+          p.fx = clamp(p.fx, hx + p.hw, hx + W - p.hw);
+          p.fy = clamp(p.fy, hy + p.hh, hy + H - p.hh);
+        }
+
+        STK.forEach((_, i) => {
+          const el = postEls.current[i];
+          const fS = faceS.current[i];
+          const fO = faceO.current[i];
+          const s = sim.current[i]!;
+          if (!el || !fS || !fO) return;
+          const a = reduce ? 1 : clamp((t - 0.2 - i * 0.09) / 0.75);
+          const { fx, fy } = pos[i]!;
 
           const { tx, ty, top } = L.slots[i]!;
           const end = Math.max(1, top - vh * 0.6);
@@ -576,7 +633,10 @@ export function PortfolioPage() {
           const m2 = clamp((e - 0.7) / 0.3);
           fS.style.opacity = String(1 - m2);
           fS.style.pointerEvents = m2 > 0.5 ? "none" : "auto";
-          fS.style.transform = `translate(-50%,-50%) scale(${(1 - 0.35 * m2) * back(a) * (1 + s.pop * 0.2)})`;
+          // dip drives a quick shrink-then-grow on click: the shape/colour swap (see
+          // poke()) is timed to land near the bottom of it, where the cut is smallest
+          // and least noticeable, instead of snapping at full size
+          fS.style.transform = `translate(-50%,-50%) scale(${(1 - 0.35 * m2) * back(a) * (1 + s.pop * 0.2) * (1 - s.dip * 0.6)})`;
           fO.style.opacity = String(m2);
           fO.style.pointerEvents = m2 > 0.5 ? "auto" : "none";
           fO.style.transform = `translate(-50%,-50%) scale(${(0.7 + 0.3 * m2) * (1 + s.pop * 0.18)})`;
@@ -669,18 +729,21 @@ export function PortfolioPage() {
   /* Click a floating sticker: swap spots with another, new tilt, new colour + shape */
   const poke = useCallback((i: number) => {
     const s = sim.current[i]!;
-    s.pop = 1;
+    s.dip = 1;
     if (landed.current[i]) return;
     let j = Math.floor(Math.random() * (STK.length - 1));
     if (j >= i) j++;
     const o = sim.current[j]!;
     [s.spot, o.spot] = [o.spot, s.spot];
-    s.jx = rnd(-0.03, 0.03);
-    s.jy = rnd(-0.03, 0.03);
+    s.jx = rnd(-0.02, 0.02);
+    s.jy = rnd(-0.018, 0.018);
     s.trot = rnd(-24, 24);
     o.trot = rnd(-24, 24);
     o.pop = 0.5;
-    reshuffle.current[i]?.();
+    // the shape/colour change is an instant cut with nothing to animate between two
+    // unrelated SVGs, so it's timed to land mid-dip (see the pop-driven scale in tick()),
+    // when the sticker is smallest and the cut isn't what the eye is looking at
+    window.setTimeout(() => reshuffle.current[i]?.(), 110);
   }, []);
   const hover = useCallback((i: number) => {
     const s = sim.current[i]!;
@@ -721,7 +784,7 @@ export function PortfolioPage() {
     say(MEOWS[pet.meow]!, "talk", 3800);
   };
 
-  const k = mobile ? Math.min(0.58, vw / 670) : Math.min(1.18, vw / 1180);
+  const k = mobile ? Math.min(0.72, vw / 610) : Math.min(1.18, vw / 1180);
   const ko = mobile ? 0.8 : 1;
   const zoneH = mobile ? 240 : 290;
 

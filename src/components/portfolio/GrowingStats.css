@@ -435,9 +435,9 @@
   transition: opacity 0.5s;
 }
 .gs-num {
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: 40px;
+  font-family: "Caprasimo", var(--font-heading), serif;
+  font-weight: 400;
+  font-size: 32px;
   line-height: 1;
   color: var(--accent-700);
 }
@@ -446,14 +446,22 @@
 }
 .gs-cap {
   font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
   max-width: 220px;
   /* the captions run to two lines once revealed; hold the room from the start */
-  min-height: 3.1em;
+  min-height: 2.6em;
 }
 .gs-stat a {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--accent-700);
+  text-decoration: none;
+  margin-top: 4px;
+}
+.gs-stat a:hover {
+  color: var(--accent-800);
 }
 .gs-stat--idle a {
   visibility: hidden;
@@ -630,14 +638,20 @@
   }
 }
 
-/* stats under the scenes */
+/* stats under the scenes: one big pill, the two (or one) stats inside it */
 .gs-stats {
   display: grid;
   gap: 12px;
   margin-top: 16px;
+  background: var(--n-100);
+  border-radius: 999px;
+  padding: 26px 32px;
 }
 .gs-stats--2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.gs-stats--2 .gs-stat:first-child {
+  border-right: 2px dashed var(--n-300);
 }
 .gs-stat--idle .gs-num {
   color: var(--n-500);
@@ -657,17 +671,6 @@
 .gs-card--auto .gs-stats {
   margin-top: 0;
 }
-.gs-card--auto .gs-stat {
-  align-items: flex-start;
-  text-align: left;
-}
-.gs-autonote {
-  max-width: 360px;
-  margin-top: 4px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--n-700);
-}
 @media (max-width: 640px) {
   .gs-card--auto {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -679,8 +682,8 @@
   .gs-cap {
     font-size: 12.5px;
   }
-  .gs-autonote {
-    font-size: 12.5px;
+  .gs-stats {
+    padding: 20px 18px;
   }
   .gs-stage {
     border-radius: 24px;

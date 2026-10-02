@@ -136,17 +136,19 @@ export const DSP: [number, number][] = [
   [0.16, 0.86],
   [0.84, 0.86],
 ];
-/** Mobile: one staggered row across the top, one across the bottom, so they read as
- *  scattered rather than stacked in two clumps. Per-sticker jitter varies it further. */
+/** Mobile: one staggered row across the top, one across the bottom. Deliberately tighter
+ *  than the cards are wide, so neighbours overlap a little at the edges like a hand of
+ *  cards — the vertical zigzag plus the label-only collision guard (see PortfolioPage)
+ *  are what keep any two labels from actually landing on top of each other. */
 export const MSP: [number, number][] = [
-  [0.07, 0.15],
-  [0.36, 0.045],
-  [0.65, 0.155],
-  [0.93, 0.05],
-  [0.07, 0.85],
-  [0.36, 0.955],
-  [0.65, 0.845],
-  [0.93, 0.95],
+  [0.09, 0.23],
+  [0.32, 0.01],
+  [0.55, 0.24],
+  [0.78, 0.02],
+  [0.09, 0.77],
+  [0.32, 0.99],
+  [0.55, 0.76],
+  [0.78, 0.98],
 ];
 
 export const MEOWS = [

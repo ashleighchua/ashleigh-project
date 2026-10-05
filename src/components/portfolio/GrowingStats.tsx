@@ -1,5 +1,5 @@
-// GrowingStats — "What you water, grows".
-// Top card: two pots and a watering can you pick up and drag over them (or tap, and it
+// GrowingStats — "Welcome to my garden".
+// Top card: two plants in a raised bed and a watering can you pick up and drag over them (or tap, and it
 // waters the next pot for you). Each stem grows while you pour, then its number counts up.
 // Bottom card: the third pot waters itself on a drip line and grows when scrolled into view.
 // Scenes are laid out at a design size and scaled to fit, so phones get the same picture.
@@ -159,8 +159,9 @@ export function GrowingStats() {
 
   return (
     <section className="gs" aria-labelledby="gs-h">
-      <div className="gs-head">
-        <h2 id="gs-h">What you water, grows</h2>
+      <div className="pf-head">
+        <h2 id="gs-h">Welcome to my garden</h2>
+        <p>What you water grows.</p>
       </div>
       <WaterMe key={`w${round}`} reduced={reduced} onDone={setTopDone} />
       <AutoPot key={`a${round}`} reduced={reduced} onDone={setAutoDone} />
@@ -317,7 +318,7 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
             transform: k < 1 ? `scale(${k})` : undefined,
           }}
         >
-          <div className="gs-shelf" style={{ top: SHELF_Y }} />
+          <Garden />
           <div className="gs-grid gs-grid--2">
             {/* 1 · Sunflower up a ruler: Assistant → Cofounder */}
             <div className="gs-col">
@@ -363,7 +364,7 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
                 ))}
                 <i />
               </div>
-              <Pot bottom={138} w={130} h={100} soil={soil(w0)} />
+              <Patch bottom={240} soil={soil(w0)} />
             </div>
 
             {/* 2 · Tulip past the quote line */}
@@ -400,7 +401,7 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
                 <span />
                 <span />
               </div>
-              <Pot bottom={138} w={120} h={90} soil={soil(w1)} small />
+              <Patch bottom={240} soil={soil(w1)} />
             </div>
           </div>
 
@@ -419,7 +420,7 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
             <button
               type="button"
               className={`gs-can gs-can--grab${held ? " gs-can--held" : ""}`}
-              aria-label={done ? "Watering can (both pots are watered)" : "Water the next pot"}
+              aria-label={done ? "Watering can (both plants are watered)" : "Water the next plant"}
               style={{
                 left: can.x,
                 top: can.y,
@@ -443,7 +444,7 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
         </div>
         {!reduced && !done && (
           <p className="gs-hint" aria-hidden="true">
-            Pick up the watering can and water each pot
+            Pick up the watering can and water each plant
           </p>
         )}
       </div>
@@ -512,7 +513,7 @@ function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
             transform: k < 1 ? `scale(${k})` : undefined,
           }}
         >
-          <div className="gs-shelf" style={{ top: SHELF_Y }} />
+          <Garden small />
           <div className="gs-grid gs-grid--1">
             <div className="gs-col">
               <div className="gs-pipe-h" />
@@ -548,13 +549,7 @@ function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
                   </div>
                 </div>
               ))}
-              <Pot
-                bottom={138}
-                w={110}
-                h={80}
-                soil={on ? "var(--accent-900)" : "var(--accent-700)"}
-                smallest
-              />
+              <Patch bottom={224} soil={on ? "var(--accent-900)" : "var(--accent-700)"} />
             </div>
           </div>
         </div>
@@ -572,33 +567,38 @@ function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
   );
 }
 
-function Pot({
-  bottom,
-  w,
-  h,
-  soil,
-  small,
-  smallest,
-}: {
-  bottom: number;
-  w: number;
-  h: number;
-  soil: string;
-  small?: boolean;
-  smallest?: boolean;
-}) {
-  const rimW = smallest ? 128 : small ? 140 : 150;
-  const soilW = smallest ? 92 : small ? 102 : 112;
+/** The scenery both cards share: sky, sun, a picket fence, grass, and one long
+ *  raised bed the plants grow out of. Purely decoration; the plants sit on top. */
+function Garden({ small }: { small?: boolean }) {
+  // the bed tops out where the stems start: scene bottom 250, or 234 for the small card
   return (
-    <>
-      <div className="gs-pot" style={{ bottom, width: w, height: h }} />
-      <div className="gs-rim" style={{ bottom: bottom + h - 6, width: rimW }} />
-      <div
-        className="gs-soil"
-        style={{ bottom: bottom + h + 10, width: soilW, background: soil }}
-      />
-    </>
+    <div className="gs-garden" aria-hidden="true">
+      <span className="gs-sun" />
+      <span className="gs-cloud" style={{ left: small ? "8%" : "14%", top: 46 }} />
+      {!small && <span className="gs-cloud gs-cloud--sm" style={{ left: "58%", top: 84 }} />}
+      <div className="gs-fence">
+        {Array.from({ length: small ? 12 : 24 }, (_, j) => (
+          <span key={j} />
+        ))}
+      </div>
+      <div className="gs-grass" />
+      <div className={`gs-bed${small ? " gs-bed--sm" : ""}`}>
+        <span className="gs-bed-soil" />
+        {(small ? [16, 84] : [8, 40, 50, 60, 92]).map((x) => (
+          <span key={x} className="gs-sprout" style={{ left: `${x}%` }} />
+        ))}
+      </div>
+      {(small ? [12, 82] : [6, 30, 66, 92]).map((x, j) => (
+        <span key={j} className="gs-tuft" style={{ left: `${x}%` }} />
+      ))}
+      {!small && <span className="gs-butterfly" />}
+    </div>
   );
+}
+
+/** the patch of bed this plant grows from: it darkens once it's been watered */
+function Patch({ bottom, soil }: { bottom: number; soil: string }) {
+  return <div className="gs-soil" style={{ bottom, width: 96, background: soil }} />;
 }
 function Drips() {
   return (

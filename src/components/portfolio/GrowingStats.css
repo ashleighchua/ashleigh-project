@@ -36,21 +36,6 @@
   margin: 0 auto;
   padding: var(--sec-y) var(--pad-x);
 }
-.gs-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: var(--head-gap);
-}
-.gs-head h2 {
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: clamp(28px, 4vw, 40px);
-  letter-spacing: -0.02em;
-  margin: 0;
-}
 .gs-replay {
   all: unset;
   cursor: pointer;
@@ -81,16 +66,8 @@
   position: relative;
   overflow: hidden;
   border-radius: 36px;
-  background: var(--sage-100);
-}
-.gs-shelf {
-  position: absolute;
-  left: 4%;
-  right: 4%;
-  height: 18px;
-  background: var(--surface);
-  border-radius: 999px;
-  z-index: 1;
+  /* sky: pale at the top, warming toward the fence */
+  background: linear-gradient(180deg, #e3eef0 0%, #f1f3e4 55%, var(--sage-100) 100%);
 }
 
 .gs-grid {
@@ -243,23 +220,6 @@
 }
 
 /* pots */
-.gs-pot {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%);
-  background: var(--accent);
-  z-index: 2;
-}
-.gs-rim {
-  position: absolute;
-  left: 50%;
-  height: 22px;
-  transform: translateX(-50%);
-  border-radius: 10px;
-  background: var(--accent-600);
-  z-index: 2;
-}
 .gs-soil {
   position: absolute;
   left: 50%;
@@ -718,4 +678,236 @@
 }
 .gs-fade {
   transition: opacity 0.5s;
+}
+
+/* ═════ The garden: sky, fence, grass and one long raised bed ═════ */
+.gs-garden {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.gs-sun {
+  position: absolute;
+  right: 44px;
+  top: 34px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--accent-300);
+  box-shadow: 0 0 0 14px rgb(255 214 170 / 0.35);
+}
+.gs-cloud {
+  position: absolute;
+  width: 92px;
+  height: 26px;
+  border-radius: 999px;
+  background: #fff;
+  opacity: 0.85;
+  animation: gs-drift 26s linear infinite alternate;
+}
+.gs-cloud::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  bottom: 12px;
+  width: 42px;
+  height: 34px;
+  border-radius: 50%;
+  background: inherit;
+}
+.gs-cloud--sm {
+  transform: scale(0.7);
+  animation-duration: 34s;
+}
+@keyframes gs-drift {
+  to {
+    translate: 40px 0;
+  }
+}
+/* white pickets with pointed tops, on two rails, sitting behind the bed */
+.gs-fence {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 236px;
+  height: 104px;
+  display: flex;
+  justify-content: space-between;
+  padding-inline: 6px;
+  overflow: hidden;
+  /* its own layer, so the pickets stay behind the stems, leaves and labels */
+  z-index: 0;
+}
+.gs-fence::before,
+.gs-fence::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 9px;
+  background: #e7dccb;
+}
+.gs-fence::before {
+  top: 30px;
+}
+.gs-fence::after {
+  top: 72px;
+}
+.gs-fence span {
+  position: relative;
+  z-index: 1;
+  width: 18px;
+  height: 100%;
+  background: #fbf6ec;
+  clip-path: polygon(0 12px, 50% 0, 100% 12px, 100% 100%, 0 100%);
+  box-shadow: inset -3px 0 0 #ece2d1;
+}
+.gs-grass {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 150px;
+  background: var(--sage-400);
+  /* scalloped top edge, like a lawn seen side on */
+  -webkit-mask:
+    radial-gradient(circle at 10px 10px, #000 10px, #0000 10.5px) top / 20px 20px repeat-x,
+    linear-gradient(#000, #000) 0 10px / 100% 100% no-repeat;
+  mask:
+    radial-gradient(circle at 10px 10px, #000 10px, #0000 10.5px) top / 20px 20px repeat-x,
+    linear-gradient(#000, #000) 0 10px / 100% 100% no-repeat;
+}
+/* the raised bed: stacked timber boards with soil along the top */
+.gs-bed {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 118px;
+  height: 132px;
+  z-index: 2;
+  border-radius: 10px 10px 4px 4px;
+  /* untreated timber, so the terracotta blooms are what stands out */
+  background: repeating-linear-gradient(180deg, #0000 0 40px, #a9805a 40px 42px), #cfa77c;
+  box-shadow: inset 0 -6px 0 #b48b63;
+}
+.gs-bed--sm {
+  left: 10%;
+  right: 10%;
+  height: 116px;
+}
+.gs-bed::before,
+.gs-bed::after {
+  /* corner posts */
+  content: "";
+  position: absolute;
+  top: -6px;
+  bottom: 0;
+  width: 14px;
+  border-radius: 4px;
+  background: #b48b63;
+}
+.gs-bed::before {
+  left: -4px;
+}
+.gs-bed::after {
+  right: -4px;
+}
+.gs-bed-soil {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: -4px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--accent-800);
+}
+/* little leafy sprouts along the soil, between the plants that matter */
+.gs-sprout {
+  position: absolute;
+  top: -16px;
+  width: 22px;
+  height: 14px;
+  translate: -50% 0;
+}
+.gs-sprout::before,
+.gs-sprout::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--sage-500);
+  border-radius: 0 100% 0 100%;
+}
+.gs-sprout::before {
+  left: 0;
+}
+.gs-sprout::after {
+  right: 0;
+  transform: scaleX(-1);
+}
+.gs-tuft {
+  position: absolute;
+  bottom: 112px;
+  width: 26px;
+  height: 18px;
+  z-index: 3;
+  background: var(--sage-600);
+  clip-path: polygon(0 100%, 12% 20%, 28% 100%, 42% 0, 58% 100%, 74% 25%, 88% 100%, 100% 100%);
+}
+.gs-butterfly {
+  position: absolute;
+  left: 46%;
+  top: 150px;
+  width: 22px;
+  height: 16px;
+  z-index: 4;
+  animation: gs-flutter-path 9s ease-in-out infinite;
+}
+.gs-butterfly::before,
+.gs-butterfly::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 11px;
+  height: 14px;
+  border-radius: 60% 60% 40% 40%;
+  background: var(--accent-400);
+  animation: gs-flap 0.35s ease-in-out infinite alternate;
+}
+.gs-butterfly::before {
+  left: 0;
+  transform-origin: right center;
+}
+.gs-butterfly::after {
+  right: 0;
+  transform-origin: left center;
+}
+@keyframes gs-flap {
+  to {
+    transform: scaleX(0.35);
+  }
+}
+@keyframes gs-flutter-path {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: 60px -30px;
+  }
+  50% {
+    translate: 10px -60px;
+  }
+  75% {
+    translate: -50px -20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-cloud,
+  .gs-butterfly,
+  .gs-butterfly::before,
+  .gs-butterfly::after {
+    animation: none;
+  }
 }

@@ -508,7 +508,6 @@ body {
 }
 .pf-head p {
   font-size: clamp(15px, 1.4vw, 19px);
-  max-width: 460px;
   color: var(--color-neutral-700);
 }
 .pf-cloth {
@@ -590,85 +589,6 @@ body {
 }
 
 /* ═════ Timeline ═════ */
-.pf-tl {
-  position: relative;
-  height: 320svh;
-}
-.pf-tl-pin {
-  position: sticky;
-  top: 0;
-  height: 100svh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: clamp(24px, 4svh, 44px);
-}
-.pf-tl-head {
-  padding-inline: var(--pad-x);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px 40px;
-  flex-wrap: wrap;
-}
-.pf-tl-head h2 {
-  font-size: clamp(38px, 5vw, 64px);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  margin-top: 12px;
-}
-.pf-tl-head h2 span {
-  color: var(--color-accent-2-600);
-}
-.pf-tl-progress {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-neutral-700);
-}
-.pf-tl-bar {
-  width: 160px;
-  height: 8px;
-  border-radius: 8px;
-  background: var(--color-neutral-300);
-  overflow: hidden;
-}
-.pf-tl-bar > div {
-  height: 100%;
-  width: 0%;
-  background: var(--color-accent);
-  border-radius: 8px;
-}
-.pf-tl-track {
-  display: flex;
-  align-items: stretch;
-  gap: clamp(14px, 2vw, 24px);
-  padding: 12px var(--pad-x);
-  width: max-content;
-  will-change: transform;
-}
-.pf-tl-card {
-  width: clamp(280px, 30vw, 400px);
-  min-height: clamp(380px, 54svh, 470px);
-  border-radius: 40px;
-  padding: clamp(24px, 2.6vw, 34px);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  box-shadow: var(--shadow-md);
-}
-.pf-tl-card h3 {
-  font-size: clamp(24px, 2.4vw, 30px);
-  line-height: 1.05;
-}
-.pf-tl-card p {
-  font-size: 15px;
-  line-height: 1.55;
-  text-wrap: pretty;
-}
 
 /* ═════ Receipts: one anatomy for all three ═════ */
 .pf-receipts {
@@ -894,11 +814,15 @@ body {
   font-size: 12px;
   line-height: 1.55;
   -webkit-mask:
-    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--z)) 51% repeat-x,
-    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--z)) 51% repeat-x;
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--z))
+      51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom /
+      calc(2 * var(--z)) 51% repeat-x;
   mask:
-    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--z)) 51% repeat-x,
-    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--z)) 51% repeat-x;
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--z))
+      51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom /
+      calc(2 * var(--z)) 51% repeat-x;
 }
 .pf-rev-card[data-on="false"] {
   visibility: hidden;
@@ -1699,6 +1623,12 @@ body {
   height: 58px;
   z-index: 50;
   cursor: pointer;
+  transition: opacity 0.4s;
+}
+/* she's out on the Camino walk for now */
+.pf-cat.is-away {
+  opacity: 0;
+  pointer-events: none;
 }
 .pf-cat-svg {
   display: block;
@@ -1739,56 +1669,6 @@ body {
 }
 
 /* ═════ Reworked pieces ═════ */
-
-/* timeline cards: scene / how long / what / where / story */
-.pf-tl-scene {
-  position: relative;
-  border-radius: 28px;
-  padding: 14px 18px 10px;
-  display: grid;
-  place-items: center;
-}
-.pf-scene-svg {
-  display: block;
-  width: 100%;
-  max-width: 180px;
-  height: auto;
-  overflow: visible;
-}
-.pf-tl-scene .pf-tl-n {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-heading);
-  font-size: 15px;
-  background: var(--color-bg);
-  color: var(--color-text);
-  box-shadow: var(--shadow-sm);
-  font-weight: 800;
-}
-.pf-tl-span {
-  margin-top: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.pf-tl-card h3 {
-  margin-top: -6px;
-}
-.pf-tl-at {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: -8px;
-  font-size: 14px;
-  font-weight: 600;
-}
 
 @media (max-width: 560px) {
   /* small enough that even the longest role fits two lines, so the space held

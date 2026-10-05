@@ -1,14 +1,15 @@
 import { memo, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { ArrowDown, Check, MapPin, Menu, X } from "lucide-react";
+import { ArrowDown, Check, Menu, X } from "lucide-react";
 import portraitPhoto from "@/assets/portrait-birthday.jpg";
 import stHome from "@/assets/st-home.jpg";
 import stProblem from "@/assets/st-problem.jpg";
 import hjPublic from "@/assets/hj-public.jpg";
 import hjAdmin from "@/assets/hj-admin.jpg";
-import { LunarPipeline, MoonMark, SceneArt, StickerFace, TableObject, type Look } from "./art";
+import { LunarPipeline, MoonMark, StickerFace, TableObject, type Look } from "./art";
 import { CatSvg, type CatRefs } from "./cat";
 import { GrowingStats } from "./GrowingStats";
 import { Kitchen } from "./Kitchen";
+import { Camino } from "./Camino";
 import {
   COL,
   DSP,
@@ -19,7 +20,6 @@ import {
   MEOWS,
   MSP,
   OBJ,
-  PATH,
   PIPELINE,
   PLAY,
   SH,
@@ -269,9 +269,6 @@ type Layout = {
   H: number;
   /** each sticker's landing spot relative to the root: centre, plus its top edge */
   slots: { tx: number; ty: number; top: number }[];
-  /** timeline: its offset down the page and how far the track has to travel */
-  tlTop: number;
-  tlDist: number;
   vh: number;
 };
 
@@ -343,9 +340,8 @@ export function PortfolioPage() {
   const rootRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
   const heroTextRef = useRef<HTMLDivElement>(null);
-  const tlRef = useRef<HTMLElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const tlBarRef = useRef<HTMLDivElement>(null);
+  /** the cat is out on the Camino walk (the timeline), so the roaming one steps aside */
+  const catAway = useRef(false);
   const postEls = useRef<(HTMLButtonElement | null)[]>([]);
   const slotEls = useRef<(HTMLDivElement | null)[]>([]);
   const faceS = useRef<(HTMLDivElement | null)[]>([]);
@@ -401,7 +397,6 @@ export function PortfolioPage() {
   useEffect(() => {
     reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let lastW = 0;
-    let tlH = -1;
     const onResize = () => {
       const w = window.innerWidth;
       // A phone fires resize when its URL bar collapses mid-scroll. That changes the
@@ -439,8 +434,6 @@ export function PortfolioPage() {
       measureHead();
       const root = rootRef.current;
       const hero = heroRef.current;
-      const tl = tlRef.current;
-      const track = trackRef.current;
       if (!root || !hero) return;
       const rr = root.getBoundingClientRect();
       const hr = hero.getBoundingClientRect();
@@ -459,28 +452,9 @@ export function PortfolioPage() {
             top: sr.top - rr.top,
           };
         }),
-        tlTop: tl ? tl.getBoundingClientRect().top - rr.top : 0,
-        tlDist: track ? Math.max(0, track.scrollWidth - window.innerWidth) : 0,
         // held steady on purpose: see onResize
         vh: window.innerHeight,
       };
-      if (tl && layout.current.tlDist !== tlH) {
-        tl.style.height = `calc(${layout.current.tlDist}px + 100svh)`;
-        tlH = layout.current.tlDist;
-        // the timeline just changed height, so everything below it moved
-        const rr2 = root.getBoundingClientRect();
-        layout.current.tlTop = tl.getBoundingClientRect().top - rr2.top;
-        layout.current.slots = STK.map((_, i) => {
-          const el = slotEls.current[i];
-          if (!el) return { tx: 0, ty: 0, top: 0 };
-          const sr = el.getBoundingClientRect();
-          return {
-            tx: sr.left - rr2.left + sr.width / 2,
-            ty: sr.top - rr2.top + sr.height / 2,
-            top: sr.top - rr2.top,
-          };
-        });
-      }
     };
     onResize();
     document.fonts?.ready.then(measure);
@@ -644,16 +618,6 @@ export function PortfolioPage() {
         });
       }
 
-      /* pinned horizontal timeline — its height and travel are set in measure(), and
-         the tail is 100svh in CSS rather than innerHeight, so a collapsing URL bar
-         cannot resize this section under the reader's thumb */
-      const track = trackRef.current;
-      if (track && L) {
-        const p = clamp((scroll - L.tlTop) / Math.max(1, L.tlDist));
-        track.style.transform = `translate3d(${-p * L.tlDist}px,0,0)`;
-        if (tlBarRef.current) tlBarRef.current.style.width = `${p * 100}%`;
-      }
-
       tickCat(t, dt);
     };
 
@@ -661,6 +625,8 @@ export function PortfolioPage() {
       const el = catEl.current;
       const flip = catFlip.current;
       if (!el || !flip) return;
+      // she's out on the Camino walk right now: hold still (and hidden) until she's back
+      if (catAway.current) return;
       const c = cat.current;
       const parts = catParts.current;
       const W = window.innerWidth;
@@ -755,6 +721,22 @@ export function PortfolioPage() {
     window.clearTimeout(bubbleTimer.current);
     bubbleTimer.current = window.setTimeout(() => setBubble(null), ms);
   };
+
+  /* One cat on the page: while the Camino walk is on screen she's the one walking it, so
+     the roaming cat fades out and waits. When the reader moves on she comes back in from
+     the right, as if she'd just walked off the end of the road. */
+  const onCatWalk = useCallback((inView: boolean) => {
+    const wasAway = catAway.current;
+    catAway.current = inView;
+    catEl.current?.classList.toggle("is-away", inView);
+    if (inView) setBubble(null);
+    else if (wasAway) {
+      const c = cat.current;
+      c.x = window.innerWidth - 100;
+      c.dir = -1;
+      c.mode = "walk";
+    }
+  }, []);
 
   /* The cat only sometimes responds */
   const petCat = () => {
@@ -921,48 +903,8 @@ export function PortfolioPage() {
       {/* ═════ Proof: water the pots, the numbers grow ═════ */}
       <GrowingStats />
 
-      {/* ═════ Timeline ═════ */}
-      <section className="pf-tl" ref={tlRef} id="path">
-        <div className="pf-tl-pin">
-          <div className="pf-tl-head">
-            <div>
-              <span className="pf-kicker">How I got here</span>
-              <h2>
-                I took the <span>scenic route.</span>
-              </h2>
-            </div>
-            <div className="pf-tl-progress">
-              <span>Keep scrolling</span>
-              <div className="pf-tl-bar">
-                <div ref={tlBarRef} />
-              </div>
-            </div>
-          </div>
-          <div className="pf-tl-track" ref={trackRef}>
-            {PATH.map((s, i) => (
-              <article
-                key={s.h}
-                className="pf-tl-card"
-                style={{ background: s.bg, color: s.fg, transform: `rotate(${s.r}deg)` }}
-              >
-                <div className="pf-tl-scene" style={{ background: s.panel }}>
-                  <SceneArt scene={s.scene} />
-                  <span className="pf-tl-n">{i + 1}</span>
-                </div>
-                <span className="pf-tl-span" style={{ color: s.muted }}>
-                  {s.span}
-                </span>
-                <h3>{s.h}</h3>
-                <span className="pf-tl-at" style={{ color: s.muted }}>
-                  <MapPin size={14} strokeWidth={2.75} aria-hidden="true" />
-                  {s.at}
-                </span>
-                <p style={{ color: s.muted }}>{s.b}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ═════ Timeline: walk the road, pick things up ═════ */}
+      <Camino onInView={onCatWalk} />
 
       {/* ═════ The receipts: same parts, same order, in all three ═════ */}
       <section className="pf-receipts" id="work">
@@ -1125,7 +1067,6 @@ export function PortfolioPage() {
       {/* ═════ Playground ═════ */}
       <section className="pf-play" id="play">
         <div className="pf-play-head">
-          <span className="pf-kicker pf-kicker-soft">Nobody asked for these</span>
           <h2>The playground.</h2>
           <p>
             Side projects, useful experiments, and ideas I wanted to see working. Some are live.
@@ -1171,7 +1112,6 @@ export function PortfolioPage() {
       <section className="pf-now" id="now">
         <div className="pf-about-top">
           <div className="pf-about-copy">
-            <span className="pf-kicker pf-kicker-soft">About me</span>
             <h2 className="pf-iam">
               <span className="sr-only">Hi, I’m Ashleigh and I’m a {ROLES.join("; ")}.</span>
               <RotatingRole lead="Hi, I’m Ashleigh and I’m" />

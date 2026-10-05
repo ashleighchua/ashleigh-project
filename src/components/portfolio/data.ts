@@ -167,97 +167,85 @@ export const HISS = [
   "hss. i’m on break.",
 ];
 
-/* ── Timeline ── */
+/* ── Timeline: a Camino walk. The cat walks the route; each stop stamps a skill ── */
 
-export type Scene = "flask" | "violin" | "binders" | "signpost" | "inbox" | "coach";
-export type Chapter = {
-  scene: Scene;
-  /** how long, in words — never a date */
-  span: string;
-  h: string;
-  /** where */
-  at: string;
-  b: string;
-  bg: string;
-  panel: string;
-  fg: string;
-  muted: string;
-  r: number;
+export type StopIcon = "flask" | "music" | "search" | "moon" | "mail" | "key";
+export type Stop = {
+  /** signpost kicker */
+  kicker: string;
+  place: string;
+  /** where and how long, in words — never a date */
+  meta: string;
+  /** what it left me with: in the bubble, and on the stamp */
+  skill: string;
+  /** a site colour token */
+  color: string;
+  icon: StopIcon;
 };
 
-const light = { fg: "var(--color-text)", muted: "var(--color-neutral-800)" };
-
-export const PATH: Chapter[] = [
+export const STOPS: Stop[] = [
   {
-    ...light,
-    scene: "flask",
-    span: "4 years",
-    h: "Chemical engineering",
-    at: "University",
-    b: "Engineering school taught me to think in systems: how the parts connect, and how to work through a problem step by step.",
-    bg: "var(--color-surface)",
-    panel: "var(--color-accent-100)",
-    r: -1,
+    kicker: "Stop 1",
+    place: "Chemical engineering",
+    meta: "University · 4 yrs",
+    skill: "Systems thinking",
+    color: "var(--color-accent)",
+    icon: "flask",
   },
   {
-    ...light,
-    scene: "violin",
-    span: "10 years",
-    h: "Violin & viola",
-    at: "State orchestra",
-    b: "I played both instruments, depending on what the score needed. Ten years in an orchestra taught me how to keep time with forty other people and make music that only exists when everyone shows up.",
-    bg: "var(--color-accent-2-200)",
-    panel: "var(--color-accent-2-100)",
-    muted: "var(--color-accent-2-900)",
-    r: 1,
+    kicker: "Stop 2",
+    place: "State orchestra",
+    meta: "10 yrs",
+    skill: "Discipline & timing",
+    color: "var(--color-accent-2)",
+    icon: "music",
   },
   {
-    ...light,
-    scene: "binders",
-    span: "3 years",
-    h: "Regulatory consulting",
-    at: "Big Four",
-    b: "I helped clients turn dense regulatory requirements into next steps they could act on. It taught me that the right question early saves weeks of work later.",
-    bg: "var(--color-accent-100)",
-    panel: "var(--color-bg)",
-    r: -0.5,
+    kicker: "Stop 3",
+    place: "Regulatory consulting",
+    meta: "Big Four · 3 yrs",
+    skill: "Asking the right questions",
+    color: "var(--color-accent-700)",
+    icon: "search",
   },
   {
-    ...light,
-    scene: "signpost",
-    span: "1 year",
-    h: "Figuring things out",
-    at: "On my own",
-    b: "I launched The Lunar Playground, published a kids’ book, and built websites for clients. Some ideas worked; others joined my idea graveyard, where I learned to test quickly and keep what’s useful.",
-    bg: "var(--color-surface)",
-    panel: "var(--color-neutral-100)",
-    r: 1.2,
+    kicker: "Stop 4",
+    place: "Figuring things out",
+    meta: "On my own · 1 yr",
+    skill: "Testing ideas fast",
+    color: "var(--color-accent-2-700)",
+    icon: "moon",
   },
   {
-    ...light,
-    scene: "inbox",
-    span: "A few months",
-    h: "Virtual assistant",
-    at: "Beyond Classrooms",
-    b: "I cold-emailed a stack of companies and joined Beyond Classrooms as a virtual assistant. I said yes to whatever needed doing, and before long I was building SchoolTrips.ai.",
-    bg: "var(--color-accent-2-200)",
-    panel: "var(--color-accent-2-100)",
-    muted: "var(--color-accent-2-900)",
-    r: -1,
+    kicker: "Stop 5",
+    place: "Virtual assistant",
+    meta: "Beyond Classrooms · months",
+    skill: "Running operations",
+    color: "var(--color-accent-600)",
+    icon: "mail",
   },
   {
-    scene: "coach",
-    span: "Now",
-    h: "Cofounder",
-    at: "SchoolTrips.ai",
-    b: "The more I built, the more I owned. Now I’m a cofounder at SchoolTrips.ai.",
-    bg: "var(--color-neutral-900)",
-    panel: "var(--color-neutral-800)",
-    fg: "var(--color-neutral-100)",
-    muted: "var(--color-neutral-300)",
-    r: 0.5,
+    kicker: "Now",
+    place: "Cofounder",
+    meta: "SchoolTrips.ai · now",
+    skill: "Ownership",
+    color: "var(--color-text)",
+    icon: "key",
   },
 ];
+
+/** the road doesn't end at cofounder: it keeps going */
+export const CAMINO_END = {
+  sign: { kicker: "Next stop", h: "Still walking →" },
+  /** the pilgrim's passport that opens when the walk is done */
+  passport: {
+    kicker: "Credencial",
+    name: "Ashleigh Chua",
+    status: "Still walking",
+    next: "Next stamp",
+    nextNote: "Got an idea that needs a path? It could be this one.",
+  },
+};
 
 /* ── The receipts: every card has the same parts, in the same order ── */
 
@@ -485,6 +473,8 @@ export const PLAY: {
 export const ROLES = [
   "cofounder",
   "product builder",
+  "strategist",
+  "creative",
   "chemical engineering grad",
   "violinist, violist (& pianist)",
   "recovering consultant",

@@ -1,0 +1,1029 @@
+/* ═════ How I got here: the Camino walk ═════ */
+
+/* tall enough to scroll through; the stage pins inside it */
+.cm {
+  position: relative;
+  height: 420svh;
+}
+.cm-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.8svh, 18px);
+  /* clear of the fixed nav */
+  padding: calc(76px + 1svh) var(--pad-x) clamp(14px, 3svh, 28px);
+}
+.cm-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 24px;
+  flex-wrap: wrap;
+}
+.cm-top .pf-head {
+  margin: 0;
+  gap: 8px;
+}
+.cm-top .pf-head h2 {
+  font-size: clamp(34px, min(5.4vw, 7svh), 72px);
+}
+.cm-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── the scene ── */
+.cm-box {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+.cm-view {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  box-shadow: var(--shadow-md);
+}
+.cm-scene {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  overflow: hidden;
+}
+.cm-scene div,
+.cm-scene span,
+.cm-scene i {
+  box-sizing: border-box;
+}
+.cm-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 500px;
+  will-change: transform;
+}
+.cm-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    var(--color-bg) 0%,
+    color-mix(in oklch, var(--color-accent-100) 40%, var(--color-bg)) 70%
+  );
+}
+.cm-sun {
+  position: absolute;
+  left: 120px;
+  top: 150px;
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 16px color-mix(in srgb, var(--color-accent-200) 35%, transparent);
+}
+.cm-mountain {
+  border-radius: 48% 52% 0 0 / 60% 60% 0 0;
+  background: color-mix(in oklch, var(--color-neutral-200) 70%, var(--color-accent-2-100));
+}
+.cm-cloud {
+  border-radius: 999px;
+  background: var(--color-surface);
+}
+.cm-hill {
+  border-radius: 50%;
+  background: var(--color-accent-2-100);
+}
+.cm-trunk {
+  border-radius: 999px;
+  background: var(--color-accent-700);
+}
+.cm-crown {
+  border-radius: 50% 50% 46% 46%;
+  background: var(--color-accent-2-400);
+}
+.cm-crown--b {
+  background: var(--color-accent-2-300);
+}
+.cm-ground {
+  border-radius: 36px 36px 0 0;
+  background: var(--color-accent-2-300);
+}
+.cm-dirt {
+  border-radius: 999px;
+  background: var(--color-accent-100);
+}
+.cm-dash {
+  border-top: 4px dashed var(--color-accent-300);
+}
+.cm-tuft {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+}
+.cm-tuft i {
+  width: 4px;
+  border-radius: 999px;
+  background: var(--color-accent-2-400);
+}
+.cm-flower {
+  border-radius: 999px;
+  background: var(--color-bg);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-bg) 50%, transparent);
+}
+.cm-flower--b {
+  background: var(--color-accent-200);
+}
+.cm-bush {
+  border-radius: 999px;
+  background: var(--color-accent-2-500);
+}
+.cm-bush--b {
+  background: var(--color-accent-2-400);
+}
+
+/* ── signposts ── */
+.cm-post {
+  border-radius: 999px;
+  background: var(--color-accent-800);
+}
+.cm-post--light {
+  background: var(--color-accent-700);
+}
+.cm-board {
+  position: relative;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--color-accent-700);
+  border: 4px solid var(--color-accent-800);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.cm-board small {
+  font: 600 10px/1 var(--font-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-300);
+}
+.cm-board b {
+  font: 800 15px/1.1 var(--font-heading);
+  color: var(--color-bg);
+}
+.cm-board span {
+  margin-top: 2px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--color-accent-2-200);
+  font: 600 11px/1 var(--font-body);
+  color: var(--color-accent-2-900);
+}
+.cm-more {
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 3px dashed var(--color-accent-300);
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cm-more small {
+  font: 600 10px/1 var(--font-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+}
+.cm-more b {
+  font: 800 16px/1.1 var(--font-heading);
+  color: var(--color-text);
+}
+
+/* ── skill bubbles ── */
+.cm-bubble-at {
+  z-index: 4;
+}
+.cm-bubble {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  border-radius: 999px;
+  border: 3px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  text-align: center;
+  animation: cm-float 2.2s ease-in-out infinite;
+}
+.cm-shine {
+  position: absolute;
+  left: 22px;
+  top: 16px;
+  width: 26px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.75;
+  transform: rotate(-30deg);
+}
+.cm-shine--dot {
+  left: 50px;
+  top: 13px;
+  width: 8px;
+  height: 8px;
+  opacity: 0.6;
+  transform: none;
+}
+.cm-bubble-dot {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.cm-bubble small {
+  font: 600 9px/1 var(--font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
+}
+.cm-bubble b {
+  font: 800 14px/1.05 var(--font-heading);
+  color: var(--color-text);
+  text-wrap: balance;
+}
+.cm-ring {
+  z-index: 5;
+  border-radius: 999px;
+  border: 6px solid;
+  animation: cm-puff 0.6s ease-out both;
+}
+.cm-burst {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  z-index: 5;
+  pointer-events: none;
+}
+.cm-burst span {
+  position: absolute;
+  inset: 0;
+  animation: cm-conf 0.7s ease-out both;
+}
+.cm-toss {
+  z-index: 12;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  animation: cm-toss 0.8s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+/* ── treats ── */
+.cm-treat {
+  z-index: 3;
+  transition:
+    opacity 0.35s,
+    transform 0.35s;
+}
+.cm-treat svg {
+  display: block;
+  animation: cm-float 1.8s ease-in-out infinite;
+}
+.cm-treat.is-eaten {
+  opacity: 0;
+  transform: translateY(-30px) scale(1.4);
+}
+
+/* ── the cat ── */
+.cm-cat {
+  position: absolute;
+  z-index: 10;
+}
+.cm-cat .pf-cat-svg {
+  filter: none;
+}
+.cm-flip {
+  transition: transform 0.15s;
+}
+.cm-cat.is-back .cm-flip {
+  transform: scaleX(-1);
+}
+.cm-hop {
+  animation: cm-hop 0.5s ease-out;
+}
+.cm-cat.is-walking .cm-bob {
+  animation: cm-step 0.22s ease-in-out infinite;
+}
+.cm-cat .pf-cat-tail {
+  animation: cm-tail 2.2s ease-in-out infinite;
+}
+.cm-cat .pf-cat-eyes {
+  animation: cm-blink 4s infinite;
+}
+.cm-cat.is-walking .pf-cat-leg {
+  animation: cm-leg 0.22s infinite alternate ease-in-out;
+}
+.cm-cat.is-walking .pf-cat-leg:nth-of-type(even) {
+  animation-delay: 0.11s;
+}
+.cm-pack {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+/* ── overlays at real size ── */
+.cm-hud {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  pointer-events: none;
+}
+.cm-hud-stage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px 6px 6px;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  white-space: nowrap;
+  flex: none;
+}
+.cm-hud-stage b {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  font: 600 11px/1 var(--font-body);
+  letter-spacing: 0.1em;
+}
+.cm-hud-stage span {
+  font: 800 14px/1 var(--font-heading);
+}
+.cm-hud-track {
+  position: relative;
+  flex: 1;
+  max-width: 240px;
+  height: 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text) 14%, transparent);
+}
+.cm-hud-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+.cm-hud-track span {
+  position: absolute;
+  top: -3px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  border-radius: 999px;
+  background: var(--color-neutral-300);
+  border: 3px solid var(--color-bg);
+  transition: background 0.3s;
+}
+.cm-hud-fish {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
+  flex: none;
+}
+.cm-hud-fish span {
+  font: 800 16px/1 var(--font-heading);
+  color: var(--color-text);
+  min-width: 44px;
+}
+/* down on the grass, clear of the first skill bubble */
+.cm-start {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6%;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  color: var(--color-text);
+}
+.cm-start span {
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font: 800 20px/1 var(--font-heading);
+  animation: cm-win 1.2s ease-in-out infinite;
+}
+.cm-start svg {
+  animation: cm-float 1.2s ease-in-out infinite;
+}
+.cm-picked {
+  position: absolute;
+  left: 50%;
+  top: 72px;
+  z-index: 14;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px 10px 10px;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: cm-pop 2.4s 0.3s both;
+}
+.cm-picked-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.cm-picked > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cm-picked small {
+  font: 600 10px/1 var(--font-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-300);
+}
+.cm-picked b {
+  font: 800 18px/1 var(--font-heading);
+}
+
+/* ── stamps strip ── */
+.cm-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 28px;
+  background: var(--color-accent-2-700);
+}
+.cm-strip-head {
+  align-self: center;
+  flex: none;
+  max-width: 170px;
+  padding: 0 4px 0 10px;
+  font: 800 18px/1.15 var(--font-heading);
+  color: var(--color-bg);
+}
+/* the strip folds shut when the passport opens */
+.cm-strip-fold {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 0.5s ease,
+    opacity 0.3s;
+}
+.cm-strip-fold > div {
+  min-height: 0;
+  overflow: hidden;
+}
+.cm-strip-fold.is-folded {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-top: calc(-1 * clamp(10px, 1.8svh, 18px));
+}
+
+/* ── the completed passport ── */
+/* sits above the road, so she's still standing there underneath it */
+.cm-passport {
+  position: absolute;
+  left: 50%;
+  top: 43%;
+  z-index: 16;
+  translate: -50% -50%;
+  width: min(620px, calc(100% - 40px));
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  border-radius: 22px;
+  background: var(--color-accent-2-700);
+  padding: 10px;
+  gap: 4px;
+  box-shadow: var(--shadow-lg);
+  animation: cm-open 0.6s 0.2s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+.cm-pp-page {
+  margin: 0;
+  padding: 18px 18px 16px;
+  border-radius: 14px;
+  background: var(--color-bg);
+}
+/* the spine between the two pages */
+.cm-pp-cover {
+  border-radius: 14px 6px 6px 14px;
+  box-shadow: inset -10px 0 14px -12px rgb(40 30 20 / 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cm-pp-cover > small {
+  font: 600 10px/1 var(--font-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+}
+.cm-pp-cover > b {
+  margin-top: -4px;
+  font: 800 24px/1 var(--font-heading);
+  color: var(--color-text);
+}
+.cm-pp-cover dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 0;
+  border-block: 1.5px dashed var(--color-neutral-300);
+}
+.cm-pp-cover dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font: 600 12px/1.2 var(--font-body);
+}
+.cm-pp-cover dt {
+  color: var(--color-neutral-700);
+}
+.cm-pp-cover dd {
+  margin: 0;
+  color: var(--color-text);
+}
+/* the blank stamp is a way in: it goes to the contact section */
+.cm-pp-next {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -6px;
+  padding: 6px;
+  border-radius: 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.cm-pp-next:hover {
+  background: var(--color-accent-100);
+}
+.cm-pp-next:hover b {
+  color: var(--color-accent-700);
+}
+.cm-pp-next:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.cm-pp-blank {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: 2.5px dashed var(--color-accent);
+  display: grid;
+  place-items: center;
+  font: 800 22px/1 var(--font-heading);
+  color: var(--color-accent);
+  animation: cm-wait 1.6s 2s ease-in-out infinite;
+}
+.cm-pp-next > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cm-pp-next b {
+  font: 800 15px/1.1 var(--font-heading);
+  color: var(--color-text);
+}
+.cm-pp-next em {
+  font: normal 500 12px/1.35 var(--font-body);
+  color: var(--color-neutral-700);
+}
+.cm-pp-stamps {
+  list-style: none;
+  border-radius: 6px 14px 14px 6px;
+  box-shadow: inset 10px 0 14px -12px rgb(40 30 20 / 0.35);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: center;
+  gap: 14px 8px;
+}
+.cm-pp-stamps li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.cm-pp-stamps em {
+  font: normal 600 10px/1.15 var(--font-body);
+  text-align: center;
+  color: var(--color-text);
+  text-wrap: balance;
+}
+.cm .cm-passport .cm-pp-again {
+  position: absolute;
+  right: -12px;
+  top: -12px;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-bg);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text);
+}
+
+.cm-page {
+  list-style: none;
+  margin: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  background: var(--color-bg);
+}
+.cm-page li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.cm-stamp {
+  --s: 58px;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 999px;
+  border: 2.5px dashed currentColor;
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--color-neutral-300) 35%, transparent);
+}
+.cm-stamp > span {
+  width: calc(var(--s) * 0.69);
+  height: calc(var(--s) * 0.69);
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  display: grid;
+  place-items: center;
+}
+.cm-stamp.is-on {
+  animation: cm-stamp 0.45s both;
+}
+.cm-page em {
+  font: normal 600 9.5px/1.15 var(--font-body);
+  text-align: center;
+  color: var(--color-text);
+  text-wrap: balance;
+  opacity: 0.35;
+}
+.cm-page em.is-on {
+  opacity: 1;
+}
+.cm .cm-restart {
+  align-self: center;
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: 0;
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-bg);
+}
+
+/* ── reduced motion: a still row of signposts, every stamp already in ── */
+.cm--still {
+  height: auto;
+}
+.cm--still .cm-stage {
+  position: static;
+  height: auto;
+  padding-top: var(--sec-y);
+  padding-bottom: var(--sec-y);
+}
+.cm-posts {
+  list-style: none;
+  margin: 0;
+  padding: 4px 4px 12px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(180px, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+}
+
+@media (max-width: 759px) {
+  .cm {
+    height: 300svh;
+  }
+  .cm-stage {
+    padding-top: calc(72px + 1svh);
+  }
+  .cm-hud {
+    left: 10px;
+    right: 10px;
+    top: 10px;
+    gap: 8px;
+  }
+  .cm-hud-track {
+    display: none;
+  }
+  .cm-hud-stage {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+  .cm-hud-stage span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cm-picked {
+    top: 58px;
+  }
+  .cm-picked b {
+    font-size: 15px;
+  }
+  .cm-strip-head {
+    max-width: none;
+    font-size: 16px;
+    padding: 4px 6px 0;
+    flex: 1;
+  }
+  .cm-passport {
+    top: auto;
+    bottom: 8px;
+    translate: -50% 0;
+    width: calc(100% - 16px);
+    grid-template-columns: 1fr;
+    padding: 6px;
+  }
+  .cm-pp-page {
+    padding: 10px 12px;
+  }
+  .cm-pp-cover {
+    border-radius: 12px 12px 4px 4px;
+    box-shadow: none;
+    gap: 6px;
+  }
+  .cm-pp-cover > b {
+    font-size: 18px;
+  }
+  /* on a phone the stats sit in one line */
+  .cm-pp-cover dl {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 6px 0;
+  }
+  .cm-pp-cover dl div {
+    flex-direction: column;
+    gap: 2px;
+    font-size: 10px;
+  }
+  .cm-pp-next {
+    gap: 10px;
+  }
+  .cm-pp-blank {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+  .cm-pp-next b {
+    font-size: 13px;
+  }
+  .cm-pp-next em {
+    font-size: 10.5px;
+  }
+  .cm-pp-stamps {
+    border-radius: 4px 4px 12px 12px;
+    box-shadow: none;
+    gap: 6px 4px;
+  }
+  .cm-pp-stamps .cm-stamp {
+    --s: 40px;
+  }
+  .cm-pp-stamps em {
+    font-size: 8.5px;
+  }
+  .cm .cm-passport .cm-pp-again {
+    right: -4px;
+    top: -14px;
+  }
+  .cm-strip {
+    flex-wrap: wrap;
+    padding: 10px;
+    gap: 8px;
+    border-radius: 22px;
+  }
+  .cm .cm-restart {
+    order: 2;
+    min-height: 36px;
+  }
+  .cm-page {
+    order: 3;
+    flex-basis: 100%;
+    padding: 8px 6px;
+    gap: 2px;
+  }
+  .cm-stamp {
+    --s: 40px;
+  }
+  .cm-page em {
+    font-size: 8.5px;
+  }
+}
+
+/* ── motion ── */
+@keyframes cm-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+@keyframes cm-puff {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+@keyframes cm-conf {
+  0% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) rotate(220deg);
+    opacity: 0;
+  }
+}
+@keyframes cm-toss {
+  0% {
+    transform: translate(var(--sx), var(--sy)) scale(1) rotate(0);
+  }
+  55% {
+    transform: translate(calc(var(--sx) * 0.35), calc(var(--sy) * 0.6 - 50px)) scale(1.15)
+      rotate(160deg);
+  }
+  100% {
+    transform: translate(0, 0) scale(0.25) rotate(340deg);
+    opacity: 0;
+  }
+}
+@keyframes cm-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-58px);
+  }
+}
+@keyframes cm-step {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes cm-leg {
+  0% {
+    transform: rotate(20deg);
+  }
+  100% {
+    transform: rotate(-20deg);
+  }
+}
+@keyframes cm-tail {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  50% {
+    transform: rotate(-16deg);
+  }
+}
+@keyframes cm-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+@keyframes cm-pop {
+  0% {
+    transform: translateY(10px) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+}
+@keyframes cm-stay {
+  0% {
+    transform: translateY(12px) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes cm-win {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes cm-open {
+  0% {
+    transform: translateY(40px) scale(0.6) rotate(-4deg);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes cm-wait {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+@keyframes cm-stamp {
+  0% {
+    transform: scale(2.4) rotate(-14deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(0.9) rotate(-8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(-8deg);
+    opacity: 1;
+  }
+}

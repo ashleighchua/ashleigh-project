@@ -1,5 +1,8 @@
-/* The black-cat mascot, ported from the design reference. */
-import type { Ref } from "react";
+/* The black-cat mascot, ported from the design reference.
+ * The roaming cat drives her through `refs` every frame. The Camino cat (Camino.tsx)
+ * animates the same parts with CSS instead, via the class names below, and wears a
+ * pack drawn in the same 84 × 58 space (`children`). */
+import type { ReactNode, Ref } from "react";
 
 export type CatRefs = {
   legs: (SVGRectElement | null)[];
@@ -9,7 +12,21 @@ export type CatRefs = {
   mouth: SVGPathElement | null;
 };
 
-export function CatSvg({ refs, flipRef }: { refs: CatRefs; flipRef: Ref<HTMLDivElement> }) {
+const noRefs = (): CatRefs => ({ legs: [], bodyG: null, tail: null, eyes: null, mouth: null });
+
+export function CatSvg({
+  refs = noRefs(),
+  flipRef,
+  width = 84,
+  children,
+}: {
+  refs?: CatRefs;
+  flipRef?: Ref<HTMLDivElement>;
+  /** drawn at 84 × 58 */
+  width?: number;
+  /** anything she's wearing, drawn on top of her in the same viewBox */
+  children?: ReactNode;
+}) {
   const ink = "var(--color-neutral-900)";
   const leg = (x: number, i: number) => (
     <rect
@@ -23,12 +40,19 @@ export function CatSvg({ refs, flipRef }: { refs: CatRefs; flipRef: Ref<HTMLDivE
       height={15}
       rx={3}
       fill={ink}
+      className="pf-cat-leg"
       style={{ transformBox: "fill-box", transformOrigin: "50% 0%" }}
     />
   );
   return (
     <div ref={flipRef}>
-      <svg viewBox="0 0 84 58" width={84} height={58} className="pf-cat-svg" aria-hidden="true">
+      <svg
+        viewBox="0 0 84 58"
+        width={width}
+        height={(width * 58) / 84}
+        className="pf-cat-svg"
+        aria-hidden="true"
+      >
         <ellipse cx={42} cy={55} rx={30} ry={3} fill={ink} opacity={0.12} />
         {leg(20, 0)}
         {leg(28, 1)}
@@ -38,6 +62,7 @@ export function CatSvg({ refs, flipRef }: { refs: CatRefs; flipRef: Ref<HTMLDivE
           ref={(el) => {
             refs.bodyG = el;
           }}
+          className="pf-cat-body"
           style={{ transformBox: "fill-box", transformOrigin: "50% 100%" }}
         >
           <path
@@ -49,6 +74,7 @@ export function CatSvg({ refs, flipRef }: { refs: CatRefs; flipRef: Ref<HTMLDivE
             strokeWidth={5}
             strokeLinecap="round"
             fill="none"
+            className="pf-cat-tail"
             style={{ transformBox: "fill-box", transformOrigin: "100% 100%" }}
           />
           <ellipse cx={38} cy={32} rx={24} ry={12} fill={ink} />
@@ -60,6 +86,7 @@ export function CatSvg({ refs, flipRef }: { refs: CatRefs; flipRef: Ref<HTMLDivE
             ref={(el) => {
               refs.eyes = el;
             }}
+            className="pf-cat-eyes"
             style={{ transformBox: "fill-box", transformOrigin: "50% 50%" }}
           >
             <ellipse cx={62} cy={20} rx={2.2} ry={2.8} fill="var(--color-accent-2-300)" />
@@ -72,8 +99,10 @@ export function CatSvg({ refs, flipRef }: { refs: CatRefs; flipRef: Ref<HTMLDivE
             }}
             d="M63 28 L66 31.5 L69 28 Z"
             fill="var(--color-accent-300)"
+            className="pf-cat-mouth"
             style={{ opacity: 0 }}
           />
+
           <path
             d="M52 28 Q 57 34 62 32"
             stroke="var(--color-accent)"
@@ -83,6 +112,7 @@ export function CatSvg({ refs, flipRef }: { refs: CatRefs; flipRef: Ref<HTMLDivE
           />
           <circle cx={57} cy={34} r={2.6} fill="var(--color-accent-300)" />
         </g>
+        {children}
       </svg>
     </div>
   );

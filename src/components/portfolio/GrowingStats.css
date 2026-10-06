@@ -516,8 +516,17 @@
 .gs-grid--1 {
   grid-template-columns: minmax(0, 1fr);
 }
+/* the wide garden: all three plants in one scene, and one bed between them */
+.gs-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+/* the autopilot plant is drawn for its own card's lower bed; lift it onto the shared one */
+.gs-col--raised {
+  translate: 0 -16px;
+}
 /* labels may run past their column; the stage still clips the edges */
-.gs-grid--2 .gs-col {
+.gs-grid--2 .gs-col,
+.gs-grid--3 .gs-col {
   overflow: visible;
 }
 /* labels stay at least ~10.5px on screen however far the scene is scaled down */
@@ -612,6 +621,12 @@
 .gs-stats--2 .gs-stat:first-child {
   border-right: 2px dashed var(--n-300);
 }
+.gs-stats--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.gs-stats--3 .gs-stat:not(:last-child) {
+  border-right: 2px dashed var(--n-300);
+}
 .gs-stat--idle .gs-num {
   color: var(--n-500);
 }
@@ -629,25 +644,6 @@
 }
 .gs-card--auto .gs-stats {
   margin-top: 0;
-}
-/* a wide screen gets all three plants in one row: the two you water take two thirds,
-   the autopilot one the last third, so both scenes scale by the same amount */
-@media (min-width: 900px) {
-  .gs-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
-    align-items: start;
-  }
-  .gs-card + .gs-card {
-    margin-top: 0;
-  }
-  .gs-card--auto {
-    display: block;
-  }
-  .gs-card--auto .gs-stats {
-    margin-top: 16px;
-  }
 }
 @media (max-width: 640px) {
   .gs-card--auto {

@@ -4,6 +4,8 @@
 .cm {
   position: relative;
   height: 420svh;
+  /* the stage's own bottom padding plus this makes the same gap as every other section */
+  margin-bottom: calc(var(--sec-y) - clamp(14px, 3svh, 28px));
 }
 .cm-stage {
   position: sticky;
@@ -12,8 +14,8 @@
   display: flex;
   flex-direction: column;
   gap: clamp(10px, 1.8svh, 18px);
-  /* clear of the fixed nav */
-  padding: calc(76px + 1svh) var(--pad-x) clamp(14px, 3svh, 28px);
+  /* the same top space as every other section, but always clear of the fixed nav */
+  padding: max(var(--sec-y), calc(76px + 1svh)) var(--pad-x) clamp(14px, 3svh, 28px);
 }
 .cm-top {
   display: flex;
@@ -747,7 +749,7 @@
     height: 300svh;
   }
   .cm-stage {
-    padding-top: calc(72px + 1svh);
+    padding-top: max(var(--sec-y), calc(72px + 1svh));
   }
   .cm-hud {
     left: 10px;

@@ -73,13 +73,6 @@
 .pf-kitchen {
   padding: var(--sec-y) var(--pad-x);
 }
-.pf-kitchen-head,
-.pf-k-frame,
-.pf-k-hint,
-.pf-k-said {
-  max-width: 1180px;
-  margin-inline: auto;
-}
 /* the room can be wider than a narrow phone; let it scroll rather than squash */
 .pf-k-frame {
   overflow-x: auto;

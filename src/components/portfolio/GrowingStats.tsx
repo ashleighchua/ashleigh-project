@@ -1,7 +1,8 @@
 // GrowingStats — "Welcome to my garden".
-// Top card: two plants in a raised bed and a watering can you pick up and drag over them (or tap, and it
+// Two plants in a raised bed and a watering can you pick up and drag over them (or tap, and it
 // waters the next pot for you). Each stem grows while you pour, then its number counts up.
-// Bottom card: the third pot waters itself on a drip line and grows when scrolled into view.
+// The third plant waters itself on a drip line and grows when scrolled into view.
+// A wide screen gets one continuous garden with all three in a row; a phone gets two cards.
 // Scenes are laid out at a design size and scaled to fit, so phones get the same picture.
 // Respects prefers-reduced-motion (shows everything grown).
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
@@ -46,9 +47,12 @@ const BUSH = [
   { x: -50, h: 44 },
 ];
 
-/** design sizes: the top scene is two 360px columns, the bottom one column */
+/** design sizes: every plant gets a 360px column. The top card has two, the bottom one,
+ *  and the wide garden all three */
 const TOP_W = 720;
 const AUTO_W = 360;
+const WIDE_W = 1080;
+const WIDE_MQ = "(min-width: 900px)";
 /** only the part above the shelf is shown; plants are placed from the scene's bottom */
 const SCENE_H = 540;
 const SHOW_H = 440;
@@ -148,6 +152,14 @@ function StatBlock({ m, shown, idle }: { m: Stat; shown: boolean; idle: string }
 
 export function GrowingStats() {
   const [reduced, setReduced] = useState(false);
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(WIDE_MQ);
+    const sync = () => setWide(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
   const [round, setRound] = useState(0);
   /** both cards report in; there is nothing to start over until they have all grown */
   const [topDone, setTopDone] = useState(false);
@@ -163,10 +175,20 @@ export function GrowingStats() {
         <h2 id="gs-h">Welcome to my garden</h2>
         <p>What you water grows.</p>
       </div>
-      <div className="gs-row">
-        <WaterMe key={`w${round}`} reduced={reduced} onDone={setTopDone} />
-        <AutoPot key={`a${round}`} reduced={reduced} onDone={setAutoDone} />
-      </div>
+      {wide ? (
+        <WaterMe
+          key={`wide${round}`}
+          wide
+          reduced={reduced}
+          onDone={setTopDone}
+          onAutoDone={setAutoDone}
+        />
+      ) : (
+        <>
+          <WaterMe key={`w${round}`} reduced={reduced} onDone={setTopDone} />
+          <AutoPot key={`a${round}`} reduced={reduced} onDone={setAutoDone} />
+        </>
+      )}
       {/* sits below everything it replays, and holds its row even while hidden */}
       {!reduced && (
         <div className="gs-foot">
@@ -187,9 +209,29 @@ export function GrowingStats() {
 
 type Drag = { id: number; sx: number; sy: number; cx: number; cy: number; moved: boolean };
 
-function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) => void }) {
-  const { ref, k, sceneW } = useFit(TOP_W);
-  const home = useCallback(() => ({ x: sceneW / 2 - CAN_W / 2, y: SHELF_Y - CAN_H }), [sceneW]);
+function WaterMe({
+  reduced,
+  onDone,
+  wide = false,
+  onAutoDone,
+}: {
+  reduced: boolean;
+  onDone: (v: boolean) => void;
+  /** the whole garden in one scene: the autopilot plant joins as a third column */
+  wide?: boolean;
+  onAutoDone?: (v: boolean) => void;
+}) {
+  const { ref, k, sceneW } = useFit(wide ? WIDE_W : TOP_W);
+  const cols = wide ? 3 : 2;
+  // the can rests between the two plants you water
+  const home = useCallback(
+    () => ({ x: sceneW / cols - CAN_W / 2, y: SHELF_Y - CAN_H }),
+    [sceneW, cols],
+  );
+  const auto3 = useAutopilot(wide, reduced, ref);
+  useEffect(() => {
+    if (wide) onAutoDone?.(auto3.shown);
+  }, [wide, auto3.shown, onAutoDone]);
   const [water, setWater] = useState<[number, number]>([0, 0]);
   const [can, setCan] = useState(home);
   const [held, setHeld] = useState(false);
@@ -209,7 +251,7 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
   }, [home, held, auto]);
 
   const tip = { x: can.x + SPOUT.x, y: can.y + SPOUT.y };
-  const potX = [sceneW / 4, (sceneW * 3) / 4];
+  const potX = [sceneW / (cols * 2), (sceneW * 3) / (cols * 2)];
   // pouring: the spout is over a pot that still needs water, above its soil
   const over = potX.findIndex((px) => Math.abs(tip.x - px) < 75 && tip.y < 280);
   const pouring = (held || auto) && over >= 0 && water[over]! < 1 ? over : -1;
@@ -315,13 +357,13 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
         <div
           className="gs-scene"
           style={{
-            width: k < 1 ? TOP_W : "100%",
+            width: k < 1 ? (wide ? WIDE_W : TOP_W) : "100%",
             height: SCENE_H,
             transform: k < 1 ? `scale(${k})` : undefined,
           }}
         >
-          <Garden />
-          <div className="gs-grid gs-grid--2">
+          <Garden cols={cols} />
+          <div className={`gs-grid gs-grid--${cols}`}>
             {/* 1 · Sunflower up a ruler: Assistant → Cofounder */}
             <div className="gs-col">
               {/* the ruler shows up once watering starts; Cofounder as the flower gets there */}
@@ -405,6 +447,13 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
               </div>
               <Patch bottom={240} soil={soil(w1)} />
             </div>
+
+            {/* 3 · on autopilot; its bed is the shared one, so it sits a little higher */}
+            {wide && (
+              <div className="gs-col gs-col--raised">
+                <AutoCol {...auto3} reduced={reduced} />
+              </div>
+            )}
           </div>
 
           {pouring >= 0 && (
@@ -450,23 +499,38 @@ function WaterMe({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
           </p>
         )}
       </div>
-      <div className="gs-stats gs-stats--2">
+      <div className={`gs-stats gs-stats--${cols}`}>
         <StatBlock m={STATS[0]!} shown={w0 >= 1} idle="water me to find out" />
         <StatBlock m={STATS[1]!} shown={w1 >= 1} idle="water me to find out" />
+        {wide && <AutoStat num={auto3.num} shown={auto3.shown} />}
       </div>
     </div>
   );
 }
 
-/* ── bottom card: waters itself ── */
+/* ── the plant that waters itself ── */
 
-function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) => void }) {
-  const { ref, k } = useFit(AUTO_W);
+type Autopilot = {
+  on: boolean;
+  grown: boolean;
+  shown: boolean;
+  blooms: number;
+  num: React.RefObject<HTMLSpanElement | null>;
+};
+
+/** Switches the drip line on once `ref` is half in view, grows the bush, then counts
+ *  its number up. Does nothing until `enabled`. */
+function useAutopilot(
+  enabled: boolean,
+  reduced: boolean,
+  ref: React.RefObject<HTMLElement | null>,
+): Autopilot {
   const [on, setOn] = useState(false);
   const [grown, setGrown] = useState(false);
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
+    if (!enabled) return;
     if (reduced) {
       setOn(true);
       setGrown(true);
@@ -493,16 +557,76 @@ function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
       alive = false;
       io.disconnect();
     };
-  }, [reduced, ref]);
-
-  useEffect(() => {
-    onDone(shown);
-  }, [shown, onDone]);
+  }, [enabled, reduced, ref]);
 
   const num = useRef<HTMLSpanElement>(null);
   const [blooms, setBlooms] = useState(0);
   const onStep = useCallback((v: number) => setBlooms(Math.floor(v / 20)), []);
   useCountTo(num, 100, shown, reduced ? 0 : 1800, AUTO_FMT, "…", onStep);
+  return { on, grown, shown, blooms, num };
+}
+
+/** the drip line and the bush it waters, drawn inside a plant's column */
+function AutoCol({ on, grown, blooms, reduced }: Autopilot & { reduced: boolean }) {
+  return (
+    <>
+      <div className="gs-pipe-h" />
+      <div className="gs-pipe-v" />
+      <span className="gs-nozzle" />
+      <span className="gs-autopilot" style={{ opacity: on ? 1 : 0 }}>
+        on autopilot
+      </span>
+      {on && !reduced && <Drips />}
+      {BUSH.map((b, j) => (
+        <div key={j}>
+          <div
+            className="gs-bushstem"
+            style={{
+              left: `calc(50% + ${b.x}px)`,
+              height: b.h,
+              transform: `scaleY(${grown ? 1 : 0})`,
+              transitionDelay: `${j * 0.12}s`,
+            }}
+          />
+          <div
+            className="gs-daisy"
+            style={{
+              left: `calc(50% + ${b.x}px)`,
+              bottom: 226 + b.h - 14,
+              transform: `scale(${blooms > j ? 1.25 : 0})`,
+            }}
+          >
+            {[0, 72, 144, 216, 288].map((r) => (
+              <span key={r} style={{ transform: `rotate(${r}deg)` }} />
+            ))}
+            <i />
+          </div>
+        </div>
+      ))}
+      <Patch bottom={224} soil={on ? "var(--accent-900)" : "var(--accent-700)"} />
+    </>
+  );
+}
+
+function AutoStat({ num, shown }: { num: Autopilot["num"]; shown: boolean }) {
+  return (
+    <div className={`gs-stat gs-stat--sage${shown ? "" : " gs-stat--idle"}`}>
+      <span className="gs-num" ref={num}>
+        …
+      </span>
+      <span className="gs-cap">{STATS[2]!.caption}</span>
+      <a href={STATS[2]!.href}>Receipt ↓</a>
+    </div>
+  );
+}
+
+/** a phone's second card: the autopilot plant on its own, its number beside it */
+function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) => void }) {
+  const { ref, k } = useFit(AUTO_W);
+  const auto = useAutopilot(true, reduced, ref);
+  useEffect(() => {
+    onDone(auto.shown);
+  }, [auto.shown, onDone]);
 
   return (
     <div className="gs-card gs-card--auto">
@@ -515,63 +639,33 @@ function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
             transform: k < 1 ? `scale(${k})` : undefined,
           }}
         >
-          <Garden small />
+          <Garden cols={1} />
           <div className="gs-grid gs-grid--1">
             <div className="gs-col">
-              <div className="gs-pipe-h" />
-              <div className="gs-pipe-v" />
-              <span className="gs-nozzle" />
-              <span className="gs-autopilot" style={{ opacity: on ? 1 : 0 }}>
-                on autopilot
-              </span>
-              {on && !reduced && <Drips />}
-              {BUSH.map((b, j) => (
-                <div key={j}>
-                  <div
-                    className="gs-bushstem"
-                    style={{
-                      left: `calc(50% + ${b.x}px)`,
-                      height: b.h,
-                      transform: `scaleY(${grown ? 1 : 0})`,
-                      transitionDelay: `${j * 0.12}s`,
-                    }}
-                  />
-                  <div
-                    className="gs-daisy"
-                    style={{
-                      left: `calc(50% + ${b.x}px)`,
-                      bottom: 226 + b.h - 14,
-                      transform: `scale(${blooms > j ? 1.25 : 0})`,
-                    }}
-                  >
-                    {[0, 72, 144, 216, 288].map((r) => (
-                      <span key={r} style={{ transform: `rotate(${r}deg)` }} />
-                    ))}
-                    <i />
-                  </div>
-                </div>
-              ))}
-              <Patch bottom={224} soil={on ? "var(--accent-900)" : "var(--accent-700)"} />
+              <AutoCol {...auto} reduced={reduced} />
             </div>
           </div>
         </div>
       </div>
       <div className="gs-stats gs-stats--auto">
-        <div className={`gs-stat gs-stat--sage${shown ? "" : " gs-stat--idle"}`}>
-          <span className="gs-num" ref={num}>
-            …
-          </span>
-          <span className="gs-cap">{STATS[2]!.caption}</span>
-          <a href={STATS[2]!.href}>Receipt ↓</a>
-        </div>
+        <AutoStat num={auto.num} shown={auto.shown} />
       </div>
     </div>
   );
 }
 
-/** The scenery both cards share: sky, sun, a picket fence, grass, and one long
+/** sprouts and grass tufts along the bed, placed between the plants in each layout */
+const DECOR: Record<number, { sprouts: number[]; tufts: number[] }> = {
+  1: { sprouts: [16, 84], tufts: [12, 82] },
+  2: { sprouts: [8, 40, 50, 60, 92], tufts: [6, 30, 66, 92] },
+  3: { sprouts: [6, 27, 33, 67, 73, 94], tufts: [4, 22, 44, 62, 88] },
+};
+
+/** The scenery every card shares: sky, sun, a picket fence, grass, and one long
  *  raised bed the plants grow out of. Purely decoration; the plants sit on top. */
-function Garden({ small }: { small?: boolean }) {
+function Garden({ cols }: { cols: number }) {
+  const small = cols === 1;
+  const { sprouts, tufts } = DECOR[cols]!;
   // the bed tops out where the stems start: scene bottom 250, or 234 for the small card
   return (
     <div className="gs-garden" aria-hidden="true">
@@ -579,18 +673,18 @@ function Garden({ small }: { small?: boolean }) {
       <span className="gs-cloud" style={{ left: small ? "8%" : "14%", top: 46 }} />
       {!small && <span className="gs-cloud gs-cloud--sm" style={{ left: "58%", top: 84 }} />}
       <div className="gs-fence">
-        {Array.from({ length: small ? 12 : 24 }, (_, j) => (
+        {Array.from({ length: cols * 12 }, (_, j) => (
           <span key={j} />
         ))}
       </div>
       <div className="gs-grass" />
       <div className={`gs-bed${small ? " gs-bed--sm" : ""}`}>
         <span className="gs-bed-soil" />
-        {(small ? [16, 84] : [8, 40, 50, 60, 92]).map((x) => (
+        {sprouts.map((x) => (
           <span key={x} className="gs-sprout" style={{ left: `${x}%` }} />
         ))}
       </div>
-      {(small ? [12, 82] : [6, 30, 66, 92]).map((x, j) => (
+      {tufts.map((x, j) => (
         <span key={j} className="gs-tuft" style={{ left: `${x}%` }} />
       ))}
       {!small && <span className="gs-butterfly" />}

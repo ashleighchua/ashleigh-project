@@ -598,6 +598,10 @@ body {
   flex-direction: column;
   gap: 20px;
 }
+/* the column gap already adds 20px under the head; take it back so it matches the rest */
+.pf-receipts .pf-receipts-head {
+  margin-bottom: calc(var(--head-gap) - 20px);
+}
 .pf-receipts-head,
 .pf-kitchen-head {
   display: flex;
@@ -1543,8 +1547,7 @@ body {
 
 /* ═════ Contact ═════ */
 .pf-contact {
-  /* narrower gutters than the rest on purpose: the orange box runs wider */
-  padding: var(--sec-y) clamp(10px, 3vw, 40px);
+  padding: var(--sec-y) var(--pad-x);
 }
 .pf-contact-box {
   background: var(--color-accent);

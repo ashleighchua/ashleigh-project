@@ -32,8 +32,7 @@
 .gs {
   font-family: var(--font-body);
   color: var(--text);
-  max-width: 1040px;
-  margin: 0 auto;
+  /* full width like the other sections, so its title lines up with theirs */
   padding: var(--sec-y) var(--pad-x);
 }
 .gs-replay {
@@ -630,6 +629,25 @@
 }
 .gs-card--auto .gs-stats {
   margin-top: 0;
+}
+/* a wide screen gets all three plants in one row: the two you water take two thirds,
+   the autopilot one the last third, so both scenes scale by the same amount */
+@media (min-width: 900px) {
+  .gs-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .gs-card + .gs-card {
+    margin-top: 0;
+  }
+  .gs-card--auto {
+    display: block;
+  }
+  .gs-card--auto .gs-stats {
+    margin-top: 16px;
+  }
 }
 @media (max-width: 640px) {
   .gs-card--auto {

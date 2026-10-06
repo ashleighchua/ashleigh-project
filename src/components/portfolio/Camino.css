@@ -503,22 +503,14 @@
   font: 800 18px/1.15 var(--font-heading);
   color: var(--color-bg);
 }
-/* the strip folds shut when the passport opens */
+/* the strip fades out when the passport opens. It keeps its room: collapsing it grew
+   the scene box, which rescaled the whole scene and made it jump */
 .cm-strip-fold {
-  display: grid;
-  grid-template-rows: 1fr;
-  transition:
-    grid-template-rows 0.5s ease,
-    opacity 0.3s;
-}
-.cm-strip-fold > div {
-  min-height: 0;
-  overflow: hidden;
+  transition: opacity 0.3s;
 }
 .cm-strip-fold.is-folded {
-  grid-template-rows: 0fr;
   opacity: 0;
-  margin-top: calc(-1 * clamp(10px, 1.8svh, 18px));
+  pointer-events: none;
 }
 
 /* ── the completed passport ── */
@@ -531,7 +523,7 @@
   translate: -50% -50%;
   width: min(620px, calc(100% - 40px));
   display: grid;
-  grid-template-columns: 1fr 1.25fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   border-radius: 22px;
   background: var(--color-accent-2-700);
   padding: 10px;

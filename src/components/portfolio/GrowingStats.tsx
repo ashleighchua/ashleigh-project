@@ -163,8 +163,10 @@ export function GrowingStats() {
         <h2 id="gs-h">Welcome to my garden</h2>
         <p>What you water grows.</p>
       </div>
-      <WaterMe key={`w${round}`} reduced={reduced} onDone={setTopDone} />
-      <AutoPot key={`a${round}`} reduced={reduced} onDone={setAutoDone} />
+      <div className="gs-row">
+        <WaterMe key={`w${round}`} reduced={reduced} onDone={setTopDone} />
+        <AutoPot key={`a${round}`} reduced={reduced} onDone={setAutoDone} />
+      </div>
       {/* sits below everything it replays, and holds its row even while hidden */}
       {!reduced && (
         <div className="gs-foot">
@@ -508,7 +510,7 @@ function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
         <div
           className="gs-scene"
           style={{
-            width: AUTO_W,
+            width: k < 1 ? AUTO_W : "100%",
             height: SCENE_H,
             transform: k < 1 ? `scale(${k})` : undefined,
           }}

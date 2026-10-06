@@ -182,7 +182,7 @@ function Burst({
   );
 }
 
-type Geo = { k: number; V: number; catBase: number; catEnd: number; cam: number };
+type Geo = { k: number; V: number; catBase: number; cam: number; walk: number };
 /** a stop's bubble arcing into the pack, from where it was on screen when collected */
 type Toss = { i: number; sx: number; sy: number; px: number; py: number };
 
@@ -235,15 +235,12 @@ export function Camino({ onInView }: { onInView?: (inView: boolean) => void }) {
   const k = Math.max(0.3, Math.min(box.h / SH, Math.max(box.w / 820, MIN_K)));
   const V = Math.min(box.w / k, MAX_V);
   const catBase = Math.min(220, V * 0.3);
-  const geo = useRef<Geo>({ k, V, catBase, catEnd: 480, cam: WORLD - 820 });
-  // she holds her spot while the world scrolls, then walks the last stretch on screen
-  geo.current = {
-    k,
-    V,
-    catBase,
-    catEnd: Math.max(catBase, WALK_END - (WORLD - V)),
-    cam: WORLD - V,
-  };
+  const cam = WORLD - V;
+  // she holds her spot while the world scrolls, then walks the last stretch on screen.
+  // Both share one road at one speed, so the walk doesn't rush once the camera stops.
+  const walk = cam + Math.max(0, WALK_END - cam - catBase);
+  const geo = useRef<Geo>({ k, V, catBase, cam, walk });
+  geo.current = { k, V, catBase, cam, walk };
 
   /** one frame of scroll: move the world and the cat, eat treats, collect stops */
   const update = useCallback((moved: boolean) => {
@@ -251,10 +248,14 @@ export function Camino({ onInView }: { onInView?: (inView: boolean) => void }) {
     if (!sec) return;
     const R = run.current;
     const G = geo.current;
-    const max = sec.offsetHeight - window.innerHeight;
+    // measured against the pinned stage, not innerHeight: a phone's URL bar changes
+    // innerHeight mid-scroll, which made the whole walk lurch
+    const pin = stageRef.current?.offsetHeight ?? window.innerHeight;
+    const max = sec.offsetHeight - pin;
     const p = clamp(-sec.getBoundingClientRect().top / Math.max(1, max));
-    const camX = p * G.cam;
-    const catX = G.catBase + clamp((p - 0.86) / 0.14) * (G.catEnd - G.catBase);
+    const d = p * G.walk;
+    const camX = Math.min(d, G.cam);
+    const catX = G.catBase + Math.max(0, d - G.cam);
     const world = camX + catX;
 
     layerRefs.current.forEach((el) => {
@@ -424,7 +425,6 @@ export function Camino({ onInView }: { onInView?: (inView: boolean) => void }) {
   const stage = Math.min(STOPS.length, got + 1);
   const here = STOPS[Math.min(STOPS.length - 1, got)]!;
   const packColors = STOPS.slice(0, landed).map((s) => s.color);
-  const camMax = WORLD - V;
 
   return (
     <section className="cm" id="path" aria-labelledby="cm-h" ref={sectionRef}>
@@ -528,7 +528,7 @@ export function Camino({ onInView }: { onInView?: (inView: boolean) => void }) {
                   <span
                     key={s.place}
                     style={{
-                      left: `${clamp((SX(i) - 10 - catBase) / camMax) * 100}%`,
+                      left: `${clamp((SX(i) - 10 - catBase) / walk) * 100}%`,
                       background: i < got ? s.color : undefined,
                     }}
                   />

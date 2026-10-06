@@ -499,7 +499,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin: 0 4px var(--head-gap);
+  /* every section title sits right on the page gutter, so they all line up */
+  margin: 0 0 var(--head-gap);
 }
 .pf-head h2 {
   font-size: clamp(40px, 5.4vw, 72px);
@@ -602,7 +603,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin: 0 6px var(--head-gap);
+  margin: 0 0 var(--head-gap);
 }
 .pf-receipts-head h2,
 .pf-kitchen-head h2 {

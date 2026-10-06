@@ -915,11 +915,23 @@ export function PortfolioPage() {
         {RECEIPTS.map((r) => (
           <article key={r.id} id={r.id} className={`pf-rcard pf-rcard-${r.id}`}>
             <div className="pf-rcard-copy">
-              <div className="pf-pills">
-                <span className="pf-pill pf-pill-role">
-                  {r.n} · {r.role}
-                </span>
-                <span className="pf-pill pf-pill-status">● {r.status}</span>
+              {/* the way in sits up top, across from the pills, so the foot of the
+                  card is left for the receipt */}
+              <div className="pf-rcard-top">
+                <div className="pf-pills">
+                  <span className="pf-pill pf-pill-role">
+                    {r.n} · {r.role}
+                  </span>
+                  <span className="pf-pill pf-pill-status">● {r.status}</span>
+                </div>
+                <a
+                  href={r.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary pf-rcard-cta"
+                >
+                  {r.cta} ↗
+                </a>
               </div>
               <h3>{r.h}</h3>
               <p>{r.body}</p>
@@ -932,14 +944,6 @@ export function PortfolioPage() {
                   <figcaption>{r.quoteBy}</figcaption>
                 </figure>
               )}
-              <a
-                href={r.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary pf-btn-lg"
-              >
-                {r.cta} ↗
-              </a>
             </div>
             {r.id === "schooltrips" ? (
               <a
@@ -1038,7 +1042,10 @@ export function PortfolioPage() {
                         <span className="pf-pipe-dot">
                           {state === "done" ? <Check size={14} strokeWidth={3} /> : j + 1}
                         </span>
-                        <b>{st.h}</b>
+                        <span className="pf-pipe-txt">
+                          <b>{st.h}</b>
+                          <small className="pf-pipe-desc">{st.b}</small>
+                        </span>
                       </li>
                     );
                   })}

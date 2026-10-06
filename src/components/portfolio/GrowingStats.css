@@ -551,6 +551,75 @@
   pointer-events: none;
 }
 
+/* the "water me" tags: one over each plant that still needs water */
+.gs-mark {
+  position: absolute;
+  left: 50%;
+  bottom: 268px;
+  z-index: 5;
+  translate: -50% 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 9px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid var(--accent-500);
+  color: var(--accent-800);
+  box-shadow: 0 3px 8px rgb(60 40 20 / 0.12);
+  font-size: max(12px, calc(12px / var(--k, 1)));
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: gs-mark-bob 1.6s ease-in-out infinite;
+}
+/* a little pointer down to the soil */
+.gs-mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  translate: -50% 2px;
+  border: 7px solid transparent;
+  border-top-color: var(--accent-500);
+}
+.gs-mark-drop {
+  width: 10px;
+  height: 13px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--sage-400);
+  clip-path: polygon(50% 0, 100% 62%, 92% 88%, 50% 100%, 8% 88%, 0 62%);
+}
+@keyframes gs-mark-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+/* the can wiggles now and then until it's first picked up */
+.gs-can--nudge {
+  animation: gs-can-nudge 2.4s ease-in-out 1s infinite;
+}
+@keyframes gs-can-nudge {
+  0%,
+  70%,
+  100% {
+    rotate: 0deg;
+  }
+  76% {
+    rotate: -10deg;
+  }
+  84% {
+    rotate: 8deg;
+  }
+  92% {
+    rotate: -4deg;
+  }
+}
+
 /* the can you can pick up */
 .gs-can--grab {
   padding: 0;
@@ -623,6 +692,21 @@
 }
 .gs-stats--3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-block: 18px;
+}
+/* three across, each caption fits on one line, which keeps the pill short */
+.gs-stats--3 .gs-cap {
+  max-width: 320px;
+  min-height: 1.3em;
+}
+/* The wide garden fits on one screen: the scene is as tall as its width allows (up to its
+   440px design height), but never so tall that the heading, the stats and "Start over"
+   no longer fit under the nav. ~480px is all of those plus a little air. */
+.gs-card:has(.gs-stage--fit) {
+  container-type: inline-size;
+}
+.gs-stage--fit {
+  height: min(calc(100cqw * 440 / 1080), 440px, max(240px, calc(100svh - 480px)));
 }
 .gs-stats--3 .gs-stat:not(:last-child) {
   border-right: 2px dashed var(--n-300);

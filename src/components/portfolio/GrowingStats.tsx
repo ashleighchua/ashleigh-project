@@ -77,8 +77,10 @@ const clamp = (v: number) => Math.max(0, Math.min(1, v));
 /** how far up the stem has climbed, for a pot that is `w` watered */
 const stemP = (w: number) => clamp(w / STEM_END);
 
-/** scales a scene to the width it has; `k` also feeds the label sizes so they stay readable */
-function useFit(design: number) {
+/** Scales a scene to the box it has; `k` also feeds the label sizes so they stay readable.
+ *  By default the box's height follows from its width. With `byHeight`, CSS sets the height
+ *  too (so the wide garden fits the screen), and the scene stretches sideways to fill. */
+function useFit(design: number, byHeight = false) {
   const ref = useRef<HTMLDivElement>(null);
   const [k, setK] = useState(1);
   const [w, setW] = useState(design);
@@ -86,13 +88,14 @@ function useFit(design: number) {
     const el = ref.current;
     if (!el) return;
     const ro = new ResizeObserver(() => {
+      const fit = Math.min(1, el.clientWidth / design);
       setW(el.clientWidth);
-      setK(Math.min(1, el.clientWidth / design));
+      setK(byHeight ? Math.min(fit, el.clientHeight / SHOW_H) : fit);
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, [design]);
-  return { ref, k, sceneW: k < 1 ? design : w };
+  }, [design, byHeight]);
+  return { ref, k, sceneW: w / k };
 }
 
 /** Counts up to `target`, writing the number straight into the node. Holding it in
@@ -221,7 +224,7 @@ function WaterMe({
   wide?: boolean;
   onAutoDone?: (v: boolean) => void;
 }) {
-  const { ref, k, sceneW } = useFit(wide ? WIDE_W : TOP_W);
+  const { ref, k, sceneW } = useFit(wide ? WIDE_W : TOP_W, wide);
   const cols = wide ? 3 : 2;
   // the can rests between the two plants you water
   const home = useCallback(
@@ -236,6 +239,8 @@ function WaterMe({
   const [can, setCan] = useState(home);
   const [held, setHeld] = useState(false);
   const [auto, setAuto] = useState(false);
+  /** the can wiggles until it's first picked up, so it's clear what to grab */
+  const [touched, setTouched] = useState(false);
   const drag = useRef<Drag | null>(null);
   const dragCleanup = useRef<(() => void) | null>(null);
   const waterRef = useRef(water);
@@ -298,6 +303,7 @@ function WaterMe({
    *  neither failure mode applies, and it's trivial to guarantee cleanup on pointerup. */
   const onDown = (e: PointerEvent<HTMLButtonElement>) => {
     if (auto) return;
+    setTouched(true);
     const id = e.pointerId;
     const startK = k;
     const startSceneW = sceneW;
@@ -353,11 +359,15 @@ function WaterMe({
 
   return (
     <div className="gs-card">
-      <div ref={ref} className="gs-stage" style={{ height: SHOW_H * k, ["--k" as string]: k }}>
+      <div
+        ref={ref}
+        className={`gs-stage${wide ? " gs-stage--fit" : ""}`}
+        style={{ height: wide ? undefined : SHOW_H * k, ["--k" as string]: k }}
+      >
         <div
           className="gs-scene"
           style={{
-            width: k < 1 ? (wide ? WIDE_W : TOP_W) : "100%",
+            width: sceneW,
             height: SCENE_H,
             transform: k < 1 ? `scale(${k})` : undefined,
           }}
@@ -409,6 +419,7 @@ function WaterMe({
                 <i />
               </div>
               <Patch bottom={240} soil={soil(w0)} />
+              {!reduced && w0 < 1 && pouring !== 0 && <WaterMark />}
             </div>
 
             {/* 2 · Tulip past the quote line */}
@@ -446,6 +457,7 @@ function WaterMe({
                 <span />
               </div>
               <Patch bottom={240} soil={soil(w1)} />
+              {!reduced && w1 < 1 && pouring !== 1 && <WaterMark />}
             </div>
 
             {/* 3 · on autopilot; its bed is the shared one, so it sits a little higher */}
@@ -470,7 +482,7 @@ function WaterMe({
           {!reduced && (
             <button
               type="button"
-              className={`gs-can gs-can--grab${held ? " gs-can--held" : ""}`}
+              className={`gs-can gs-can--grab${held ? " gs-can--held" : ""}${touched || done ? "" : " gs-can--nudge"}`}
               aria-label={done ? "Watering can (both plants are watered)" : "Water the next plant"}
               style={{
                 left: can.x,
@@ -481,6 +493,7 @@ function WaterMe({
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
+                  setTouched(true);
                   waterNext();
                 }
               }}
@@ -495,7 +508,7 @@ function WaterMe({
         </div>
         {!reduced && !done && (
           <p className="gs-hint" aria-hidden="true">
-            Pick up the watering can and water each plant
+            Drag the can over a plant, or tap it
           </p>
         )}
       </div>
@@ -622,7 +635,7 @@ function AutoStat({ num, shown }: { num: Autopilot["num"]; shown: boolean }) {
 
 /** a phone's second card: the autopilot plant on its own, its number beside it */
 function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) => void }) {
-  const { ref, k } = useFit(AUTO_W);
+  const { ref, k, sceneW } = useFit(AUTO_W);
   const auto = useAutopilot(true, reduced, ref);
   useEffect(() => {
     onDone(auto.shown);
@@ -634,7 +647,7 @@ function AutoPot({ reduced, onDone }: { reduced: boolean; onDone: (v: boolean) =
         <div
           className="gs-scene"
           style={{
-            width: k < 1 ? AUTO_W : "100%",
+            width: sceneW,
             height: SCENE_H,
             transform: k < 1 ? `scale(${k})` : undefined,
           }}
@@ -689,6 +702,17 @@ function Garden({ cols }: { cols: number }) {
       ))}
       {!small && <span className="gs-butterfly" />}
     </div>
+  );
+}
+
+/** a bobbing "water me" tag over a plant that still needs water; it steps aside
+ *  while that plant is being poured on */
+function WaterMark() {
+  return (
+    <span className="gs-mark" aria-hidden="true">
+      <span className="gs-mark-drop" />
+      Water me
+    </span>
   );
 }
 

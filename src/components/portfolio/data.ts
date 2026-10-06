@@ -294,7 +294,7 @@ export const RECEIPTS: {
     role: "Solo product",
     status: "Live, fully automated",
     h: "The Lunar Playground",
-    body: "Astrology as a reflective tool, not a fortune: the answers aren’t really in the stars, they’re in you. People come for natal and relocation readings, and stay for the free tools (birth chart, BaZi, Human Design, numerology and more) and the blog.",
+    body: "Astrology as a reflective tool, not a fortune. People come for natal and relocation readings, and stay for the free tools and the blog.",
     mine: "I designed the prompt structure, the report format and the delivery workflow, so an order becomes a finished PDF without me touching it. I handled customer communication myself; the reports were automated.",
     cta: "Visit the site",
     href: "https://thelunarplayground.com",

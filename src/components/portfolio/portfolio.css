@@ -954,13 +954,220 @@ body {
   background: var(--rc-muted);
 }
 
+/* The reviews in a card: the heading on the left with its arrows on the same line,
+   and the slip full width underneath, so its edges line up with the write-up above. */
+.pf-rcard .pf-rev {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head nav"
+    "stack stack";
+  align-items: center;
+  gap: 14px 16px;
+}
+.pf-rcard .pf-rev-head {
+  grid-area: head;
+}
+/* the stack and its arrows come out of their wrapper to sit in the grid */
+.pf-rcard .pf-rev-paged {
+  display: contents;
+}
+.pf-rcard .pf-rev-stack {
+  grid-area: stack;
+  max-width: none;
+}
+.pf-rcard .pf-rev-nav {
+  grid-area: nav;
+  gap: 8px;
+}
+.pf-rcard .pf-rev-btn {
+  padding-inline: 4px;
+}
+/* each step's one-liner only shows where there's room for it */
+.pf-pipe-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pf-pipe-desc {
+  display: none;
+}
+
+/* On a wide screen each card fits on one screen: the receipt tucks in under the
+   write-up on the left, and the screenshot or diagram fills the right. */
+@media (min-width: 1100px) {
+  .pf-rcard {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "copy visual";
+    gap: 28px 56px;
+    padding: 44px 48px;
+  }
+  .pf-rcard-copy {
+    grid-area: copy;
+  }
+  .pf-rcard > :nth-child(2) {
+    grid-area: visual;
+  }
+  .pf-rcard-hannah {
+    grid-template-areas:
+      "copy visual"
+      "rev visual";
+  }
+  .pf-rcard-lunar {
+    grid-template-areas:
+      "copy visual"
+      "rev visual";
+  }
+  /* the diagram runs the full height of the card, its steps spread down it */
+  .pf-rcard-lunar .pf-pipe {
+    align-self: stretch;
+  }
+  .pf-rcard-lunar .pf-pipe-steps {
+    flex: 1;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: space-evenly;
+  }
+  .pf-rcard-lunar .pf-pipe-steps li {
+    align-items: flex-start;
+    white-space: normal;
+  }
+  .pf-rcard-lunar .pf-pipe-desc {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--color-neutral-300);
+  }
+  /* when the visual is the taller side, the receipt still sits right under the write-up */
+  .pf-rcard-hannah,
+  .pf-rcard-lunar {
+    grid-template-rows: auto 1fr;
+  }
+  .pf-rcard .pf-rev {
+    grid-area: rev;
+    align-self: start;
+    padding-top: 0;
+    border-top: 0;
+  }
+  /* a slightly shorter slip: less air and a shorter barcode */
+  .pf-rcard .pf-rev-card {
+    gap: 11px;
+    padding-block: calc(var(--z) + 14px);
+  }
+  .pf-rcard .pf-rc-bars {
+    height: 24px;
+  }
+  .pf-rcard .pf-rc-foot {
+    gap: 6px;
+  }
+}
+/* a short laptop screen: tighten the card so it still fits */
+@media (min-width: 1100px) and (max-height: 860px) {
+  .pf-rcard {
+    padding: 32px 44px;
+    gap: 20px 48px;
+  }
+  .pf-rcard-copy {
+    gap: 14px;
+  }
+  .pf-rcard h3 {
+    font-size: 44px;
+  }
+  .pf-rcard-copy > p {
+    font-size: 16px;
+  }
+  .pf-rcard .pf-rev-card blockquote {
+    font-size: 12px;
+  }
+  .pf-rcard .pf-rev-card figcaption,
+  .pf-rcard .pf-rc-top {
+    padding-block: 8px 0;
+  }
+  .pf-rcard .pf-rc-top {
+    padding-block: 0 8px;
+  }
+  .pf-rcard-lunar .pf-pipe {
+    gap: 7px;
+  }
+  .pf-rcard-lunar .pf-pipe-steps li {
+    padding-block: 5px;
+  }
+}
+/* a phone gets a condensed card: less air, smaller type, a two-by-two diagram and a
+   compact slip */
+@media (max-width: 760px) {
+  .pf-rcard {
+    padding: 22px 18px;
+    gap: 22px;
+    border-radius: 28px;
+  }
+  .pf-rcard-copy {
+    gap: 12px;
+  }
+  .pf-rcard h3 {
+    font-size: 30px;
+  }
+  .pf-rcard-copy > p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .pf-rcard-copy > p.pf-rcard-mine {
+    font-size: 13px;
+  }
+  .pf-rcard .pf-rev {
+    padding-top: 18px;
+    gap: 12px;
+  }
+  .pf-rcard .pf-rev-card {
+    gap: 9px;
+    padding: calc(var(--z) + 12px) 16px;
+    font-size: 11px;
+  }
+  .pf-rcard .pf-rev-card blockquote {
+    font-size: 12px;
+  }
+  .pf-rcard .pf-rc-bars {
+    height: 18px;
+  }
+  .pf-rcard .pf-rc-foot {
+    gap: 5px;
+  }
+  .pf-pipe {
+    gap: 8px;
+  }
+  .pf-rcard-lunar .pf-pipe-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+  }
+  .pf-rcard-lunar .pf-pipe-steps li {
+    padding: 5px 6px;
+    font-size: 12.5px;
+  }
+  .pf-pipe-foot {
+    min-height: 0;
+    font-size: 12px;
+  }
+  /* both view switches on one line */
+  .pf .pf-toggle .pf-demo {
+    padding: 7px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+
 /* SchoolTrips */
 
-.pf .pf-btn-lg {
-  align-self: flex-start;
-  padding: 15px 26px;
-  font-size: 16px;
-  margin-top: 6px;
+.pf-rcard-top {
+  align-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+.pf .pf-rcard-cta {
+  padding: 9px 18px;
+  font-size: 14px;
 }
 
 /* Hannah */
@@ -1347,7 +1554,6 @@ body {
   letter-spacing: -0.03em;
 }
 .pf-play-head p {
-  max-width: 620px;
   font-size: 17px;
   color: var(--color-neutral-800);
 }

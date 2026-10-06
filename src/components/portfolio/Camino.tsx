@@ -433,7 +433,10 @@ export function Camino({ onInView }: { onInView?: (inView: boolean) => void }) {
         {srList}
 
         <div className="cm-box" ref={boxRef}>
-          <div className="cm-view" style={{ width: V * k, height: SH * k }}>
+          <div
+            className={`cm-view${done ? " is-done" : ""}`}
+            style={{ width: V * k, height: SH * k }}
+          >
             <div
               className="cm-scene"
               aria-hidden="true"
@@ -791,7 +794,7 @@ function Passport({ fish, onRestart }: { fish: number; onRestart: () => void }) 
       </div>
       <ol className="cm-pp-page cm-pp-stamps">
         {STOPS.map((s, i) => (
-          <li key={s.place} style={{ transform: `rotate(${STAMP_ROT[i]}deg)` }}>
+          <li key={s.place} style={{ "--rot": `${STAMP_ROT[i]}deg` } as CSSProperties}>
             <Stamp s={s} on delay={0.5 + i * 0.14} />
             <em>{s.skill}</em>
           </li>
@@ -827,7 +830,7 @@ function Stamps({ landed, onRestart }: { landed: number; onRestart?: () => void 
         {STOPS.map((s, i) => {
           const on = i < landed;
           return (
-            <li key={s.place} style={{ transform: `rotate(${STAMP_ROT[i]}deg)` }}>
+            <li key={s.place} style={{ "--rot": `${STAMP_ROT[i]}deg` } as CSSProperties}>
               <Stamp s={s} on={on} />
               <em className={on ? "is-on" : undefined}>{s.skill}</em>
             </li>

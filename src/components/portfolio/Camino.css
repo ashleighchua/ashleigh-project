@@ -638,6 +638,7 @@
   gap: 14px 8px;
 }
 .cm-pp-stamps li {
+  rotate: var(--rot);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -677,6 +678,7 @@
   background: var(--color-bg);
 }
 .cm-page li {
+  rotate: var(--rot);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -858,27 +860,37 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px 6px;
   }
-  .cm-page li,
-  .cm-pp-stamps li {
+  .cm-page li {
     flex-direction: row;
     gap: 5px;
   }
-  .cm-page em,
-  .cm-pp-stamps em {
-    font-size: 12px;
+  .cm-page em {
     text-align: left;
   }
-  .cm-stamp,
-  .cm-pp-stamps .cm-stamp {
+  .cm-stamp {
     --s: 34px;
     flex: none;
   }
-}
-
-/* the smallest phones: two stamps a row in the passport, so no label runs past the page */
-@media (max-width: 379px) {
-  .cm-pp-stamps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* words stay level; only the stamps sit at an angle */
+  .cm-page li,
+  .cm-pp-stamps li {
+    rotate: none;
+  }
+  .cm-page .cm-stamp,
+  .cm-pp-stamps .cm-stamp {
+    rotate: var(--rot);
+  }
+  .cm-pp-stamps .cm-stamp {
+    --s: 40px;
+  }
+  /* once the passport is open it says everything the stage bar did, so the bar
+     steps aside and the passport gets the height */
+  .cm-hud,
+  .cm-picked {
+    transition: opacity 0.3s;
+  }
+  .cm-view.is-done :is(.cm-hud, .cm-picked) {
+    opacity: 0;
   }
 }
 

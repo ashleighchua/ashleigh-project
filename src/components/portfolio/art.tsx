@@ -67,6 +67,10 @@ const roundRect = (x: number, y: number, w: number, h: number, r: number) =>
   `M${x + r} ${y}H${x + w - r}Q${x + w} ${y} ${x + w} ${y + r}V${y + h - r}Q${x + w} ${y + h} ${x + w - r} ${y + h}H${x + r}Q${x} ${y + h} ${x} ${y + h - r}V${y + r}Q${x} ${y} ${x + r} ${y}Z`;
 
 /** Centred multi-line label, auto-fitted to the box it's given */
+/** the biggest size up to `base` at which the lines fit the w × h box */
+const labelFs = (lines: string[], w: number, h: number, base: number) =>
+  Math.min(base, w / (Math.max(...lines.map((l) => l.length)) * 0.66), h / (lines.length * 1.08));
+
 function Label({
   lines,
   cx,
@@ -84,8 +88,7 @@ function Label({
   base: number;
   fill: string;
 }) {
-  const maxLen = Math.max(...lines.map((l) => l.length));
-  const fs = Math.min(base, w / (maxLen * 0.66), h / (lines.length * 1.08));
+  const fs = labelFs(lines, w, h, base);
   return (
     <text
       textAnchor="middle"
@@ -131,6 +134,12 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
   const h = bh * z;
   const lines = p.label.split("/");
   const fillStyle = { transition: "fill .35s" };
+  /** the smallest text on the sticker, in px at scale z */
+  let minFs = Infinity;
+  const label = (box: { cx: number; cy: number; w: number; h: number; base: number }) => {
+    minFs = Math.min(minFs, labelFs(lines, box.w, box.h, box.base));
+    return <Label lines={lines} fill={fg} {...box} />;
+  };
   let body: ReactNode;
 
   if (shape === "circle" || shape === "scallop") {
@@ -139,6 +148,7 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
     const id = `rg${i}-${look.s}`;
     const txt = lines.join(" ") + " • ";
     const ring = txt.length < 16 ? txt + txt : txt;
+    minFs = 13.5 * z;
     body = (
       <>
         <defs>
@@ -190,15 +200,13 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
           transform={`rotate(-12 ${sx / 2} ${h / 2})`}
           style={fillStyle}
         />
-        <Label
-          lines={lines}
-          cx={sx + (w - sx) / 2}
-          cy={h / 2}
-          w={w - sx - 26 * z}
-          h={h - 28 * z}
-          base={26 * z}
-          fill={fg}
-        />
+        {label({
+          cx: sx + (w - sx) / 2,
+          cy: h / 2,
+          w: w - sx - 26 * z,
+          h: h - 28 * z,
+          base: 26 * z,
+        })}
       </>
     );
   } else if (shape === "tag") {
@@ -226,15 +234,13 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
           strokeWidth={2.5 * z}
           opacity={0.7}
         />
-        <Label
-          lines={lines}
-          cx={cut + (w - cut) / 2}
-          cy={h / 2}
-          w={w - cut - 26 * z}
-          h={h - 28 * z}
-          base={26 * z}
-          fill={fg}
-        />
+        {label({
+          cx: cut + (w - cut) / 2,
+          cy: h / 2,
+          w: w - cut - 26 * z,
+          h: h - 28 * z,
+          base: 26 * z,
+        })}
       </>
     );
   } else if (shape === "stamp") {
@@ -271,15 +277,7 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
           strokeDasharray={`${4 * z} ${4 * z}`}
           opacity={0.5}
         />
-        <Label
-          lines={lines}
-          cx={w / 2}
-          cy={h / 2}
-          w={w - 44 * z}
-          h={h - 44 * z}
-          base={24 * z}
-          fill={fg}
-        />
+        {label({ cx: w / 2, cy: h / 2, w: w - 44 * z, h: h - 44 * z, base: 24 * z })}
       </>
     );
   } else if (shape === "arch") {
@@ -294,15 +292,7 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
           strokeWidth={1.5 * z}
           opacity={0.35}
         />
-        <Label
-          lines={lines}
-          cx={w / 2}
-          cy={h * 0.6}
-          w={w - 36 * z}
-          h={h * 0.5}
-          base={24 * z}
-          fill={fg}
-        />
+        {label({ cx: w / 2, cy: h * 0.6, w: w - 36 * z, h: h * 0.5, base: 24 * z })}
       </>
     );
   } else if (shape === "burst") {
@@ -310,7 +300,7 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
     body = (
       <>
         <path d={burstD(C, C, C - 2, C - 20 * z, 18)} fill={bg} style={fillStyle} />
-        <Label lines={lines} cx={C} cy={C} w={w * 0.6} h={h * 0.5} base={24 * z} fill={fg} />
+        {label({ cx: C, cy: C, w: w * 0.6, h: h * 0.5, base: 24 * z })}
       </>
     );
   } else if (shape === "flower") {
@@ -342,22 +332,14 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
           strokeDasharray={`${3 * z} ${4 * z}`}
           opacity={0.4}
         />
-        <Label lines={lines} cx={C} cy={C} w={C * 0.95} h={C * 0.8} base={22 * z} fill={fg} />
+        {label({ cx: C, cy: C, w: C * 0.95, h: C * 0.8, base: 22 * z })}
       </>
     );
   } else if (shape === "blob") {
     body = (
       <>
         <path d={blobD(w / 2, h / 2, w / 2 - 8 * z, h / 2 - 8 * z)} fill={bg} style={fillStyle} />
-        <Label
-          lines={lines}
-          cx={w / 2}
-          cy={h / 2}
-          w={w * 0.66}
-          h={h * 0.56}
-          base={26 * z}
-          fill={fg}
-        />
+        {label({ cx: w / 2, cy: h / 2, w: w * 0.66, h: h * 0.56, base: 26 * z })}
       </>
     );
   } else if (shape === "tape") {
@@ -373,15 +355,7 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
         <path d={d} fill={bg} opacity={0.95} style={fillStyle} />
         <rect x={0} y={8 * z} width={w} height={3 * z} fill={N1} opacity={0.25} />
         <rect x={0} y={h - 11 * z} width={w} height={3 * z} fill={N1} opacity={0.25} />
-        <Label
-          lines={lines}
-          cx={w / 2}
-          cy={h / 2}
-          w={w - 40 * z}
-          h={h - 26 * z}
-          base={24 * z}
-          fill={fg}
-        />
+        {label({ cx: w / 2, cy: h / 2, w: w - 40 * z, h: h - 26 * z, base: 24 * z })}
       </>
     );
   } else {
@@ -389,21 +363,15 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
     body = (
       <>
         <path d={roundRect(0, 0, w, h, (sq ? 38 : 32) * z)} fill={bg} style={fillStyle} />
-        <Label
-          lines={lines}
-          cx={w / 2}
-          cy={h / 2}
-          w={w - 30 * z}
-          h={h - 28 * z}
-          base={(sq ? 28 : 26) * z}
-          fill={fg}
-        />
+        {label({ cx: w / 2, cy: h / 2, w: w - 30 * z, h: h - 28 * z, base: (sq ? 28 : 26) * z })}
       </>
     );
   }
 
+  // on a small screen the sticker grows rather than letting its words drop under 12px
+  const grow = Math.max(1, 12 / minFs);
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="pf-stk-svg">
+    <svg width={w * grow} height={h * grow} viewBox={`0 0 ${w} ${h}`} className="pf-stk-svg">
       {body}
     </svg>
   );
@@ -472,10 +440,10 @@ function objectKids(kind: ObjKey): ReactNode {
           ))}
           <text
             x={46}
-            y={29}
+            y={31}
             textAnchor="middle"
             fill="var(--color-accent-700)"
-            style={{ fontFamily: HEADING, fontSize: 10 }}
+            style={{ fontFamily: HEADING, fontSize: 12 }}
           >
             N
           </text>
@@ -494,7 +462,7 @@ function objectKids(kind: ObjKey): ReactNode {
           <circle cx={85} cy={85} r={60} fill="none" stroke={N3} strokeWidth={2} />
           <text
             fill="var(--color-neutral-700)"
-            style={{ fontFamily: HEADING, fontSize: 11, letterSpacing: ".08em" }}
+            style={{ fontFamily: HEADING, fontSize: 12, letterSpacing: ".04em" }}
           >
             <textPath href="#plate-ring" textLength={440} lengthAdjust="spacing">
               MAKE THE MESS LEGIBLE • 12 SHEETS, ONE SYSTEM •{" "}
@@ -627,14 +595,14 @@ function objectKids(kind: ObjKey): ReactNode {
           <rect x={10} y={46} width={52} height={20} fill="var(--color-accent-2-300)" />
           <rect x={10} y={30} width={52} height={16} fill="var(--color-accent-200)" />
           <rect x={10} y={2} width={52} height={16} rx={5} fill="var(--color-accent-700)" />
-          <rect x={12} y={50} width={48} height={14} rx={3} fill={N1} />
+          <rect x={7} y={48} width={58} height={18} rx={4} fill={N1} />
           <text
             x={36}
             y={57}
             textAnchor="middle"
             dominantBaseline="central"
             fill="var(--color-accent-800)"
-            style={{ fontFamily: HEADING, fontSize: 9 }}
+            style={{ fontFamily: HEADING, fontSize: 12 }}
           >
             SORTED
           </text>
@@ -680,19 +648,19 @@ function objectKids(kind: ObjKey): ReactNode {
         <>
           <rect x={2} y={2} width={100} height={86} rx={8} fill="var(--color-accent-400)" />
           <rect x={44} y={2} width={16} height={86} fill="var(--color-accent-200)" opacity={0.75} />
-          <rect x={10} y={48} width={48} height={32} rx={4} fill={N1} />
+          <rect x={8} y={44} width={62} height={38} rx={4} fill={N1} />
           <text
-            x={34}
-            y={58}
+            x={39}
+            y={56}
             textAnchor="middle"
             dominantBaseline="central"
             fill={INK}
-            style={{ fontFamily: HEADING, fontSize: 9 }}
+            style={{ fontFamily: HEADING, fontSize: 12 }}
           >
             SHIPPED
           </text>
-          <rect x={16} y={66} width={34} height={3} rx={1.5} fill={N3} />
-          <rect x={16} y={72} width={24} height={3} rx={1.5} fill={N3} />
+          <rect x={16} y={67} width={40} height={3} rx={1.5} fill={N3} />
+          <rect x={16} y={73} width={28} height={3} rx={1.5} fill={N3} />
         </>
       );
     case "phone":
@@ -700,15 +668,14 @@ function objectKids(kind: ObjKey): ReactNode {
         <>
           <rect x={1} y={1} width={62} height={116} rx={14} fill={INK} />
           <rect x={6} y={10} width={52} height={98} rx={8} fill={N1} />
-          <rect x={14} y={20} width={30} height={12} rx={6} fill="var(--color-accent-2-300)" />
-          <circle cx={20} cy={26} r={2.5} fill="var(--color-accent-2-700)" />
+          <rect x={9} y={17} width={46} height={18} rx={9} fill="var(--color-accent-2-300)" />
           <text
             x={32}
             y={26.5}
             textAnchor="middle"
             dominantBaseline="central"
             fill="var(--color-accent-2-900)"
-            style={{ fontFamily: HEADING, fontSize: 7 }}
+            style={{ fontFamily: HEADING, fontSize: 12 }}
           >
             READY
           </text>
@@ -801,12 +768,12 @@ function objectKids(kind: ObjKey): ReactNode {
           />
           <circle cx={42} cy={25} r={3} fill={N1} />
           <text
-            x={63}
+            x={65}
             y={24}
             textAnchor="middle"
             dominantBaseline="central"
             fill="var(--color-accent-2-900)"
-            style={{ fontFamily: HEADING, fontSize: 10 }}
+            style={{ fontFamily: HEADING, fontSize: 12 }}
           >
             YOURS
           </text>
@@ -1079,7 +1046,7 @@ function stationKids(kind: "order" | "chart" | "reading" | "pdf", state: StageSt
             y={7}
             textAnchor="middle"
             className="lp-pdf-text"
-            style={{ fontFamily: HEADING, fontSize: 8 }}
+            style={{ fontFamily: HEADING, fontSize: 13 }}
           >
             PDF
           </text>

@@ -858,11 +858,11 @@
 .pf-k-scene--wide .pf-k-readout {
   min-width: 3.8cqw;
   padding: 0.25cqw 0.6cqw;
-  font-size: 0.9cqw;
+  font-size: max(12px, 0.9cqw);
 }
 .pf-k-scene--tall .pf-k-readout {
   padding: 0.6cqw 2cqw;
-  font-size: 2.8cqw;
+  font-size: max(12px, 2.8cqw);
 }
 .pf-k-oven-handle {
   left: 2.2cqw;
@@ -1409,15 +1409,15 @@
   color: var(--color-text);
 }
 .pf-k-scene--wide .pf-k-pad-title {
-  font-size: 1.15cqw;
+  font-size: max(12px, 1.15cqw);
 }
 .pf-k-scene--tall .pf-k-pad-title {
-  font-size: 2.6cqw;
+  font-size: max(12px, 2.6cqw);
 }
 .pf-k-pad-sub {
   position: relative;
   margin-top: 1.6cqw;
-  font-size: 0.8cqw;
+  font-size: max(12px, 0.8cqw);
   font-style: italic;
   color: var(--color-neutral-700);
 }
@@ -1523,7 +1523,7 @@
 }
 .pf-k-mag {
   /* every code on the door is set at one size, whatever the magnet around it */
-  --code-fs: 4cqw;
+  --code-fs: max(12px, 4cqw);
   font-family: var(--font-heading);
   line-height: 1;
 }
@@ -1597,10 +1597,11 @@
   background: #d4573a;
 }
 .pf-k-kch-collar {
-  left: 2.4cqw;
+  /* centred on the cat however wide the collar grows */
+  left: calc(8.3cqw - max(11.8cqw, 2.5em) / 2);
   top: 12.4cqw;
-  width: 11.8cqw;
-  height: 5.4cqw;
+  width: max(11.8cqw, 2.5em);
+  height: max(5.4cqw, 1.35em);
   border-radius: 1cqw;
   background: #1f6f54;
   display: grid;
@@ -1829,7 +1830,7 @@
 .pf-k-han-band {
   position: relative;
   width: 23cqw;
-  height: 5.4cqw;
+  height: max(5.4cqw, 1.35em);
   margin-top: -2.6cqw;
   border-radius: 1cqw;
   background: #d62828;
@@ -1837,7 +1838,7 @@
   place-items: center;
   color: #ffdd00;
   font-size: var(--code-fs);
-  letter-spacing: 0.08em;
+  letter-spacing: min(0.08em, 0.2cqw);
 }
 
 /* Santiago: the scallop shell and yellow arrow of the Camino */
@@ -2019,14 +2020,15 @@
   left: 1.6cqw;
   top: 6cqw;
   right: 1.6cqw;
-  height: 3.2cqw;
+  height: max(3.2cqw, 1.2em);
   border-radius: 0.5cqw;
   background: #1c1c1c;
   display: grid;
   place-items: center;
   color: #ffd23f;
   font-size: var(--code-fs);
-  letter-spacing: 0.08em;
+  letter-spacing: min(0.08em, 0.2cqw);
+  z-index: 1;
 }
 .pf-k-ldn-wheel {
   bottom: -1.8cqw;
@@ -2109,9 +2111,12 @@
 }
 .pf-k-mel-name {
   left: 0;
-  bottom: 1.6cqw;
+  bottom: min(1.6cqw, 0.15em);
   width: 100%;
+  line-height: 1;
   text-align: center;
+  /* a destination board, so a 12px code on a small tram covers the windows cleanly */
+  background: #2e6b3a;
   color: #f3e7c3;
   font-size: var(--code-fs);
 }
@@ -2150,7 +2155,7 @@
   padding: 3.4cqw 3cqw 2.6cqw;
   background: var(--color-accent-100);
   box-shadow: 0 0.8cqw 2cqw color-mix(in srgb, var(--color-text) 22%, transparent);
-  font-size: 3.3cqw;
+  font-size: max(12px, 3.3cqw);
   line-height: 1.3;
   color: var(--color-text);
   overflow-wrap: anywhere;
@@ -2577,7 +2582,7 @@
   bottom: 29%;
   font-family: var(--font-heading);
   font-style: italic;
-  font-size: clamp(9px, 2.3vw, 11px);
+  font-size: 12px;
   line-height: 1.44;
   color: var(--color-neutral-900);
   text-wrap: pretty;

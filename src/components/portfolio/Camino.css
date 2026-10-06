@@ -59,6 +59,8 @@
   top: 0;
   transform-origin: 0 0;
   overflow: hidden;
+  /* the scene is drawn at scale(k): this keeps its smallest text at 12px on screen */
+  --fs-min: max(10px, calc(12px / var(--k, 1)));
 }
 .cm-scene div,
 .cm-scene span,
@@ -172,13 +174,13 @@
   text-align: center;
 }
 .cm-board small {
-  font: 600 10px/1 var(--font-body);
+  font: 600 var(--fs-min) / 1 var(--font-body);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent-300);
 }
 .cm-board b {
-  font: 800 15px/1.1 var(--font-heading);
+  font: 800 max(15px, var(--fs-min)) / 1.1 var(--font-heading);
   color: var(--color-bg);
 }
 .cm-board span {
@@ -186,7 +188,7 @@
   padding: 4px 9px;
   border-radius: 999px;
   background: var(--color-accent-2-200);
-  font: 600 11px/1 var(--font-body);
+  font: 600 var(--fs-min) / 1.1 var(--font-body);
   color: var(--color-accent-2-900);
 }
 .cm-more {
@@ -199,13 +201,13 @@
   gap: 4px;
 }
 .cm-more small {
-  font: 600 10px/1 var(--font-body);
+  font: 600 var(--fs-min) / 1 var(--font-body);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent-700);
 }
 .cm-more b {
-  font: 800 16px/1.1 var(--font-heading);
+  font: 800 max(16px, var(--fs-min)) / 1.1 var(--font-heading);
   color: var(--color-text);
 }
 
@@ -256,13 +258,13 @@
   flex: none;
 }
 .cm-bubble small {
-  font: 600 9px/1 var(--font-body);
+  font: 600 var(--fs-min) / 1 var(--font-body);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-neutral-700);
 }
 .cm-bubble b {
-  font: 800 14px/1.05 var(--font-heading);
+  font: 800 max(14px, var(--fs-min)) / 1.05 var(--font-heading);
   color: var(--color-text);
   text-wrap: balance;
 }
@@ -374,7 +376,7 @@
   padding: 7px 10px;
   border-radius: 999px;
   background: var(--color-accent);
-  font: 600 11px/1 var(--font-body);
+  font: 600 12px/1 var(--font-body);
   letter-spacing: 0.1em;
 }
 .cm-hud-stage span {
@@ -479,7 +481,7 @@
   gap: 4px;
 }
 .cm-picked small {
-  font: 600 10px/1 var(--font-body);
+  font: 600 12px/1 var(--font-body);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent-300);
@@ -548,7 +550,7 @@
   gap: 10px;
 }
 .cm-pp-cover > small {
-  font: 600 10px/1 var(--font-body);
+  font: 600 12px/1 var(--font-body);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-accent-700);
@@ -643,7 +645,7 @@
   min-width: 0;
 }
 .cm-pp-stamps em {
-  font: normal 600 10px/1.15 var(--font-body);
+  font: normal 600 12px/1.15 var(--font-body);
   text-align: center;
   color: var(--color-text);
   text-wrap: balance;
@@ -703,7 +705,7 @@
   animation: cm-stamp 0.45s both;
 }
 .cm-page em {
-  font: normal 600 9.5px/1.15 var(--font-body);
+  font: normal 600 12px/1.15 var(--font-body);
   text-align: center;
   color: var(--color-text);
   text-wrap: balance;
@@ -809,7 +811,7 @@
   .cm-pp-cover dl div {
     flex-direction: column;
     gap: 2px;
-    font-size: 10px;
+    font-size: 12px;
   }
   .cm-pp-next {
     gap: 10px;
@@ -823,18 +825,12 @@
     font-size: 13px;
   }
   .cm-pp-next em {
-    font-size: 10.5px;
+    font-size: 12px;
   }
   .cm-pp-stamps {
     border-radius: 4px 4px 12px 12px;
     box-shadow: none;
-    gap: 6px 4px;
-  }
-  .cm-pp-stamps .cm-stamp {
-    --s: 40px;
-  }
-  .cm-pp-stamps em {
-    font-size: 8.5px;
+    gap: 8px 6px;
   }
   .cm .cm-passport .cm-pp-again {
     right: -4px;
@@ -856,11 +852,33 @@
     padding: 8px 6px;
     gap: 2px;
   }
-  .cm-stamp {
-    --s: 40px;
+  /* six labels in a row can't hold 12px text on a phone: three by two, each
+     stamp beside its label */
+  .cm-page {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 6px;
   }
-  .cm-page em {
-    font-size: 8.5px;
+  .cm-page li,
+  .cm-pp-stamps li {
+    flex-direction: row;
+    gap: 5px;
+  }
+  .cm-page em,
+  .cm-pp-stamps em {
+    font-size: 12px;
+    text-align: left;
+  }
+  .cm-stamp,
+  .cm-pp-stamps .cm-stamp {
+    --s: 34px;
+    flex: none;
+  }
+}
+
+/* the smallest phones: two stamps a row in the passport, so no label runs past the page */
+@media (max-width: 379px) {
+  .cm-pp-stamps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

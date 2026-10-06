@@ -256,7 +256,7 @@
   position: absolute;
   left: 50%;
   margin-left: 70px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--n-700);
 }
@@ -276,7 +276,7 @@
 .gs-linelabel {
   position: absolute;
   left: 14%;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--n-700);
   transition: opacity 0.5s;
@@ -315,7 +315,7 @@
   position: absolute;
   left: calc(50% + 52px);
   top: 120px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 999px;
@@ -529,11 +529,11 @@
 .gs-grid--3 .gs-col {
   overflow: visible;
 }
-/* labels stay at least ~10.5px on screen however far the scene is scaled down */
+/* labels stay at least 12px on screen however far the scene is scaled down */
 .gs-ticklabel,
 .gs-linelabel,
 .gs-autopilot {
-  font-size: max(11px, calc(10.5px / var(--k, 1)));
+  font-size: max(12px, calc(12px / var(--k, 1)));
 }
 .gs-stem--live {
   transition: height 0.15s linear;

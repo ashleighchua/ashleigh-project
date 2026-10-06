@@ -767,7 +767,8 @@ export function PortfolioPage() {
   };
 
   const k = mobile ? Math.min(0.72, vw / 610) : Math.min(1.18, vw / 1180);
-  const ko = mobile ? 0.8 : 1;
+  /* table objects stay full size on a phone, so the words on them read at 12px or more */
+  const ko = 1;
   const zoneH = mobile ? 240 : 290;
 
   const runOrder = () => {

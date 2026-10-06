@@ -847,7 +847,7 @@ body {
   font-size: 13px;
 }
 .pf-rc-top span {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-soft);
 }
 .pf-rev-card .pf-stars {
@@ -874,7 +874,7 @@ body {
   border-top: 1px dashed var(--ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-size: 11px;
+  font-size: 12px;
 }
 .pf-rc-row {
   display: flex;
@@ -898,7 +898,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-soft);
@@ -1121,7 +1121,7 @@ body {
   .pf-rcard .pf-rev-card {
     gap: 9px;
     padding: calc(var(--z) + 12px) 16px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .pf-rcard .pf-rev-card blockquote {
     font-size: 12px;
@@ -1599,7 +1599,7 @@ body {
   display: grid;
   place-items: center;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.15;
   transform: rotate(var(--r));
@@ -1630,10 +1630,10 @@ body {
   .pf-tile-stk {
     top: 12px;
     right: 12px;
-    width: 52px;
-    height: 52px;
+    width: 68px;
+    height: 68px;
     padding: 4px;
-    font-size: 9px;
+    font-size: 12px;
   }
   .pf-tile-h {
     font-size: 16px;

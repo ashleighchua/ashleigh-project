@@ -437,7 +437,7 @@ export function Camino({ onInView }: { onInView?: (inView: boolean) => void }) {
             <div
               className="cm-scene"
               aria-hidden="true"
-              style={{ width: V, height: SH, transform: `scale(${k})` }}
+              style={{ width: V, height: SH, transform: `scale(${k})`, "--k": k } as CSSProperties}
             >
               <div className="cm-sky" ref={skyRef} />
               <div className="cm-sun" ref={sunRef} />

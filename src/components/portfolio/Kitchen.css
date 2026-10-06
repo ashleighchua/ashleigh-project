@@ -124,19 +124,6 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
-/* On a desktop the wide room scales with the page and would grow taller than the
-   screen, so its width is capped by the screen's height instead: what is left once
-   the fixed nav (88px), the section padding, the heading (~84px), the gap and the
-   hint line under the room are taken off, times the room's 16:10. The hint keeps
-   the room's width so the two still line up. */
-@media (min-width: 640px) {
-  .pf-k-frame,
-  .pf-kitchen .pf-k-hint {
-    max-width: max(640px, calc((100svh - 88px - var(--sec-y) - var(--head-gap) - 140px) * 1.6));
-    margin-inline: auto;
-  }
-}
-
 /* Every part of the drawing is placed from the room's top-left corner. These are
    written with :where() so they stay at one class of specificity and any rule
    below can simply override them by coming later. */

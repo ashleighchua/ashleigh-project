@@ -53,23 +53,152 @@ const NARROW = 640;
 
 const coffees = (n: number) => `${n} coffee${n === 1 ? "" : "s"}`;
 
-/* ── the hanging plants: three trailing vines each, leaf counts picked by hand ── */
-const VINES = {
-  wide: [
-    { left: 27, string: 8, dur: 3.6, pot: "var(--color-neutral-100)", vines: [6, 9, 5] },
-    { left: 46.6, string: 5, dur: 4.2, pot: "var(--color-accent-500)", vines: [7, 4, 8] },
-    { left: 86, string: 3, dur: 3.9, pot: "var(--color-accent-2-200)", vines: [4, 7, 5] },
-  ],
-  tall: [
-    { left: 50, string: 14, dur: 3.8, pot: "var(--color-neutral-100)", vines: [5, 8, 4] },
-    { left: 88.5, string: 3, dur: 4.3, pot: "var(--color-accent-2-200)", vines: [4, 6, 5] },
-  ],
-};
+/* ── the hanging plants: a macramé hanger, a pot, and pothos vines trailing over the rim ── */
+type Vine = { x: number; len: number; bend: number };
+const PLANTS: { left: number; string: number; dur: number; pot: string; vines: Vine[] }[] = [
+  {
+    left: 46.4,
+    string: 3.5,
+    dur: 3.9,
+    pot: "var(--color-accent-500)",
+    vines: [
+      { x: 24, len: 96, bend: -10 },
+      { x: 42, len: 150, bend: 8 },
+      { x: 60, len: 70, bend: -6 },
+      { x: 76, len: 122, bend: 12 },
+    ],
+  },
+  {
+    left: 78,
+    string: 8,
+    dur: 4.4,
+    pot: "var(--color-neutral-100)",
+    vines: [
+      { x: 26, len: 120, bend: 9 },
+      { x: 46, len: 72, bend: -7 },
+      { x: 62, len: 168, bend: -12 },
+      { x: 78, len: 90, bend: 8 },
+    ],
+  },
+  {
+    left: 89.6,
+    string: 2.2,
+    dur: 3.6,
+    pot: "var(--color-accent-2-200)",
+    vines: [
+      { x: 28, len: 64, bend: -8 },
+      { x: 50, len: 112, bend: 10 },
+      { x: 72, len: 84, bend: -9 },
+    ],
+  },
+];
+/** where the vines leave the pot, in the plant's 100-wide viewBox */
+const RIM = 36;
+/** a pothos leaf: stalk at 0,0, tip at 0,13 */
+const LEAF =
+  "M0 0C-3 -2.4 -8.4 0 -7.6 5.4C-6.8 9.2 -2.6 11 0 13.4C2.6 11 6.8 9.2 7.6 5.4C8.4 0 3 -2.4 0 0Z";
+const GREENS = [
+  "var(--color-accent-2-400)",
+  "var(--color-accent-2-500)",
+  "var(--color-accent-2-600)",
+];
 
-function Plants({ layout }: { layout: "wide" | "tall" }) {
+/** a point down a vine: it drops straight and drifts sideways in a gentle S */
+const along = (v: Vine, t: number) =>
+  [v.x + v.bend * Math.sin(t * Math.PI * 0.85), RIM + v.len * t] as const;
+
+function HangingPlant({ p }: { p: (typeof PLANTS)[number] }) {
+  const h = RIM + Math.max(...p.vines.map((v) => v.len)) + 16;
+  return (
+    <svg className="pf-k-plant-art" viewBox={`-14 -10 128 ${h + 10}`} aria-hidden="true">
+      {/* macramé: three fine cords from the ring, knotted once, splaying to the rim */}
+      <g
+        stroke="var(--color-neutral-600)"
+        strokeWidth={1}
+        fill="none"
+        strokeLinecap="round"
+        opacity={0.85}
+      >
+        <circle cx={50} cy={-6} r={2.4} />
+        <path d="M50 -3.6V2M50 2L14 33M50 2V31M50 2L86 33" />
+        <path d="M47 2.5H53" strokeWidth={2.6} />
+      </g>
+      {/* the crown: leaves standing up out of the pot */}
+      {(
+        [
+          [22, 36, -122, 1.5, 2],
+          [33, 35, -148, 1.8, 0],
+          [47, 34, -172, 2, 1],
+          [57, 34, 168, 1.9, 2],
+          [68, 35, 146, 1.75, 0],
+          [79, 36, 122, 1.45, 1],
+        ] as const
+      ).map(([x, y, r, k, c], j) => (
+        <path
+          key={j}
+          d={LEAF}
+          fill={GREENS[c]}
+          transform={`translate(${x} ${y}) rotate(${r}) scale(${k})`}
+        />
+      ))}
+      {/* the pot */}
+      <path d="M16 36H84L78 62Q76 68 70 68H30Q24 68 22 62Z" fill={p.pot} />
+      <rect x={12} y={30} width={76} height={8} rx={2.5} fill={p.pot} />
+      <rect x={12} y={35.6} width={76} height={2.4} fill="var(--color-text)" opacity={0.12} />
+      <path d="M71 41H82L77 62Q76 65 73 66Z" fill="var(--color-text)" opacity={0.07} />
+      {/* the vines spill over the front of the rim, each swaying on its own */}
+      {p.vines.map((v, vi) => {
+        const pts = Array.from({ length: 13 }, (_, j) => along(v, j / 12));
+        const n = Math.round(v.len / 15);
+        const tip = along(v, 1);
+        return (
+          <g
+            key={vi}
+            className="pf-k-vine-sway"
+            style={{
+              transformOrigin: `${v.x}px ${RIM}px`,
+              animationDuration: `${p.dur * (0.8 + vi * 0.13)}s`,
+              animationDelay: `${-vi * 0.7}s`,
+            }}
+          >
+            <polyline
+              points={pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ")}
+              fill="none"
+              stroke="var(--color-accent-2-700)"
+              strokeWidth={1.1}
+              strokeLinecap="round"
+            />
+            {Array.from({ length: n }, (_, l) => {
+              const t = (l + 0.7) / (n + 0.4);
+              const [x, y] = along(v, t);
+              const side = (l + vi) % 2 ? 1 : -1;
+              // leaves shrink toward the tip, the way a new runner does
+              const k = 1.25 - t * 0.5;
+              return (
+                <path
+                  key={l}
+                  d={LEAF}
+                  fill={GREENS[(l + vi) % 3]}
+                  transform={`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${side * 62 - v.bend * 0.8}) scale(${k.toFixed(2)})`}
+                />
+              );
+            })}
+            <path
+              d={LEAF}
+              fill={GREENS[(vi + 1) % 3]}
+              transform={`translate(${tip[0].toFixed(1)} ${tip[1].toFixed(1)}) scale(0.7)`}
+            />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function Plants() {
   return (
     <>
-      {VINES[layout].map((p) => (
+      {PLANTS.map((p) => (
         <div
           key={p.left}
           className="pf-k-plant"
@@ -77,27 +206,10 @@ function Plants({ layout }: { layout: "wide" | "tall" }) {
             ["--left" as string]: `${p.left}cqw`,
             ["--string" as string]: `${p.string}cqw`,
             ["--dur" as string]: `${p.dur}s`,
-            ["--pot" as string]: p.pot,
           }}
         >
           <span className="pf-k-hang" />
-          <span className="pf-k-foliage">
-            <i className="pf-k-sling pf-k-sling--l" />
-            <i className="pf-k-sling pf-k-sling--r" />
-            <i className="pf-k-frond pf-k-frond--l" />
-            <i className="pf-k-frond pf-k-frond--c" />
-            <i className="pf-k-frond pf-k-frond--r" />
-            <i className="pf-k-pot" />
-            <span className="pf-k-vines">
-              {p.vines.map((n, v) => (
-                <i key={v} className="pf-k-vine">
-                  {Array.from({ length: n }, (_, l) => (
-                    <b key={l} className="pf-k-leaf" />
-                  ))}
-                </i>
-              ))}
-            </span>
-          </span>
+          <HangingPlant p={p} />
         </div>
       ))}
     </>
@@ -640,7 +752,7 @@ export function Kitchen() {
                 <u className="pf-k-crock-spoon" />
               </span>
 
-              <Plants layout="wide" />
+              <Plants />
 
               <span className="pf-k-tiles" aria-hidden="true" />
               <span className="pf-k-floor" aria-hidden="true" />

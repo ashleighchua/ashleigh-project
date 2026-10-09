@@ -160,9 +160,19 @@
 .cm-post--light {
   background: var(--color-accent-700);
 }
+/* the board sizes to its words (they floor at 12px on screen, so on a phone they're
+   bigger in scene units) and grows up and out from the post, never down onto the path */
+.cm-board-at {
+  position: absolute;
+  left: 95px;
+  bottom: 40px;
+  translate: -50% 0;
+  width: max-content;
+  min-width: 190px;
+}
 .cm-board {
   position: relative;
-  padding: 12px;
+  padding: 12px 22px;
   border-radius: 18px;
   background: var(--color-accent-700);
   border: 4px solid var(--color-accent-800);
@@ -182,6 +192,8 @@
 .cm-board b {
   font: 800 max(15px, var(--fs-min)) / 1.1 var(--font-heading);
   color: var(--color-bg);
+  max-width: 11em;
+  text-wrap: balance;
 }
 .cm-board span {
   margin-top: 2px;
@@ -190,6 +202,7 @@
   background: var(--color-accent-2-200);
   font: 600 var(--fs-min) / 1.1 var(--font-body);
   color: var(--color-accent-2-900);
+  white-space: nowrap;
 }
 .cm-more {
   padding: 14px 16px;
@@ -216,17 +229,22 @@
   z-index: 4;
 }
 .cm-bubble {
+  /* grows with its words: on a phone the scene is drawn small and the text floors at
+     12px on screen, so the circle scales up by the same amount to keep them inside.
+     It grows out from its centre, so it stays put over the stop. */
+  --bub: calc(140px / min(1, var(--k, 1)));
   position: relative;
-  width: 124px;
-  height: 124px;
+  width: var(--bub);
+  height: var(--bub);
+  margin: calc((124px - var(--bub)) / 2);
   border-radius: 999px;
   border: 3px solid;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 0 14px;
+  gap: 5px;
+  padding: 0 16px;
   text-align: center;
   animation: cm-float 2.2s ease-in-out infinite;
 }

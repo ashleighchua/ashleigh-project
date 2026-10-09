@@ -670,7 +670,7 @@ function World({
           <div key={s.place}>
             <div style={at(x - 300, SG - 120, 190, 138)}>
               <div className="cm-post" style={at(89, 50, 12, 88)} />
-              <div style={at(0, 0, 190)}>
+              <div className="cm-board-at">
                 <Signpost s={s} />
               </div>
             </div>

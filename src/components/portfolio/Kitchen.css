@@ -482,6 +482,8 @@
 .pf-k-plant {
   position: absolute;
   left: var(--left);
+  top: 1cqw;
+  width: 7.6cqw;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -489,184 +491,32 @@
   animation: pf-k-sway var(--dur) ease-in-out infinite alternate;
   z-index: 3;
 }
-.pf-k-scene--wide .pf-k-plant {
-  top: 1cqw;
-  width: 4cqw;
-}
-.pf-k-scene--tall .pf-k-plant {
-  top: 2cqw;
-  width: 10cqw;
-}
 .pf-k-hang {
   position: relative;
+  width: 0.16cqw;
   height: var(--string);
   background: var(--color-neutral-600);
 }
-.pf-k-scene--wide .pf-k-hang {
-  width: 0.16cqw;
-}
-.pf-k-scene--tall .pf-k-hang {
-  width: 0.4cqw;
-}
-.pf-k-foliage {
-  position: relative;
-}
-.pf-k-scene--wide .pf-k-foliage {
-  width: 4cqw;
-  height: 3.2cqw;
-}
-.pf-k-scene--tall .pf-k-foliage {
-  width: 10cqw;
-  height: 8cqw;
-}
-/* the macramé strings holding the pot; too fine to be worth drawing on a phone */
-.pf-k-sling {
-  top: -1.6cqw;
-  width: 1.7cqw;
-  height: 1.9cqw;
-}
-.pf-k-sling--l {
-  left: 0.3cqw;
-  border-left: 0.14cqw solid var(--color-neutral-600);
-  transform: skewX(-40deg);
-  transform-origin: 100% 0;
-}
-.pf-k-sling--r {
-  right: 0.3cqw;
-  border-right: 0.14cqw solid var(--color-neutral-600);
-  transform: skewX(40deg);
-  transform-origin: 0 0;
-}
-.pf-k-scene--tall .pf-k-sling {
-  display: none;
-}
-.pf-k-frond {
-  border-radius: 50%;
-}
-.pf-k-scene--wide .pf-k-frond--l {
-  left: -0.8cqw;
-  top: -0.4cqw;
-  width: 2.4cqw;
-  height: 1.6cqw;
-  transform: rotate(-25deg);
-}
-.pf-k-scene--wide .pf-k-frond--c {
-  left: 0.8cqw;
-  top: -0.9cqw;
-  width: 2.4cqw;
-  height: 1.8cqw;
-}
-.pf-k-scene--wide .pf-k-frond--r {
-  left: 2.4cqw;
-  top: -0.4cqw;
-  width: 2.4cqw;
-  height: 1.5cqw;
-  transform: rotate(25deg);
-}
-.pf-k-scene--tall .pf-k-frond--l {
-  left: -2cqw;
-  top: -1cqw;
-  width: 6cqw;
-  height: 4cqw;
-  transform: rotate(-25deg);
-}
-.pf-k-scene--tall .pf-k-frond--c {
-  left: 2cqw;
-  top: -2.2cqw;
-  width: 6cqw;
-  height: 4.4cqw;
-}
-.pf-k-scene--tall .pf-k-frond--r {
-  left: 6cqw;
-  top: -1cqw;
-  width: 6cqw;
-  height: 3.8cqw;
-  transform: rotate(25deg);
-}
-.pf-k-frond--l {
-  background: var(--color-accent-2-600);
-}
-.pf-k-frond--c {
-  background: var(--color-accent-2-500);
-}
-.pf-k-frond--r {
-  background: var(--color-accent-2-400);
-}
-.pf-k-pot {
-  background: var(--pot);
-  box-shadow: inset 0 0.6cqw 0 color-mix(in srgb, var(--color-text) 14%, transparent);
-}
-.pf-k-scene--wide .pf-k-pot {
-  left: 0;
-  top: 0.4cqw;
-  width: 4cqw;
-  height: 2.8cqw;
-  border-radius: 0.4cqw 0.4cqw 2cqw 2cqw;
-}
-.pf-k-scene--tall .pf-k-pot {
-  left: 0;
-  top: 1cqw;
-  width: 10cqw;
-  height: 7cqw;
-  border-radius: 1cqw 1cqw 5cqw 5cqw;
-  box-shadow: inset 0 1.4cqw 0 color-mix(in srgb, var(--color-text) 14%, transparent);
-}
-.pf-k-vines {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-.pf-k-scene--wide .pf-k-vines {
-  left: -0.3cqw;
-  top: 2.2cqw;
-  width: 4.6cqw;
-}
-.pf-k-scene--tall .pf-k-vines {
-  left: -0.6cqw;
-  top: 6cqw;
-  width: 11.2cqw;
-}
-.pf-k-vine {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.pf-k-scene--wide .pf-k-vine {
-  width: 1.3cqw;
-}
-.pf-k-scene--tall .pf-k-vine {
-  width: 3cqw;
-}
-.pf-k-leaf {
-  position: relative;
-  border-radius: 50%;
-}
-.pf-k-scene--wide .pf-k-leaf {
-  width: 1.1cqw;
-  height: 0.75cqw;
+.pf-k-plant-art {
+  display: block;
+  width: 100%;
+  height: auto;
   margin-top: -0.1cqw;
+  overflow: visible;
+  filter: drop-shadow(0 0.3cqw 0.3cqw color-mix(in srgb, var(--color-text) 12%, transparent));
 }
-.pf-k-scene--tall .pf-k-leaf {
-  width: 2.6cqw;
-  height: 1.8cqw;
-  margin-top: -0.25cqw;
+/* each vine swings a little on its own, out of step with the pot */
+.pf-k-vine-sway {
+  transform-box: view-box;
+  animation: pf-k-vine 4s ease-in-out infinite alternate;
 }
-/* leaves alternate down the vine, and cycle through three greens */
-.pf-k-leaf:nth-child(odd) {
-  transform: translateX(-0.22cqw) rotate(-24deg);
-}
-.pf-k-leaf:nth-child(even) {
-  transform: translateX(0.22cqw) rotate(24deg);
-}
-.pf-k-leaf:nth-child(3n + 1) {
-  background: var(--color-accent-2-500);
-}
-.pf-k-leaf:nth-child(3n + 2) {
-  background: var(--color-accent-2-600);
-}
-.pf-k-leaf:nth-child(3n) {
-  background: var(--color-accent-2-400);
+@keyframes pf-k-vine {
+  from {
+    transform: rotate(-3.5deg);
+  }
+  to {
+    transform: rotate(3.5deg);
+  }
 }
 
 /* ═════ cabinets and counter ═════ */
@@ -2703,6 +2553,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pf-k-plant,
+  .pf-k-vine-sway,
   .pf-k-stream,
   .pf-k-steam > b,
   .pf-k-pop,

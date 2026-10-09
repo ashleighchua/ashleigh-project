@@ -124,7 +124,18 @@ const SIZE: Record<(typeof SH)[number], [number, number]> = {
   blob: [214, 150],
 };
 
-export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }) {
+export function StickerFace({
+  i,
+  look,
+  k,
+  minFont = 12,
+}: {
+  i: number;
+  look: Look;
+  k: number;
+  /** the smallest the label may get, in px; the sticker grows rather than go under it */
+  minFont?: number;
+}) {
   const p = STK[i]!;
   const shape = SH[look.s]!;
   const [bg, fg] = COL[look.c]!;
@@ -368,8 +379,8 @@ export function StickerFace({ i, look, k }: { i: number; look: Look; k: number }
     );
   }
 
-  // on a small screen the sticker grows rather than letting its words drop under 12px
-  const grow = Math.max(1, 12 / minFs);
+  // on a small screen the sticker grows rather than letting its words drop under minFont
+  const grow = Math.max(1, minFont / minFs);
   return (
     <svg width={w * grow} height={h * grow} viewBox={`0 0 ${w} ${h}`} className="pf-stk-svg">
       {body}

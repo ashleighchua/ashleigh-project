@@ -34,6 +34,8 @@ import "./portfolio.css";
 type StickerProps = {
   i: number;
   k: number;
+  /** smallest label size on the floating sticker, in px */
+  minFont: number;
   ko: number;
   refs: {
     post: React.MutableRefObject<(HTMLButtonElement | null)[]>;
@@ -46,7 +48,7 @@ type StickerProps = {
 };
 
 /** One hero sticker. Owns its colour/shape so a tap re-renders only this sticker, not the page. */
-const Sticker = memo(function Sticker({ i, k, ko, refs, onPoke, onHover }: StickerProps) {
+const Sticker = memo(function Sticker({ i, k, minFont, ko, refs, onPoke, onHover }: StickerProps) {
   const p = STK[i]!;
   const [look, setLook] = useState<Look>({ c: p.c, s: p.s });
   refs.reshuffle.current[i] = () =>
@@ -71,7 +73,7 @@ const Sticker = memo(function Sticker({ i, k, ko, refs, onPoke, onHover }: Stick
           refs.faceS.current[i] = el;
         }}
       >
-        <StickerFace i={i} look={look} k={k} />
+        <StickerFace i={i} look={look} k={k} minFont={minFont} />
       </div>
       <div
         className="pf-face"
@@ -418,10 +420,12 @@ export function PortfolioPage() {
       if (!tEl || !hero) return;
       const h = hero.getBoundingClientRect();
       const a1 = inkBox(tEl);
-      const l = a1.left - h.left - 16;
-      const rt = a1.right - h.left + 16;
-      const tp = a1.top - h.top - 16;
-      const bt = a1.bottom - h.top + 16;
+      // a little more berth on a phone, where the rows sit right above and below the words
+      const pad = mobileRef.current ? 20 : 16;
+      const l = a1.left - h.left - pad;
+      const rt = a1.right - h.left + pad;
+      const tp = a1.top - h.top - pad;
+      const bt = a1.bottom - h.top + pad;
       headBox.current = {
         cx: (l + rt) / 2,
         cy: (tp + bt) / 2,
@@ -503,8 +507,10 @@ export function PortfolioPage() {
         const pos = STK.map((_, i) => {
           const s = sim.current[i]!;
           const sp = spots[s.spot]!;
-          const tsx = sp[0] + s.jx;
-          const tsy = sp[1] + s.jy;
+          // the rows on a phone are packed tight, so the random offset is kept small there
+          const jit = mobileRef.current ? 0.3 : 1;
+          const tsx = sp[0] + s.jx * jit;
+          const tsy = sp[1] + s.jy * jit;
           if (!s.init) {
             s.sx = tsx;
             s.sy = tsy;
@@ -766,7 +772,11 @@ export function PortfolioPage() {
     say(MEOWS[pet.meow]!, "talk", 3800);
   };
 
-  const k = mobile ? Math.min(0.72, vw / 610) : Math.min(1.18, vw / 1180);
+  const k = mobile ? Math.min(0.6, vw / 650) : Math.min(1.18, vw / 1180);
+  /* On a phone the hero has to hold two staggered rows of four stickers and the headline
+     in one screen, which 12px labels make too big to do without piling them up, so the
+     floating stickers alone go a little smaller there. Everything else stays at 12px. */
+  const stkFont = mobile ? 9 : 12;
   /* table objects stay full size on a phone, so the words on them read at 12px or more */
   const ko = 1;
   const zoneH = mobile ? 240 : 290;
@@ -1170,7 +1180,16 @@ export function PortfolioPage() {
       {/* ═════ Sticker layer (positioned by the rAF loop) ═════ */}
       <div className="pf-posts">
         {STK.map((_, i) => (
-          <Sticker key={i} i={i} k={k} ko={ko} refs={stickerRefs} onPoke={poke} onHover={hover} />
+          <Sticker
+            key={i}
+            i={i}
+            k={k}
+            minFont={stkFont}
+            ko={ko}
+            refs={stickerRefs}
+            onPoke={poke}
+            onHover={hover}
+          />
         ))}
       </div>
 

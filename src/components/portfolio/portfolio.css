@@ -382,8 +382,8 @@ body {
 }
 @media (max-width: 760px) {
   .pf-hero-logo .pf-logo {
-    width: 64px;
-    height: 64px;
+    width: 52px;
+    height: 52px;
   }
   .pf-top {
     --nav-h: 68px;
@@ -391,11 +391,21 @@ body {
   .pf-nav {
     padding-block: 12px;
   }
-  /* room above and below the headline for the two sticker clusters, all in one screen */
+  /* one screen: a staggered row of stickers above the headline, one below */
   .pf-hero {
     min-height: calc(100svh - var(--nav-h));
-    padding-top: 130px;
-    padding-bottom: calc(130px + var(--nav-h));
+    padding-top: 225px;
+    padding-bottom: 225px;
+  }
+  .pf-hero-text {
+    gap: 14px;
+  }
+  .pf-hero-logo {
+    margin-bottom: 0;
+  }
+  /* the bottom row of stickers sits where the arrow would be */
+  .pf .pf-hero .pf-scroll {
+    display: none;
   }
   .pf-avail {
     font-size: 12px !important;
